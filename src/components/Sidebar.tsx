@@ -15,6 +15,14 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+  show: boolean;
+  subItems?: { name: string; href: string }[];
+}
+
 export default function Sidebar({ user, isMobileOpen, onClose }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
@@ -58,6 +66,11 @@ export default function Sidebar({ user, isMobileOpen, onClose }: SidebarProps) {
         </svg>
       ),
       show: true,
+      subItems: [
+        { name: "Entrada de productos", href: "/dashboard/inventario?view=entradas" },
+        { name: "Salida de productos", href: "/dashboard/inventario?view=salidas" },
+        { name: "Stock Actual", href: "/dashboard/inventario?view=stock" },
+      ]
     },
     {
       name: "Configuración",
@@ -114,19 +127,40 @@ export default function Sidebar({ user, isMobileOpen, onClose }: SidebarProps) {
         </div>
 
         <nav className="sidebar-nav">
-          {navItems.filter(item => item.show).map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-item ${pathname === item.href ? "active" : ""}`}
-              onClick={() => {
-                if (typeof window !== 'undefined' && window.innerWidth <= 768 && onClose) onClose();
-              }}
-            >
-              <div className="nav-icon">{item.icon}</div>
-              <span className="nav-text">{item.name}</span>
-            </Link>
-          ))}
+          {navItems.filter(item => item.show).map((item) => {
+            const isActive = pathname === item.href;
+            const hasSubItems = item.subItems && item.subItems.length > 0;
+            
+            return (
+              <div key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`nav-item ${isActive ? "active" : ""}`}
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && window.innerWidth <= 768 && onClose) onClose();
+                  }}
+                >
+                  <div className="nav-icon">{item.icon}</div>
+                  <span className="nav-text">{item.name}</span>
+                </Link>
+                
+                {hasSubItems && (isExpanded || isMobileOpen) && (
+                  <div className="sub-nav">
+                    {item.subItems?.map(sub => (
+                      <Link 
+                        key={sub.href} 
+                        href={sub.href} 
+                        className={`sub-nav-item ${pathname === sub.href.split('?')[0] ? "active-sub" : ""}`}
+                      >
+                        <div className="sub-nav-dot" />
+                        <span className="nav-text">{sub.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="sidebar-footer">
@@ -158,6 +192,43 @@ export default function Sidebar({ user, isMobileOpen, onClose }: SidebarProps) {
           </form>
         </div>
       </aside>
+      <style jsx>{`
+        .sub-nav {
+          padding-left: 2rem;
+          margin-top: 0.25rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+        .sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .sub-nav {
+          display: none;
+        }
+        .sub-nav-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.5rem 1rem;
+          color: var(--navy-light);
+          text-decoration: none;
+          font-size: 0.8125rem;
+          border-radius: 6px;
+          transition: all 0.2s;
+        }
+        .sub-nav-item:hover {
+          background: var(--bg-app);
+          color: var(--primary);
+        }
+        .sub-nav-dot {
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background: currentColor;
+          opacity: 0.5;
+        }
+        .nav-item.active + .sub-nav {
+          display: flex;
+        }
+      `}</style>
     </>
   );
 }

@@ -16,6 +16,25 @@ export interface Supplier extends MasterItem {
   tax_id?: string | null;
 }
 
+export interface CatalogItem {
+  id: string;
+  internal_code: string;
+  technical_name: string;
+  commercial_name?: string | null;
+  category_id?: string | null;
+  section_id?: string | null;
+  supplier_id?: string | null;
+  purchase_unit: string;
+  usage_unit?: string | null;
+  minimum_stock_threshold?: number;
+  is_active?: boolean;
+  created_at?: string;
+  // Relational data
+  categories?: { name: string };
+  sections?: { name: string };
+  suppliers?: { name: string };
+}
+
 /**
  * Service for managing master tables and catalog entities.
  */
@@ -101,6 +120,21 @@ export const CatalogService = {
       .from("catalog_items")
       .select("*, sections(name), suppliers(name), categories(name)")
       .order("technical_name");
+  },
+
+  async upsertCatalogItem(data: Partial<CatalogItem>) {
+    const supabase = await createClient();
+    return await supabase.from("catalog_items").upsert(data).select().single();
+  },
+
+  async deleteCatalogItem(id: string) {
+    const supabase = await createClient();
+    return await supabase.from("catalog_items").delete().eq("id", id);
+  },
+
+  async toggleCatalogItem(id: string, isActive: boolean) {
+    const supabase = await createClient();
+    return await supabase.from("catalog_items").update({ is_active: isActive }).eq("id", id);
   },
 
   async toggleLocation(id: string, isActive: boolean) {
