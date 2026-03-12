@@ -27,9 +27,9 @@ export async function signInWithGoogle() {
   const supabase = await createClient();
   const headersList = await headers();
   
-  // More robust origin detection for Vercel/Production vs Local
-  const host = headersList.get("host");
-  const protocol = headersList.get("x-forwarded-proto") || "http";
+  // Ultra-robust origin detection for Vercel/Production vs Local
+  const host = headersList.get("x-forwarded-host") || headersList.get("host");
+  const protocol = headersList.get("x-forwarded-proto") || "https";
   const origin = host ? `${protocol}://${host}` : "http://localhost:3000";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
