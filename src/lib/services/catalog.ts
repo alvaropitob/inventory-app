@@ -1,0 +1,115 @@
+import { createClient } from "@/lib/supabase/server";
+
+export interface MasterItem {
+  id: string;
+  name: string;
+  description?: string | null;
+  is_active?: boolean;
+  created_at?: string;
+}
+
+export interface Supplier extends MasterItem {
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  address?: string | null;
+  tax_id?: string | null;
+}
+
+/**
+ * Service for managing master tables and catalog entities.
+ */
+export const CatalogService = {
+  // --- SECTIONS ---
+  async getSections() {
+    const supabase = await createClient();
+    return await supabase.from("sections").select("*, categories(name)").order("name");
+  },
+
+  async upsertSection(data: any) {
+    const supabase = await createClient();
+    return await supabase.from("sections").upsert(data).select().single();
+  },
+
+  async toggleSection(id: string, isActive: boolean) {
+    const supabase = await createClient();
+    return await supabase.from("sections").update({ is_active: isActive }).eq("id", id);
+  },
+
+  async deleteSection(id: string) {
+    const supabase = await createClient();
+    return await supabase.from("sections").delete().eq("id", id);
+  },
+
+  // --- SUPPLIERS ---
+  async getSuppliers() {
+    const supabase = await createClient();
+    return await supabase.from("suppliers").select("*").order("name");
+  },
+
+  async upsertSupplier(data: Partial<Supplier>) {
+    const supabase = await createClient();
+    return await supabase.from("suppliers").upsert(data).select().single();
+  },
+
+  async toggleSupplier(id: string, isActive: boolean) {
+    const supabase = await createClient();
+    return await supabase.from("suppliers").update({ is_active: isActive }).eq("id", id);
+  },
+
+  async deleteSupplier(id: string) {
+    const supabase = await createClient();
+    return await supabase.from("suppliers").delete().eq("id", id);
+  },
+
+  // --- LOCATIONS ---
+  async getLocations() {
+    const supabase = await createClient();
+    return await supabase.from("locations").select("*, sections(name)").order("name");
+  },
+
+  async upsertLocation(data: any) {
+    const supabase = await createClient();
+    return await supabase.from("locations").upsert(data).select().single();
+  },
+
+  // --- CATEGORIES ---
+  async getCategories() {
+    const supabase = await createClient();
+    return await supabase.from("categories").select("*").order("name");
+  },
+
+  async upsertCategory(data: Partial<MasterItem>) {
+    const supabase = await createClient();
+    return await supabase.from("categories").upsert(data).select().single();
+  },
+
+  async toggleCategory(id: string, isActive: boolean) {
+    const supabase = await createClient();
+    return await supabase.from("categories").update({ is_active: isActive }).eq("id", id);
+  },
+
+  async deleteCategory(id: string) {
+    const supabase = await createClient();
+    return await supabase.from("categories").delete().eq("id", id);
+  },
+
+  // --- CATALOG ITEMS ---
+  async getCatalogItems() {
+    const supabase = await createClient();
+    return await supabase
+      .from("catalog_items")
+      .select("*, sections(name), suppliers(name), categories(name)")
+      .order("technical_name");
+  },
+
+  async toggleLocation(id: string, isActive: boolean) {
+    const supabase = await createClient();
+    return await supabase.from("locations").update({ is_active: isActive }).eq("id", id);
+  },
+
+  async deleteLocation(id: string) {
+    const supabase = await createClient();
+    return await supabase.from("locations").delete().eq("id", id);
+  }
+};
