@@ -49,7 +49,7 @@ export class StockService {
         .select()
         .single();
       
-      if (updateError) throw updateError;
+      if (updateError) return { data: null, error: updateError };
       batchId = updatedBatch.id;
     } else {
       // Create the batch
@@ -70,7 +70,7 @@ export class StockService {
         .select()
         .single();
 
-      if (batchError) throw batchError;
+      if (batchError) return { data: null, error: batchError };
       batchId = newBatch.id;
     }
 
@@ -85,9 +85,9 @@ export class StockService {
         reason: data.notes || 'Ingreso de mercancía'
       });
 
-    if (movementError) throw movementError;
+    if (movementError) return { data: null, error: movementError };
 
-    return { id: batchId };
+    return { data: { id: batchId }, error: null };
   }
 
   static async getAllBatches() {

@@ -101,20 +101,6 @@ export default async function InventarioPage({
         )}
         {currentView === 'entradas' && (
           <>
-            {/* Visual Debug (Temporary) */}
-            {editId && (
-              <div style={{ padding: '0.8rem', marginBottom: '1rem', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '8px', fontSize: '0.75rem', lineHeight: '1.4' }}>
-                <div style={{ fontWeight: 'bold', color: '#92400e', marginBottom: '0.4rem' }}>🔧 DIAGNÓSTICO DE CARGA:</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem' }}>
-                  <span><strong>ID:</strong> {editId.substring(0,8)}...</span>
-                  <span><strong>Sección:</strong> {editingItem?.section_id ? '✅ Carga' : '❌ Vacío'}</span>
-                  <span><strong>Proveedor:</strong> {(latestBatch?.supplier_id || editingItem?.supplier_id) ? '✅ Carga' : '❌ Vacío'}</span>
-                  <span><strong>Lote:</strong> {latestBatch?.batch_number ? '✅ Carga' : '❌ Vacío'}</span>
-                  <span><strong>Vencimiento:</strong> {latestBatch?.expiration_date ? '✅ Carga' : '❌ Vacío'}</span>
-                  <span><strong>Ubicación:</strong> {latestBatch?.location_id ? '✅ Carga' : '❌ Vacío'}</span>
-                </div>
-              </div>
-            )}
             <div className="welcome-section" style={{ padding: '0.5rem 1rem 1.5rem 1rem' }}>
               <h2 style={{ fontSize: '1.125rem', color: 'var(--navy)', fontWeight: '800' }}>Catálogo Maestro de Productos</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Defina los productos maestros que ingresarán al inventario.</p>

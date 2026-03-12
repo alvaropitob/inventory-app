@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 interface SidebarProps {
   user: {
@@ -23,9 +24,11 @@ interface NavItem {
   subItems?: { name: string; href: string }[];
 }
 
-export default function Sidebar({ user, isMobileOpen, onClose }: SidebarProps) {
+export default function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const fullPath = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
 
   const isAdmin = user.role === "admin";
 
@@ -150,7 +153,7 @@ export default function Sidebar({ user, isMobileOpen, onClose }: SidebarProps) {
                       <Link 
                         key={sub.href} 
                         href={sub.href} 
-                        className={`sub-nav-item ${pathname === sub.href.split('?')[0] ? "active-sub" : ""}`}
+                        className={`sub-nav-item ${fullPath === sub.href ? "active-sub" : ""}`}
                       >
                         <div className="sub-nav-dot" />
                         <span className="nav-text">{sub.name}</span>
