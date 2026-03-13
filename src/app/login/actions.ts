@@ -29,8 +29,10 @@ export async function signInWithGoogle() {
   
   // Ultra-robust origin detection for Vercel/Production vs Local
   const host = headersList.get("x-forwarded-host") || headersList.get("host");
-  const protocol = headersList.get("x-forwarded-proto") || "https";
-  const origin = host ? `${protocol}://${host}` : "http://localhost:3000";
+  const protocol = headersList.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+  const origin = host ? `${protocol}://${host}` : "https://inventory-app-ten-omega.vercel.app";
+
+  console.log("Auth Origin Debug:", { host, protocol, origin });
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
