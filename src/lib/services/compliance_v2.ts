@@ -8,7 +8,7 @@ export interface EnvironmentalLog {
     temperature: number;
     humidity?: number;
     created_at: string;
-    recorded_by: string;
+    user_id: string;
     notes?: string;
     locations?: { name: string };
 }
@@ -49,7 +49,7 @@ export const ComplianceServiceV2 = {
                 temperature: data.temperature,
                 humidity: data.humidity,
                 notes: data.notes,
-                recorded_by: user.id
+                user_id: user.id
             })
             .select()
             .single();

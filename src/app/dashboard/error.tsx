@@ -55,9 +55,17 @@ export default function Error({
 
       <div style={{ marginTop: '3rem', padding: '1.5rem', background: 'var(--bg-app)', borderRadius: '12px', textAlign: 'left', width: '100%', maxWidth: '600px', border: '1px solid var(--border)' }}>
         <h3 style={{ fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', color: 'var(--navy-light)', marginBottom: '1rem' }}>Detalles técnicos del error</h3>
-        <code style={{ fontSize: '0.8rem', color: '#4b5563', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+        <code style={{ fontSize: '0.8rem', color: '#4b5563', whiteSpace: 'pre-wrap', wordBreak: 'break-all', display: 'block', marginBottom: '1rem' }}>
           {error.message || "No hay un mensaje de error específico disponible."}
         </code>
+        {error.stack && (
+          <details>
+            <summary style={{ fontSize: '0.75rem', cursor: 'pointer', color: 'var(--text-muted)' }}>Ver stack trace (solo desarrollo)</summary>
+            <pre style={{ fontSize: '0.7rem', marginTop: '1rem', overflowX: 'auto', color: '#6b7280' }}>
+              {error.stack}
+            </pre>
+          </details>
+        )}
       </div>
     </div>
   );

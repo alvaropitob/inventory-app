@@ -7,7 +7,7 @@ export interface InventoryLot {
     catalog_item_id: string;
     lot_number: string;
     expiration_date: string;
-    current_quantity: number;
+    current_stock: number;
     clinical_status: LotStatus;
     storage_location_id?: string;
     manufacturer_name?: string;
@@ -31,7 +31,10 @@ export const ComplianceService = {
             .limit(1)
             .single();
 
-        if (error) return null;
+        if (error || !data) {
+            console.warn("No suggested lot found for item:", itemId);
+            return null;
+        }
         return data;
     },
 
