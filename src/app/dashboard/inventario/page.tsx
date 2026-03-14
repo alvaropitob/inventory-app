@@ -5,6 +5,7 @@ import { StockService } from "@/lib/services/stock";
 import { revalidatePath } from "next/cache";
 import DeleteMasterButton from "@/components/DeleteMasterButton";
 import InventoryProductSelector from "@/components/InventoryProductSelector";
+import ExportCSVButton from "@/components/ExportCSVButton";
 import * as Actions from "./actions";
 export const dynamic = "force-dynamic";
 
@@ -377,9 +378,24 @@ export default async function InventarioPage({
 
         {currentView === 'stock' && (
           <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-              <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>Stock Actual Consolidado</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Visión global y en tiempo real de las existencias disponibles por producto.</p>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>Stock Actual Consolidado</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Visión global y en tiempo real de las existencias disponibles por producto.</p>
+              </div>
+              <ExportCSVButton 
+                filename="Reporte_Stock_Actual" 
+                data={consolidatedStock.map((row: any) => ({
+                  'Código': row.internal_code || 'N/A',
+                  'Producto': row.technical_name || 'N/A',
+                  'Nombre Comercial': row.commercial_name || 'N/A',
+                  'Categoría': row.sections?.name || 'Genérico',
+                  'Stock Total Universitario': row.totalStock,
+                  'Unidad de Compra': row.purchase_unit || 'N/A',
+                  'Lotes Disponibles (Lote:Cantidad)': row.itemBatches?.filter((b: any) => b.current_stock > 0).map((b: any) => `${b.batch_number}:${b.current_stock}`).join(' | ') || 'Agotado',
+                  'Estado de Inventario': row.totalStock === 0 ? 'Agotado' : row.totalStock <= (row.minimum_stock_threshold || 10) ? 'Stock Bajo' : 'Óptimo'
+                }))}
+              />
             </div>
             <div className="table-responsive">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -525,9 +541,25 @@ export default async function InventarioPage({
 
         {currentView === 'movimientos' && (
           <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-              <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>Kardex (Historial de Movimientos)</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Registro auditable de todas las entradas, salidas y ajustes de inventario.</p>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>Kardex (Historial de Movimientos)</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Registro auditable de todas las entradas, salidas y ajustes de inventario.</p>
+              </div>
+              <ExportCSVButton 
+                filename="Kardex_Movimientos" 
+                data={(allMovements || []).map((row: any) => ({
+                  'Fecha Realización': new Date(row.created_at).toLocaleString(),
+                  'Tipo Movimiento': row.movement_type === 'entry' ? 'Entrada' : row.movement_type === 'exit' ? 'Salida' : row.movement_type === 'adjustment' ? 'Ajuste' : 'Descarte',
+                  'Producto': row.batch?.item?.technical_name || 'Desconocido',
+                  'Código Interno': row.batch?.item?.internal_code || 'N/A',
+                  'Número de Lote': row.batch?.batch_number || 'N/A',
+                  'Fecha Vencimiento': row.batch?.expiration_date ? new Date(row.batch.expiration_date).toLocaleDateString() : 'N/A',
+                  'Impacto en Stock': (row.movement_type === 'entry' ? '+' : '-') + row.quantity,
+                  'Responsable': row.user?.full_name || row.user?.username || 'Sistema',
+                  'Motivo / Justificación': row.reason
+                }))} 
+              />
             </div>
             <div className="table-responsive">
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
