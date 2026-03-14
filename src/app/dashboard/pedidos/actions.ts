@@ -47,7 +47,7 @@ export async function createPurchaseOrder(formData: FormData) {
   }));
 
   try {
-    await OrderService.createOrder({
+    const order = await OrderService.createOrder({
       supplier_id,
       expected_delivery_date: expected_delivery_date || null,
       notes: notes || null,
@@ -56,7 +56,8 @@ export async function createPurchaseOrder(formData: FormData) {
       status: "draft" // Everything starts as draft
     }, orderItems);
 
-    return { success: true };
+    revalidatePath("/dashboard/pedidos");
+    redirect(`/dashboard/pedidos/${order.id}`);
   } catch (error) {
     console.error("Create Order Error:", error);
     const message = encodeURIComponent(error instanceof Error ? error.message : "Error al procesar el pedido");

@@ -74,7 +74,7 @@ export default async function AuditoriaPage() {
               </tr>
             </thead>
             <tbody>
-              {logs.map((log) => (
+              {logs.map((log: AuditLog) => (
                 <tr key={log.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
                   <td style={{ padding: '1.25rem', fontSize: '0.85rem' }}>
                     <div style={{ fontWeight: '600', color: 'var(--navy)' }}>{new Date(log.created_at).toLocaleDateString()}</div>

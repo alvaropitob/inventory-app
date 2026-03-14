@@ -17,13 +17,6 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ReactNode;
-  show: boolean;
-  subItems?: { name: string; href: string }[];
-}
 
 export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
