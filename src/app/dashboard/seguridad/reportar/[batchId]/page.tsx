@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { StockService } from "@/lib/services/stock";
 import * as Actions from "../../actions";
@@ -95,14 +96,13 @@ export default async function ReportarIncidentePage({ params }: PageProps) {
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                <button 
-                                    type="button" 
-                                    onClick={() => redirect("/dashboard/inventario")}
+                                <Link 
+                                    href="/dashboard/inventario"
                                     className="btn-secondary" 
-                                    style={{ flex: 1, padding: '1rem', justifyContent: 'center' }}
+                                    style={{ flex: 1, padding: '1rem', justifyContent: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center' }}
                                 >
                                     Cancelar
-                                </button>
+                                </Link>
                                 <button 
                                     type="submit" 
                                     className="btn-primary" 

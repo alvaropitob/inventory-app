@@ -81,7 +81,8 @@ export default async function RecepcionPage() {
           <p>Hubo un problema al conectar con el servicio de órdenes. Por favor, intenta recargar la página o contacta a soporte.</p>
         </div>
         <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
-          <button onClick={() => window.location.reload()} className="btn-primary">Recargar Página</button>
+          <p style={{ marginBottom: '1.5rem', color: 'var(--text-muted)' }}>Por favor, intenta recargar la página o volver al inicio.</p>
+          <Link href="/dashboard/recepcion" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>Reintentar Carga</Link>
         </div>
       </div>
     );
