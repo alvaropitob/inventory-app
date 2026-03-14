@@ -1,8 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { CatalogService } from "@/lib/services/catalog";
-import { revalidatePath } from "next/cache";
 import DeleteMasterButton from "@/components/DeleteMasterButton";
 import * as Actions from "./actions";
 
@@ -33,11 +31,11 @@ export default async function ConfiguracionPage({
 
   // Find item to edit if editId is present
   const editingItem = editId ? (
-    activeTab === "secciones" ? sections?.find(s => s.id === editId) :
-      activeTab === "proveedores" ? suppliers?.find(s => s.id === editId) :
-        activeTab === "categorias" ? categories?.find(c => c.id === editId) :
-          activeTab === "ubicaciones" ? locations?.find(l => l.id === editId) :
-            activeTab === "productos" ? catalogItems?.find(i => i.id === editId) :
+    activeTab === "secciones" ? sections?.find((s: { id: string }) => s.id === editId) :
+      activeTab === "proveedores" ? suppliers?.find((s: { id: string }) => s.id === editId) :
+        activeTab === "categorias" ? categories?.find((c: { id: string }) => c.id === editId) :
+          activeTab === "ubicaciones" ? locations?.find((l: { id: string }) => l.id === editId) :
+            activeTab === "productos" ? catalogItems?.find((i: { id: string }) => i.id === editId) :
               null
   ) : null;
 
@@ -82,9 +80,9 @@ export default async function ConfiguracionPage({
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Categoría Padre</label>
-                <select name="category_id" defaultValue={(editingItem as any)?.category_id || ""} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                  <select name="category_id" defaultValue={(editingItem as { category_id?: string })?.category_id || ""} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
                   <option value="">(Ninguna)</option>
-                  {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {categories?.map((c: { id: string, name: string }) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
@@ -106,12 +104,12 @@ export default async function ConfiguracionPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {sections?.map(s => (
+                  {sections?.map((s: any) => (
                     <tr key={s.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{s.name}</td>
                       <td style={{ padding: '1rem' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>
-                          {(s as any).categories?.name || '---'}
+                          {(s as { categories?: { name: string } }).categories?.name || '---'}
                         </span>
                       </td>
                       <td style={{ padding: '1rem' }}>{s.description}</td>
@@ -151,9 +149,9 @@ export default async function ConfiguracionPage({
             <form action={Actions.handleSupplierAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
               <input type="hidden" name="id" value={editingItem?.id || ""} />
               <input name="name" defaultValue={editingItem?.name || ""} placeholder="Empresa" required style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
-              <input name="contact_name" defaultValue={(editingItem as any)?.contact_name || ""} placeholder="Contacto" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
-              <input name="contact_email" defaultValue={(editingItem as any)?.contact_email || ""} placeholder="Email" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
-              <input name="tax_id" defaultValue={(editingItem as any)?.tax_id || ""} placeholder="NIT/Tax ID" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              <input name="contact_name" defaultValue={(editingItem as { contact_name?: string })?.contact_name || ""} placeholder="Contacto" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              <input name="contact_email" defaultValue={(editingItem as { contact_email?: string })?.contact_email || ""} placeholder="Email" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              <input name="tax_id" defaultValue={(editingItem as { tax_id?: string })?.tax_id || ""} placeholder="NIT/Tax ID" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
               <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
@@ -169,7 +167,7 @@ export default async function ConfiguracionPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {suppliers?.map(sup => (
+                  {suppliers?.map((sup: any) => (
                     <tr key={sup.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{sup.name}</td>
                       <td style={{ padding: '1rem' }}>
@@ -228,7 +226,7 @@ export default async function ConfiguracionPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {categories?.map(c => (
+                  {categories?.map((c: any) => (
                     <tr key={c.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{c.name}</td>
                       <td style={{ padding: '1rem' }}>{c.description}</td>
@@ -273,14 +271,14 @@ export default async function ConfiguracionPage({
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Categoría / Sección *</label>
-                <select name="section_id" defaultValue={(editingItem as any)?.section_id || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                <select name="section_id" defaultValue={(editingItem as { section_id?: string })?.section_id || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
                   <option value="">Seleccione Categoría...</option>
                   {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Tipo de Ubicación</label>
-                <select name="location_type" defaultValue={(editingItem as any)?.location_type || "shelf"} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                <select name="location_type" defaultValue={(editingItem as { location_type?: string })?.location_type || "shelf"} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
                   <option value="shelf">Estantería</option>
                   <option value="refrigerator">Nevera</option>
                   <option value="freezer">Congelador</option>
@@ -301,10 +299,10 @@ export default async function ConfiguracionPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {locations?.map(l => (
+                  {locations?.map((l: any) => (
                     <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{l.name}</td>
-                      <td style={{ padding: '1rem' }}>{(l as any).sections?.name}</td>
+                       <td style={{ padding: '1rem' }}>{(l as { sections?: { name: string } }).sections?.name}</td>
                       <td style={{ padding: '1rem' }}>
                         <span style={{ padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.7rem', background: l.is_active ? '#dcfce7' : '#fee2e2', color: l.is_active ? '#10b981' : '#ef4444' }}>
                           {l.is_active ? 'ACTIVO' : 'INACTIVO'}
@@ -342,30 +340,30 @@ export default async function ConfiguracionPage({
               <input type="hidden" name="id" value={editingItem?.id || ""} />
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Código / Referencia *</label>
-                <input name="internal_code" defaultValue={(editingItem as any)?.internal_code || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: REF-001" />
+                <input name="internal_code" defaultValue={(editingItem as { internal_code?: string })?.internal_code || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: REF-001" />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Nombre del Producto *</label>
-                <input name="technical_name" defaultValue={(editingItem as any)?.technical_name || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Glucosa Oxidasa" />
+                <input name="technical_name" defaultValue={(editingItem as { technical_name?: string })?.technical_name || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Glucosa Oxidasa" />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Presentación Comercial</label>
-                <input name="commercial_name" defaultValue={(editingItem as any)?.commercial_name || ""} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Kit x 100 Det" />
+                <input name="commercial_name" defaultValue={(editingItem as { commercial_name?: string })?.commercial_name || ""} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Kit x 100 Det" />
               </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Categoría / Sección *</label>
-                  <select name="section_id" defaultValue={(editingItem as any)?.section_id || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                   <select name="section_id" defaultValue={(editingItem as { section_id?: string })?.section_id || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
                     <option value="">Seleccione...</option>
                     {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Unidad de Compra</label>
-                <input name="purchase_unit" defaultValue={(editingItem as any)?.purchase_unit || "Unidad"} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Frasco x 500ml" />
+                <input name="purchase_unit" defaultValue={(editingItem as { purchase_unit?: string })?.purchase_unit || "Unidad"} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Frasco x 500ml" />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Stock Mínimo</label>
-                <input type="number" name="minimum_stock_threshold" defaultValue={(editingItem as any)?.minimum_stock_threshold || 0} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                <input type="number" name="minimum_stock_threshold" defaultValue={(editingItem as { minimum_stock_threshold?: number })?.minimum_stock_threshold || 0} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
               </div>
               <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
                 {editingItem ? "Actualizar" : "Registrar"}

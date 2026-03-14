@@ -15,7 +15,7 @@ export default async function UsuariosPage() {
   }
 
   // Fetch all users with their primary roles
-  const { data: users, error } = await supabase
+  const { data: users } = await supabase
     .from("users")
     .select(`
       id,
@@ -97,7 +97,7 @@ export default async function UsuariosPage() {
               </tr>
             </thead>
             <tbody>
-              {users?.map((u) => (
+              {users?.map((u: { id: string, full_name: string, email: string, roles: any }) => (
                 <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '1.25rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -116,16 +116,16 @@ export default async function UsuariosPage() {
                       borderRadius: '20px', 
                       fontSize: '0.75rem', 
                       fontWeight: '800',
-                      background: (u.roles as any)?.name === 'admin' ? '#fee2e2' : 
-                                 (u.roles as any)?.name === 'operator' ? '#dcfce7' : 
-                                 (u.roles as any)?.name === 'supervisor' ? '#fef3c7' : '#f1f5f9',
-                      color: (u.roles as any)?.name === 'admin' ? '#ef4444' : 
-                             (u.roles as any)?.name === 'operator' ? '#10b981' : 
-                             (u.roles as any)?.name === 'supervisor' ? '#d97706' : '#64748b',
+                      background: (u.roles as unknown as { name: string })?.name === 'admin' ? '#fee2e2' : 
+                                 (u.roles as unknown as { name: string })?.name === 'operator' ? '#dcfce7' : 
+                                 (u.roles as unknown as { name: string })?.name === 'supervisor' ? '#fef3c7' : '#f1f5f9',
+                      color: (u.roles as unknown as { name: string })?.name === 'admin' ? '#ef4444' : 
+                             (u.roles as unknown as { name: string })?.name === 'operator' ? '#10b981' : 
+                             (u.roles as unknown as { name: string })?.name === 'supervisor' ? '#d97706' : '#64748b',
                       display: 'inline-block',
                       textTransform: 'uppercase'
                     }}>
-                      {(u.roles as any)?.name}
+                      {(u.roles as unknown as { name: string })?.name}
                     </span>
                   </td>
                   <td style={{ padding: '1.25rem' }}>
@@ -133,7 +133,7 @@ export default async function UsuariosPage() {
                       <input type="hidden" name="userId" value={u.id} />
                       <select 
                         name="roleId" 
-                        defaultValue={(u.roles as any)?.id}
+                        defaultValue={(u.roles as unknown as { id: string })?.id}
                         style={{ 
                           padding: '0.5rem', 
                           borderRadius: 'var(--radius)', 
@@ -143,7 +143,7 @@ export default async function UsuariosPage() {
                           color: 'var(--navy)'
                         }}
                       >
-                        {roles?.map(r => (
+                        {roles?.map((r: { id: string, name: string }) => (
                           <option key={r.id} value={r.id}>{r.name.toUpperCase()}</option>
                         ))}
                       </select>

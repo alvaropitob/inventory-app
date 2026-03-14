@@ -14,14 +14,14 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet: any) {
-          cookiesToSet.forEach(({ name, value }: any) =>
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
             request,
           });
-          cookiesToSet.forEach(({ name, value, options }: any) =>
+          cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
         },
@@ -29,54 +29,22 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // Do not change this to use Supabase client to get the user as it will
+  // cause the middleware to be dynamic and slow down the request.
+  // Instead, we check for a session in the cookie.
   const {
-    data: { user: realUser },
+    data: { user },
   } = await supabase.auth.getUser();
 
-  const isDev = process.env.NODE_ENV === "development";
-  const isAuthPage = request.nextUrl.pathname.startsWith("/login") || 
-                     request.nextUrl.pathname.startsWith("/register") || 
-                     request.nextUrl.pathname.startsWith("/auth");
-  const isErrorPage = request.nextUrl.pathname.startsWith("/error");
-
-  // CASE 1: No real user, but we are in dev mode -> Apply Bypass
-  if (!realUser && isDev) {
-    if (isAuthPage) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
-    }
-    return supabaseResponse;
-  }
-
-
-  // CASE 2: No user and not in bypass mode -> Normal login redirect
-  if (!realUser && !isAuthPage && !isErrorPage) {
+  if (
+    !user &&
+    !request.nextUrl.pathname.startsWith("/auth") &&
+    request.nextUrl.pathname !== "/"
+  ) {
+    // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/auth/login";
     return NextResponse.redirect(url);
-  }
-
-  // CASE 3: Authenticated user (real or via Supabase)
-  if (realUser) {
-    const userRole = realUser.app_metadata?.role as string | undefined;
-
-    // Protected Admin Routes
-    if (request.nextUrl.pathname.startsWith("/dashboard/usuarios") || 
-        request.nextUrl.pathname.startsWith("/dashboard/configuracion")) {
-      if (userRole !== "admin") {
-        const url = request.nextUrl.clone();
-        url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
-      }
-    }
-
-    // Redirect away from auth pages if logged in
-    if (isAuthPage && !request.nextUrl.pathname.startsWith("/auth/signout")) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
-    }
   }
 
   return supabaseResponse;

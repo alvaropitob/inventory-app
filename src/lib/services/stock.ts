@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { type PostgrestError } from "@supabase/supabase-js";
 
 export interface InventoryBatch {
   id?: string;
@@ -96,7 +97,7 @@ export class StockService {
     quantity: number;
     consumed_by: string;
     reason: string;
-  }) {
+  }): Promise<{ data: { success: true } | null; error: PostgrestError | { message: string } | null }> {
     const supabase = await createClient();
 
     // 1. Check if batch has enough stock

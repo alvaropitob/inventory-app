@@ -26,8 +26,7 @@ export default async function DashboardPage() {
 
   // Process Inventory Value
   const totalInventoryValue = (batches || []).reduce((sum, b) => {
-    // We assume there's a unit_cost in batches, if not we fallback to 0 until we implement costs in batches.
-    const cost = (b as any).unit_cost || 0; 
+    const cost = (b as { unit_cost?: number }).unit_cost || 0; 
     return sum + (b.current_stock * cost);
   }, 0);
 
@@ -263,7 +262,7 @@ export default async function DashboardPage() {
                       <div key={batch.id} style={{ display: 'flex', flexDirection: 'column', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                           <span style={{ fontWeight: '600', color: 'var(--navy)', fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '70%' }}>
-                            {(batch as any).item?.technical_name}
+                            {(batch as { item?: { technical_name: string } }).item?.technical_name}
                           </span>
                           <span style={{ fontSize: '0.85rem', fontWeight: '700', color: batch.priority === 'high' ? 'var(--error)' : 'var(--warning)' }}>
                             {new Date(batch.expiration_date).toLocaleDateString()}

@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAuditLogs } from "./actions";
 import ExportCSVButton from "@/components/ExportCSVButton";
@@ -30,7 +29,7 @@ export default async function AuditoriaPage() {
             'Acción': log.action,
             'Tabla Modificada': log.table_name,
             'ID Registro': log.record_id,
-            'Usuario': log.users?.full_name || log.users?.username || 'Sistema',
+            'Usuario': log.users?.[0]?.full_name || log.users?.[0]?.username || 'Sistema',
             'IP': log.ip_address || 'N/A',
             'Datos Anteriores': log.old_data ? JSON.stringify(log.old_data) : '',
             'Nuevos Datos': log.new_data ? JSON.stringify(log.new_data) : ''
@@ -51,7 +50,7 @@ export default async function AuditoriaPage() {
               </tr>
             </thead>
             <tbody>
-              {logs.map((log: any) => (
+              {logs.map((log) => (
                 <tr key={log.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
                   <td style={{ padding: '1.25rem', fontSize: '0.85rem' }}>
                     <div style={{ fontWeight: '600', color: 'var(--navy)' }}>{new Date(log.created_at).toLocaleDateString()}</div>
@@ -75,7 +74,7 @@ export default async function AuditoriaPage() {
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>ID: {log.record_id?.substring(0,8)}...</div>
                   </td>
                   <td style={{ padding: '1.25rem' }}>
-                    <div style={{ fontWeight: '600', fontSize: '0.85rem' }}>{log.users?.full_name || log.users?.username || 'Sistema'}</div>
+                      <div style={{ fontWeight: '600', fontSize: '0.85rem' }}>{(log.users as any)?.[0]?.full_name || (log.users as any)?.[0]?.username || 'Sistema'}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>IP: {log.ip_address || 'Desconocida'}</div>
                   </td>
                   <td style={{ padding: '1.25rem', maxWidth: '300px' }}>

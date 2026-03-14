@@ -65,7 +65,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     email: dbUser.email,
     fullName: dbUser.full_name || "Usuario",
     username: dbUser.username,
-    role: (dbUser.roles as any)?.name || "operator",
+    role: (dbUser.roles as { name: string })?.name || "operator",
     // Avatar is still fetched from Google metadata for simplicity
     avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
   };

@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OrderService } from "@/lib/services/orders";
 
@@ -28,7 +30,7 @@ export async function createPurchaseOrder(formData: FormData) {
   let items = [];
   try {
     items = JSON.parse(itemsStr);
-  } catch (e) {
+  } catch {
     return { error: "Formato de productos inválido" };
   }
 
@@ -36,7 +38,9 @@ export async function createPurchaseOrder(formData: FormData) {
     return { error: "El pedido debe contener al menos un producto" };
   }
 
-  const orderItems = items.map((i: any) => ({
+  const totalValue = items.reduce((sum: number, item: { price: number, quantity: number }) => sum + (Number(item.quantity) * Number(item.price)), 0);
+
+  const orderItems = items.map((i: { item_id: string, quantity: number, price: number }) => ({
     item_id: i.item_id,
     quantity_requested: Number(i.quantity),
     estimated_unit_price: Number(i.price)
@@ -47,14 +51,15 @@ export async function createPurchaseOrder(formData: FormData) {
       supplier_id,
       expected_delivery_date: expected_delivery_date || null,
       notes: notes || null,
-      total_estimated_value,
+      total_estimated_value: totalValue, // Use the calculated totalValue
       created_by: user.id,
       status: "draft" // Everything starts as draft
     }, orderItems);
 
     return { success: true };
-  } catch (error: any) {
-    console.error("Error creating order:", error);
-    return { error: error.message || "No se pudo crear el pedido" };
+  } catch (error) {
+    console.error("Create Order Error:", error);
+    const message = encodeURIComponent(error instanceof Error ? error.message : "Error al procesar el pedido");
+    redirect(`/dashboard/pedidos?error=${message}`);
   }
 }

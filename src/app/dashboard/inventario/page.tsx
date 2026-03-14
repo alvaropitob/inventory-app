@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { CatalogService } from "@/lib/services/catalog";
 import { StockService } from "@/lib/services/stock";
@@ -8,6 +7,45 @@ import InventoryProductSelector from "@/components/InventoryProductSelector";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import * as Actions from "./actions";
 export const dynamic = "force-dynamic";
+
+interface CatalogItem {
+  id: string;
+  internal_code: string;
+  technical_name: string;
+  commercial_name?: string | null;
+  purchase_unit?: string | null;
+  minimum_stock_threshold?: number | null;
+  sections?: { name: string } | null;
+  is_active?: boolean;
+}
+
+interface Batch {
+  id: string;
+  item_id: string;
+  batch_number: string;
+  expiration_date: string;
+  current_stock: number;
+  location_id?: string | null;
+  item?: CatalogItem | null;
+  catalog_items?: CatalogItem | null;
+  locations?: { name: string } | null;
+  unit_cost?: number;
+}
+
+interface StockMovement {
+  id: string;
+  movement_type: string;
+  created_at: string;
+  quantity: number;
+  reason?: string | null;
+  batch?: any;
+  batches?: any;
+  users?: any;
+  catalog_items?: any;
+  suppliers?: any;
+  purchase_order_id?: string | null;
+  internal_order_id?: string | null;
+}
 
 export default async function InventarioPage({
   searchParams,
@@ -23,7 +61,6 @@ export default async function InventarioPage({
   // Initial data fetching
   const [
     { data: catalogItems },
-    { data: categories },
     { data: sections },
     { data: suppliers },
     { data: locations },
@@ -59,19 +96,19 @@ export default async function InventarioPage({
   const currentView = view || "entradas";
 
   // Filter catalog items for the table to only show those with real entry history
-  const productIdsWithStock = new Set(allBatches?.map((b: any) => b.item_id) || []);
-  const catalogWithEntries = catalogItems?.filter((item: any) => productIdsWithStock.has(item.id)) || [];
+  const productIdsWithStock = new Set(allBatches?.map((b: Batch) => b.item_id) || []);
+  const catalogWithEntries = catalogItems?.filter((item: CatalogItem) => productIdsWithStock.has(item.id)) || [];
 
   // Compute consolidated stock for the 'stock' view
-  const consolidatedStock = catalogItems?.map((item: any) => {
-    const itemBatches = allBatches?.filter((b: any) => b.item_id === item.id) || [];
-    const totalStock = itemBatches.reduce((acc: number, b: any) => acc + (b.current_stock || 0), 0);
+  const consolidatedStock = catalogItems?.map((item: CatalogItem) => {
+    const itemBatches = allBatches?.filter((b: Batch) => b.item_id === item.id) || [];
+    const totalStock = itemBatches.reduce((acc: number, b: Batch) => acc + (b.current_stock || 0), 0);
     return {
       ...item,
       itemBatches,
       totalStock
     };
-  }).filter(item => item.totalStock > 0 || (item.itemBatches && item.itemBatches.length > 0))
+  }).filter((item: CatalogItem & { totalStock: number, itemBatches: Batch[] }) => item.totalStock > 0 || (item.itemBatches && item.itemBatches.length > 0))
     .sort((a, b) => a.technical_name.localeCompare(b.technical_name)) || [];
 
   return (
@@ -332,7 +369,7 @@ export default async function InventarioPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {catalogWithEntries?.map(i => (
+                    {catalogWithEntries?.map((i: CatalogItem) => (
                       <tr key={i.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
                         <td style={{ padding: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{i.internal_code}</td>
                         <td style={{ padding: '1rem' }}>
@@ -383,14 +420,14 @@ export default async function InventarioPage({
               </div>
               <ExportCSVButton 
                 filename="Reporte_Stock_Actual" 
-                data={consolidatedStock.map((row: any) => ({
+                data={consolidatedStock.map((row: CatalogItem & { totalStock: number, itemBatches: Batch[] }) => ({
                   'Código': row.internal_code || 'N/A',
                   'Producto': row.technical_name || 'N/A',
                   'Nombre Comercial': row.commercial_name || 'N/A',
                   'Categoría': row.sections?.name || 'Genérico',
                   'Stock Total Universitario': row.totalStock,
                   'Unidad de Compra': row.purchase_unit || 'N/A',
-                  'Lotes Disponibles (Lote:Cantidad)': row.itemBatches?.filter((b: any) => b.current_stock > 0).map((b: any) => `${b.batch_number}:${b.current_stock}`).join(' | ') || 'Agotado',
+                  'Lotes Disponibles (Lote:Cantidad)': row.itemBatches?.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => `${b.batch_number}:${b.current_stock}`).join(' | ') || 'Agotado',
                   'Estado de Inventario': row.totalStock === 0 ? 'Agotado' : row.totalStock <= (row.minimum_stock_threshold || 10) ? 'Stock Bajo' : 'Óptimo'
                 }))}
               />
@@ -408,7 +445,7 @@ export default async function InventarioPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {consolidatedStock?.map((item: any) => {
+                  {consolidatedStock?.map((item: CatalogItem & { totalStock: number, itemBatches: Batch[] }) => {
                     const isLowStock = item.totalStock <= (item.minimum_stock_threshold || 10);
                     const isOutOfStock = item.totalStock === 0;
                     
@@ -435,7 +472,7 @@ export default async function InventarioPage({
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>{item.purchase_unit}</span>
                         </td>
                         <td style={{ padding: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          {item.itemBatches?.filter((b: any) => b.current_stock > 0).map((b: any) => (
+                          {item.itemBatches?.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => (
                             <div key={b.id} style={{ marginBottom: '0.25rem', whiteSpace: 'nowrap' }}>
                               <span>{b.batch_number}: <strong>{b.current_stock}</strong></span>
                               {b.expiration_date && (
@@ -445,7 +482,7 @@ export default async function InventarioPage({
                               )}
                             </div>
                           ))}
-                          {item.itemBatches?.filter((b: any) => b.current_stock > 0).length === 0 && (
+                          {item.itemBatches?.filter((b: Batch) => b.current_stock > 0).length === 0 && (
                             <span>Sin stock en lotes</span>
                           )}
                         </td>
@@ -489,7 +526,7 @@ export default async function InventarioPage({
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Producto / Lote a Consumir *</label>
                       <select name="batch_id" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         <option value="">Seleccione Lote con Stock Disponible...</option>
-                        {allBatches?.filter((b: any) => b.current_stock > 0).map((b: any) => (
+                        {allBatches?.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => (
                           <option key={b.id} value={b.id}>
                             {b.item?.technical_name} (Lote: {b.batch_number}) - Disp: {b.current_stock}
                           </option>
@@ -546,16 +583,16 @@ export default async function InventarioPage({
               </div>
               <ExportCSVButton 
                 filename="Kardex_Movimientos" 
-                data={(allMovements || []).map((row: any) => ({
+                data={(allMovements || []).map((row: StockMovement) => ({
                   'Fecha Realización': new Date(row.created_at).toLocaleString(),
                   'Tipo Movimiento': row.movement_type === 'entry' ? 'Entrada' : row.movement_type === 'exit' ? 'Salida' : row.movement_type === 'adjustment' ? 'Ajuste' : 'Descarte',
                   'Producto': row.batch?.item?.technical_name || 'Desconocido',
                   'Código Interno': row.batch?.item?.internal_code || 'N/A',
                   'Número de Lote': row.batch?.batch_number || 'N/A',
                   'Fecha Vencimiento': row.batch?.expiration_date ? new Date(row.batch.expiration_date).toLocaleDateString() : 'N/A',
-                  'Impacto en Stock': (row.movement_type === 'entry' ? '+' : '-') + row.quantity,
-                  'Responsable': row.user?.full_name || row.user?.username || 'Sistema',
-                  'Motivo / Justificación': row.reason
+                  'Impacto en Stock': (row.movement_type === 'entry' ? '+' : '-') + (row.quantity || 0),
+                  'Responsable': row.users?.full_name || row.users?.username || 'Sistema',
+                  'Motivo / Justificación': row.reason || null
                 }))} 
               />
             </div>
@@ -572,7 +609,7 @@ export default async function InventarioPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {allMovements?.map((m: any) => (
+                  {allMovements?.map((m: StockMovement) => (
                     <tr key={m.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
                       <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
                         {new Date(m.created_at).toLocaleDateString()}
@@ -598,14 +635,14 @@ export default async function InventarioPage({
                       <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
                         <div style={{ fontWeight: '600' }}>{m.batch?.batch_number}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--error)' }}>
-                          Vence: {m.batch && 'expiration_date' in m.batch && m.batch.expiration_date ? new Date((m.batch as any).expiration_date).toLocaleDateString() : 'N/A'}
+                          Vence: {m.batch && 'expiration_date' in m.batch && m.batch.expiration_date ? new Date(m.batch.expiration_date).toLocaleDateString() : 'N/A'}
                         </div>
                       </td>
                       <td style={{ padding: '1rem', textAlign: 'center', fontWeight: '800', fontSize: '1rem', color: m.movement_type === 'entry' ? 'var(--success)' : m.movement_type === 'adjustment' ? 'var(--warning)' : 'var(--error)' }}>
                         {m.movement_type === 'entry' ? '+' : '-'}{m.quantity}
                       </td>
                       <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
-                        <div style={{ fontWeight: '600' }}>{m.user?.full_name || m.user?.username || 'Sistema'}</div>
+                        <div style={{ fontWeight: '600' }}>{(m.users as any)?.[0]?.full_name || (m.users as any)?.full_name || (m.users as any)?.[0]?.username || (m.users as any)?.username || 'Sistema'}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.reason}</div>
                       </td>
                     </tr>

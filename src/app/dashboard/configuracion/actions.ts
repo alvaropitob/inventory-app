@@ -63,7 +63,7 @@ export async function handleCatalogAction(formData: FormData) {
   if (sectionId) {
     const { data: sections } = await CatalogService.getSections();
     const selectedSection = sections?.find(s => s.id === sectionId);
-    category_id = (selectedSection as any)?.category_id || null;
+    category_id = (selectedSection as { category_id: string | null })?.category_id || null;
   }
   
   const data = {

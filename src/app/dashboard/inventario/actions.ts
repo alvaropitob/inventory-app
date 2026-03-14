@@ -20,7 +20,7 @@ export async function handleCatalogAction(formData: FormData) {
       internal_code: formData.get("internal_code") as string,
       technical_name: formData.get("technical_name") as string,
       commercial_name: (formData.get("commercial_name") as string) || null,
-      category_id: (selectedSection as any)?.category_id || null,
+      category_id: (selectedSection as { category_id: string | null })?.category_id || null,
       section_id: sectionId || null, 
       supplier_id: (formData.get("supplier_id") as string) || null,
       is_active: true,
@@ -83,10 +83,10 @@ export async function handleCatalogAction(formData: FormData) {
     revalidatePath("/dashboard/inventario");
     // Always redirect to refresh and show data
     redirect("/dashboard/inventario?view=entradas");
-  } catch (error: any) {
-    if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+  } catch (error) {
+    if (error instanceof Error && (error as { digest?: string }).digest?.startsWith('NEXT_REDIRECT')) throw error;
     console.error("Fatal Action Error:", error);
-    const errorMsg = encodeURIComponent(error.message || "Error inesperado");
+    const errorMsg = encodeURIComponent(error instanceof Error ? error.message : "Error inesperado");
     redirect(`/dashboard/inventario?view=entradas&error=${errorMsg}`);
   }
 }
@@ -122,14 +122,17 @@ export async function handleConsumeAction(formData: FormData) {
 
     if (consumeError) {
       console.error("Consume error:", consumeError);
-      let errorMsg = typeof consumeError === 'object' && 'message' in consumeError ? (consumeError as any).message : "Error al registrar consumo";
-      errorMsg = encodeURIComponent(errorMsg);
+      const errorMsg = encodeURIComponent(
+        typeof consumeError === 'object' && consumeError !== null && 'message' in consumeError 
+        ? String((consumeError as { message: string }).message) 
+        : "Error al registrar consumo"
+      );
       redirect(`/dashboard/inventario?view=salidas&error=${errorMsg}`);
     }
-  } catch (error: any) {
-    if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+  } catch (error) {
+    if (error instanceof Error && (error as { digest?: string }).digest?.startsWith('NEXT_REDIRECT')) throw error;
     console.error("Fatal Consume Error:", error);
-    const errorMsg = encodeURIComponent(error.message || "Error inesperado");
+    const errorMsg = encodeURIComponent(error instanceof Error ? error.message : "Error inesperado");
     redirect(`/dashboard/inventario?view=salidas&error=${errorMsg}`);
   }
   

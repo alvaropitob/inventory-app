@@ -96,7 +96,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         </div>
       </div>
     );
-  } catch (error) {
+  } catch {
     return notFound();
   }
 }

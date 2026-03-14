@@ -67,7 +67,7 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
         router.push("/dashboard/pedidos");
         router.refresh();
       }
-    } catch (err: any) {
+    } catch {
       setError("Error interno al crear el pedido");
       setLoading(false);
     }

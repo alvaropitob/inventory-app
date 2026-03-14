@@ -129,7 +129,7 @@ export const CatalogService = {
 
   async deleteCatalogItem(id: string) {
     const supabase = await createClient();
-    return await supabase.from("catalog_items").delete().eq("id", id);
+    return supabase.from("catalog_items").delete().eq("id", id);
   },
 
   async toggleCatalogItem(id: string, isActive: boolean) {
