@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ComplianceService } from "@/lib/services/compliance";
+import { submitTechnicalReception } from "@/app/dashboard/recepcion/actions";
 
 interface OrderItem {
     catalog_item_id: string;
@@ -70,7 +70,7 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                 };
             });
 
-            await ComplianceService.createTechnicalReception({
+            await submitTechnicalReception({
                 order_id: order.id,
                 packaging_status: packagingStatus,
                 integrity_verified: integrityVerified,
