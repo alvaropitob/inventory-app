@@ -1,22 +1,20 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { CatalogService } from "@/lib/services/catalog";
 import { StockService } from "@/lib/services/stock";
 import { OrderService } from "@/lib/services/orders";
+import { getCurrentUserProfile } from "@/lib/services/user";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData?.user) {
+  const user = await getCurrentUserProfile();
+  
+  if (!user) {
     redirect("/login");
   }
 
-  const user = authData.user;
-  const fullName = user.user_metadata?.full_name || user.user_metadata?.name || "Usuario";
+  const fullName = user.fullName;
   
   // Fetch data
   const { data: items } = await CatalogService.getCatalogItems();

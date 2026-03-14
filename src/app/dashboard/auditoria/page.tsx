@@ -3,14 +3,14 @@ import { redirect } from "next/navigation";
 import { getAuditLogs } from "./actions";
 import ExportCSVButton from "@/components/ExportCSVButton";
 
+import { getCurrentUserProfile } from "@/lib/services/user";
+
 export const dynamic = "force-dynamic";
 
 export default async function AuditoriaPage() {
-  const supabase = await createClient();
+  const user = await getCurrentUserProfile();
 
-  // Verify admin status
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== "admin") {
+  if (!user || user.role !== "admin") {
     redirect("/dashboard");
   }
 

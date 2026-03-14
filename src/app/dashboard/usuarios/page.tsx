@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { getCurrentUserProfile } from "@/lib/services/user";
 
 export const dynamic = "force-dynamic";
 
@@ -8,8 +9,8 @@ export default async function UsuariosPage() {
   const supabase = await createClient();
 
   // Verify admin status via app_metadata (best practice)
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.app_metadata?.role !== "admin") {
+  const user = await getCurrentUserProfile();
+  if (!user || user.role !== "admin") {
     redirect("/dashboard");
   }
 

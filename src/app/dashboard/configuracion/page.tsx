@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getCurrentUserProfile } from "@/lib/services/user";
 import { CatalogService } from "@/lib/services/catalog";
 import { revalidatePath } from "next/cache";
 import DeleteMasterButton from "@/components/DeleteMasterButton";
@@ -13,10 +14,9 @@ export default async function ConfiguracionPage({
   searchParams: Promise<{ tab?: string; editId?: string }>;
 }) {
   const { tab, editId } = await searchParams;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUserProfile();
 
-  if (!user || user.app_metadata?.role !== "admin") {
+  if (!user || user.role !== "admin") {
     redirect("/dashboard");
   }
 

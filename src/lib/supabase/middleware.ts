@@ -29,41 +29,49 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
   const {
-    data: { user },
+    data: { user: realUser },
   } = await supabase.auth.getUser();
 
+  const isDev = process.env.NODE_ENV === "development";
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") || 
                      request.nextUrl.pathname.startsWith("/register") || 
                      request.nextUrl.pathname.startsWith("/auth");
+  const isErrorPage = request.nextUrl.pathname.startsWith("/error");
 
-  if (!user && !isAuthPage && !request.nextUrl.pathname.startsWith("/error")) {
-    // no user, redirect to login page
+  // CASE 1: No real user, but we are in dev mode -> Apply Bypass
+  if (!realUser && isDev) {
+    if (isAuthPage) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
+  }
+
+
+  // CASE 2: No user and not in bypass mode -> Normal login redirect
+  if (!realUser && !isAuthPage && !isErrorPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // If user is logged in, check for roles on protected routes using app_metadata (Custom Claims)
-  if (user) {
-    const userRole = user.app_metadata?.role as string | undefined;
+  // CASE 3: Authenticated user (real or via Supabase)
+  if (realUser) {
+    const userRole = realUser.app_metadata?.role as string | undefined;
 
+    // Protected Admin Routes
     if (request.nextUrl.pathname.startsWith("/dashboard/usuarios") || 
         request.nextUrl.pathname.startsWith("/dashboard/configuracion")) {
       if (userRole !== "admin") {
-        // Not an admin, redirect to dashboard home
         const url = request.nextUrl.clone();
         url.pathname = "/dashboard";
         return NextResponse.redirect(url);
       }
     }
 
-    // If on auth page but already logged in, redirect to dashboard
-    // Exception: Explicitly allow /auth/signout to proceed
+    // Redirect away from auth pages if logged in
     if (isAuthPage && !request.nextUrl.pathname.startsWith("/auth/signout")) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";

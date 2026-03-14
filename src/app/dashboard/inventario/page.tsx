@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { CatalogService } from "@/lib/services/catalog";
 import { StockService } from "@/lib/services/stock";
-import { revalidatePath } from "next/cache";
+import { getCurrentUserProfile } from "@/lib/services/user";
 import DeleteMasterButton from "@/components/DeleteMasterButton";
 import InventoryProductSelector from "@/components/InventoryProductSelector";
 import ExportCSVButton from "@/components/ExportCSVButton";
@@ -15,9 +15,7 @@ export default async function InventarioPage({
   searchParams: Promise<{ editId?: string; view?: string; error?: string }>;
 }) {
   const { editId, view, error } = await searchParams;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
+  const user = await getCurrentUserProfile();
   if (!user) {
     redirect("/auth/login");
   }

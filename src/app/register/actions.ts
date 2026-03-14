@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function signup(formData: FormData) {
+  console.log("SIGNUP ATTEMPT STARTED");
   const supabase = await createClient();
 
   const fullName = formData.get("fullName") as string;
@@ -27,7 +28,7 @@ export async function signup(formData: FormData) {
   });
 
   if (error) {
-    console.error("Signup error details:", error);
+    console.error("SIGNUP ERROR:", error);
     redirect("/error?message=" + encodeURIComponent(error.message));
   }
 

@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export async function login(formData: FormData) {
+  console.log("LOGIN ATTEMPT STARTED");
   const supabase = await createClient();
 
   const data = {
@@ -14,8 +15,9 @@ export async function login(formData: FormData) {
   };
 
   const { error } = await supabase.auth.signInWithPassword(data);
-
+  
   if (error) {
+    console.error("LOGIN ERROR:", error);
     redirect("/error?message=" + encodeURIComponent(error.message));
   }
 
