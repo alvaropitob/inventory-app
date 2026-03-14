@@ -4,9 +4,10 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function OrderDetailPage({ params }: { params: { id: string } }) {
+export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   try {
-    const order = await OrderService.getOrderById(params.id);
+    const { id } = await params;
+    const order = await OrderService.getOrderById(id);
     if (!order) return notFound();
 
     const getStatusBadge = (status: string) => {

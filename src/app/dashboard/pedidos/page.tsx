@@ -7,9 +7,10 @@ export const dynamic = "force-dynamic";
 export default async function PedidosPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: Promise<{ status?: string }>;
 }) {
-  const currentStatus = (searchParams.status as OrderStatus) || "";
+  const { status } = await searchParams;
+  const currentStatus = (status as OrderStatus) || "";
   
   const orders = await OrderService.getOrders(
     currentStatus ? { status: currentStatus } : undefined
