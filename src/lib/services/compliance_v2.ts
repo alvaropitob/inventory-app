@@ -43,7 +43,7 @@ export const ComplianceServiceV2 = {
         if (!user) throw new Error("Usuario no autenticado");
 
         const { data: log, error } = await supabase
-            .from('environmental_logs')
+            .from('environmental_readings')
             .insert({
                 location_id: data.location_id,
                 temperature: data.temperature,
@@ -64,7 +64,7 @@ export const ComplianceServiceV2 = {
     async getEnvironmentalLogs(limit = 50) {
         const supabase = await createClient();
         const { data, error } = await supabase
-            .from('environmental_logs')
+            .from('environmental_readings')
             .select('*, locations(name)')
             .order('recorded_at', { ascending: false })
             .limit(limit);
