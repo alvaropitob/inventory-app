@@ -60,8 +60,20 @@ export default async function InventarioPage({
   const currentView = view || "entradas";
 
   // Filter catalog items for the table to only show those with real entry history
-  const productIdsWithStock = new Set(allBatches?.map(b => b.item_id) || []);
-  const catalogWithEntries = catalogItems?.filter(item => productIdsWithStock.has(item.id)) || [];
+  const productIdsWithStock = new Set(allBatches?.map((b: any) => b.item_id) || []);
+  const catalogWithEntries = catalogItems?.filter((item: any) => productIdsWithStock.has(item.id)) || [];
+
+  // Compute consolidated stock for the 'stock' view
+  const consolidatedStock = catalogItems?.map((item: any) => {
+    const itemBatches = allBatches?.filter((b: any) => b.item_id === item.id) || [];
+    const totalStock = itemBatches.reduce((acc: number, b: any) => acc + (b.current_stock || 0), 0);
+    return {
+      ...item,
+      itemBatches,
+      totalStock
+    };
+  }).filter(item => item.totalStock > 0 || (item.itemBatches && item.itemBatches.length > 0))
+    .sort((a, b) => a.technical_name.localeCompare(b.technical_name)) || [];
 
   return (
     <div className="dashboard-main">
@@ -364,9 +376,87 @@ export default async function InventarioPage({
         )}
 
         {currentView === 'stock' && (
-          <div className="stat-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <h2 style={{ color: 'var(--navy)', marginBottom: '1rem' }}>Stock Actual</h2>
-            <p>Módulo de visualización de existencias en tiempo real (Próximamente).</p>
+          <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+              <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>Stock Actual Consolidado</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Visión global y en tiempo real de las existencias disponibles por producto.</p>
+            </div>
+            <div className="table-responsive">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
+                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', width: '12%' }}>Código</th>
+                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', width: '30%' }}>Producto</th>
+                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', width: '15%' }}>Categoría</th>
+                    <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', width: '15%' }}>Stock Actual Universitario</th>
+                    <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', width: '15%' }}>Lote / Desglose</th>
+                    <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', width: '13%' }}>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {consolidatedStock?.map((item: any) => {
+                    const isLowStock = item.totalStock <= (item.minimum_stock_threshold || 10);
+                    const isOutOfStock = item.totalStock === 0;
+                    
+                    return (
+                      <tr key={item.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s', background: isOutOfStock ? '#fff1f2' : 'transparent' }}>
+                        <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.internal_code}</td>
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ fontWeight: '700', color: 'var(--navy)', fontSize: '0.9rem' }}>{item.technical_name}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.commercial_name}</div>
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <span style={{ fontSize: '0.8rem', background: '#f1f5f9', padding: '0.3rem 0.6rem', borderRadius: '12px', color: 'var(--navy-light)', fontWeight: '600' }}>
+                            {item.sections?.name || 'Genérico'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem', textAlign: 'center' }}>
+                          <span style={{ 
+                            fontSize: '1.25rem', 
+                            fontWeight: '800', 
+                            color: isOutOfStock ? 'var(--error)' : isLowStock ? 'var(--warning)' : 'var(--success)' 
+                          }}>
+                            {item.totalStock}
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>{item.purchase_unit}</span>
+                        </td>
+                        <td style={{ padding: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          {item.itemBatches?.filter((b: any) => b.current_stock > 0).map((b: any) => (
+                            <div key={b.id} style={{ marginBottom: '0.25rem', whiteSpace: 'nowrap' }}>
+                              <span>{b.batch_number}: <strong>{b.current_stock}</strong></span>
+                              {b.expiration_date && (
+                                <span style={{ marginLeft: '0.5rem', color: new Date(b.expiration_date) < new Date() ? 'var(--error)' : 'inherit' }}>
+                                  (Vence: {new Date(b.expiration_date).toLocaleDateString()})
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                          {item.itemBatches?.filter((b: any) => b.current_stock > 0).length === 0 && (
+                            <span>Sin stock en lotes</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '1rem', textAlign: 'center' }}>
+                          {isOutOfStock ? (
+                            <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fee2e2', color: '#991b1b', textTransform: 'uppercase' }}>Agotado</span>
+                          ) : isLowStock ? (
+                            <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fef3c7', color: '#92400e', textTransform: 'uppercase' }}>Stock Bajo</span>
+                          ) : (
+                            <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#dcfce7', color: '#166534', textTransform: 'uppercase' }}>Óptimo</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {(!consolidatedStock || consolidatedStock.length === 0) && (
+                    <tr>
+                      <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        No hay productos registrados con historial de inventario.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
