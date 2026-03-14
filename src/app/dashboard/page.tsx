@@ -7,6 +7,17 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
+interface Batch {
+  id: string;
+  item_id: string;
+  batch_number: string;
+  expiration_date: string;
+  current_stock: number;
+  clinical_status?: 'accepted' | 'quarantine' | 'rejected' | string;
+  item?: { technical_name: string };
+  priority?: 'none' | 'medium' | 'high';
+}
+
 export default async function DashboardPage() {
   const user = await getCurrentUserProfile();
   
@@ -109,7 +120,7 @@ export default async function DashboardPage() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
             </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--navy)', lineHeight: 1 }}>{batches?.filter(b => (b as any).clinical_status === 'accepted').length || 0}</div>
+          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--navy)', lineHeight: 1 }}>{batches?.filter((b: Batch) => b.clinical_status === 'accepted').length || 0}</div>
           <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: 'var(--success)', fontWeight: '600' }}>Listos para uso clínico</p>
         </div>
 
@@ -253,8 +264,8 @@ export default async function DashboardPage() {
                     .filter(e => e.priority === 'high' || e.priority === 'medium')
                     .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime())
                     .slice(0, 6)
-                    .map(batch => {
-                      const cStatus = (batch as any).clinical_status || 'accepted';
+                    .map((batch: Batch) => {
+                      const cStatus = batch.clinical_status || 'accepted';
                       return (
                         <div key={batch.id} style={{ display: 'flex', flexDirection: 'column', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>

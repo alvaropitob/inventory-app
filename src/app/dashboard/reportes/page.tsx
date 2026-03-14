@@ -27,7 +27,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
         StockService.getAllMovements()
     ]);
 
-    const movements = (movementsResponse.data as any[]) || [];
+    const movements = (movementsResponse.data as { id: string, movement_type: string, reason?: string | null, created_at: string, quantity: number, batch?: { batch_number: string, item?: { technical_name: string } } }[]) || [];
 
     // Filtrar mermas (salidas que no son consumo normal o tienen razones de daño/vencimiento)
     const mermas = movements.filter(m => 

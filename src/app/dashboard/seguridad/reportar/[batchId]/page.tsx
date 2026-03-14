@@ -69,7 +69,7 @@ export default async function ReportarIncidentePage({ params }: PageProps) {
                                     <option value="other">Otros / Noticia Técnica</option>
                                 </select>
                                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                                    <b>Nota:</b> Los incidentes tipo 'Recall' y 'Falla de Calidad' bloquearán el lote automáticamente.
+                                    <b>Nota:</b> Los incidentes tipo &apos;Recall&apos; y &apos;Falla de Calidad&apos; bloquearán el lote automáticamente.
                                 </p>
                             </div>
 

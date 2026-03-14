@@ -24,7 +24,7 @@ export async function submitQualityVerification(formData: FormData) {
         revalidatePath("/dashboard/inventario/calidad");
         revalidatePath("/dashboard/inventario");
         revalidatePath("/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error submitting quality verification:", error);
     }
 }

@@ -31,6 +31,7 @@ interface CatalogItem {
   minimum_stock_threshold?: number | null;
   sections?: { name: string } | null;
   is_active?: boolean;
+  sanitary_registration?: string | null;
 }
 
 interface Batch {
@@ -44,6 +45,7 @@ interface Batch {
   catalog_items?: CatalogItem | null;
   locations?: { name: string } | null;
   unit_cost?: number;
+  clinical_status?: 'accepted' | 'quarantine' | 'rejected' | string;
 }
 
 interface StockMovement {
@@ -55,6 +57,7 @@ interface StockMovement {
   batch?: Batch | null;
   batches?: Batch | null;
   users?: AuditUser | AuditUser[] | null;
+  equipment_name?: string | null;
   catalog_items?: CatalogItem | null;
   suppliers?: Supplier | null;
   purchase_order_id?: string | null;
@@ -277,7 +280,7 @@ export default async function InventarioPage({
                           <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Registro Sanitario / INVIMA</label>
                           <input 
                             name="sanitary_registration" 
-                            defaultValue={(editingItem as any)?.sanitary_registration || ""}
+                            defaultValue={editingItem?.sanitary_registration || ""}
                             placeholder="Ej: INVIMA 2024RD-..."
                             style={{ 
                               width: '100%', 
@@ -508,8 +511,8 @@ export default async function InventarioPage({
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>{item.purchase_unit}</span>
                         </td>
                         <td style={{ padding: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          {item.itemBatches?.filter((b: Batch) => (b as any).current_stock > 0).map((b: Batch) => {
-                            const cStatus = (b as any).clinical_status || 'accepted';
+                          {item.itemBatches?.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => {
+                            const cStatus = b.clinical_status || 'accepted';
                             return (
                               <div key={b.id} style={{ marginBottom: '0.4rem', padding: '0.4rem', background: 'rgba(0,0,0,0.02)', borderRadius: '6px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
@@ -536,7 +539,7 @@ export default async function InventarioPage({
                               </div>
                             );
                           })}
-                          {item.itemBatches?.filter((b: Batch) => (b as any).current_stock > 0).length === 0 && (
+                          {item.itemBatches?.filter((b: Batch) => b.current_stock > 0).length === 0 && (
                             <span style={{ fontStyle: 'italic' }}>Sin stock disponible</span>
                           )}
                         </td>
@@ -581,7 +584,7 @@ export default async function InventarioPage({
                       <select name="batch_id" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
                         <option value="">Seleccione Lote (Sugiere el más próximo a vencer)...</option>
                         {allBatches
-                          ?.filter((b: Batch) => (b as any).current_stock > 0 && (b as any).clinical_status === 'accepted')
+                          ?.filter((b: Batch) => b.current_stock > 0 && b.clinical_status === 'accepted')
                           .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime())
                           .map((b: Batch, idx) => (
                           <option key={b.id} value={b.id}>
@@ -590,10 +593,10 @@ export default async function InventarioPage({
                         ))}
                         <optgroup label="⚠️ Otros Lotes (No Aceptados / Cuarentena)">
                           {allBatches
-                            ?.filter((b: Batch) => (b as any).current_stock > 0 && (b as any).clinical_status !== 'accepted')
+                            ?.filter((b: Batch) => b.current_stock > 0 && b.clinical_status !== 'accepted')
                             .map((b: Batch) => (
                             <option key={b.id} value={b.id} disabled>
-                              BLOQUEADO: {b.item?.technical_name} (Lote: {b.batch_number}) - Estado: {(b as any).clinical_status}
+                              BLOQUEADO: {b.item?.technical_name} (Lote: {b.batch_number}) - Estado: {b.clinical_status}
                             </option>
                           ))}
                         </optgroup>
@@ -721,8 +724,8 @@ export default async function InventarioPage({
                         <div style={{ fontWeight: '600' }}>{getUserDisplayName(m.users)}</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{m.reason}</span>
-                          {(m as any).equipment_name && (
-                            <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: '700' }}>🔬 Equipo: {(m as any).equipment_name}</span>
+                          {m.equipment_name && (
+                            <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: '700' }}>🔬 Equipo: {m.equipment_name}</span>
                           )}
                         </div>
                       </td>

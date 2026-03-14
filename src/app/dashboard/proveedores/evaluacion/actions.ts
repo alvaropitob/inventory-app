@@ -26,7 +26,7 @@ export async function submitSupplierEvaluation(formData: FormData) {
         
         revalidatePath("/dashboard/proveedores/evaluacion");
         revalidatePath("/dashboard/reportes");
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error submitting supplier evaluation:", error);
         throw error;
     }

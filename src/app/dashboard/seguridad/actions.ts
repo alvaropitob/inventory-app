@@ -25,7 +25,7 @@ export async function submitSafetyIncident(formData: FormData) {
         revalidatePath("/dashboard/seguridad");
         revalidatePath("/dashboard/inventario");
         revalidatePath("/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error submitting safety incident:", error);
         throw error;
     }

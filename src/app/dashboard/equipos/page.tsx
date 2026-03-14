@@ -1,4 +1,4 @@
-import { EquipmentService, Equipment } from "@/lib/services/equipment";
+import { EquipmentService } from "@/lib/services/equipment";
 import { CatalogService } from "@/lib/services/catalog";
 import EquipmentList from "@/components/EquipmentList";
 import EquipmentForm from "@/components/EquipmentForm";

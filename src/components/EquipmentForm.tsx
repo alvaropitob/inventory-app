@@ -3,7 +3,12 @@
 import { handleEquipmentAction } from "@/app/dashboard/equipos/actions";
 import { useState } from "react";
 
-export default function EquipmentForm({ locations }: { locations: any[] }) {
+interface Location {
+  id: string;
+  name: string;
+}
+
+export default function EquipmentForm({ locations }: { locations: Location[] }) {
   const [loading, setLoading] = useState(false);
 
   async function clientAction(formData: FormData) {
@@ -12,6 +17,7 @@ export default function EquipmentForm({ locations }: { locations: any[] }) {
       await handleEquipmentAction(formData);
       (document.getElementById("equipment-form") as HTMLFormElement)?.reset();
     } catch (error) {
+      console.error(error);
       alert("Error al guardar el equipo");
     } finally {
       setLoading(false);

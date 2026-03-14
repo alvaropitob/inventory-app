@@ -13,7 +13,7 @@ export async function handleEquipmentAction(formData: FormData) {
     model: formData.get("model") as string,
     serial_number: formData.get("serial_number") as string,
     location_id: formData.get("location_id") as string,
-    status: formData.get("status") as any || 'active',
+    status: (formData.get("status") as Equipment['status']) || 'active',
   };
 
   try {
@@ -30,7 +30,7 @@ export async function handleMaintenanceAction(formData: FormData) {
   
   const data: Partial<MaintenanceRecord> = {
     equipment_id: equipmentId,
-    type: formData.get("type") as any,
+    type: formData.get("type") as MaintenanceRecord['type'],
     execution_date: formData.get("execution_date") as string,
     performed_by: formData.get("performed_by") as string,
     description: formData.get("description") as string,

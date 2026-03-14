@@ -21,7 +21,7 @@ export async function submitEnvironmentalLog(formData: FormData) {
             notes
         });
         revalidatePath("/dashboard/monitoreo");
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error submitting environmental log:", error);
     }
 }

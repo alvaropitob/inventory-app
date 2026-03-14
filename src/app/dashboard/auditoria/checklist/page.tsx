@@ -98,8 +98,8 @@ export default function ComplianceChecklistPage() {
       <footer className="mt-12 p-8 bg-navy/5 rounded-2xl border border-navy/10 text-center">
         <p className="text-navy-light font-bold mb-2">Conclusión Técnica de Cumplimiento</p>
         <p className="text-navy text-sm max-w-3xl mx-auto italic">
-          "El software proporciona una infraestructura digital íntegra que garantiza la trazabilidad del reactivo desde su ingreso hasta su disposición final, 
-          cumpliendo con los requisitos de integridad de datos, seguridad clínica y control preventivo de fallas exigidos por los entes territoriales de salud."
+          &quot;El software proporciona una infraestructura digital íntegra que garantiza la trazabilidad del reactivo desde su ingreso hasta su disposición final, 
+          cumpliendo con los requisitos de integridad de datos, seguridad clínica y control preventivo de fallas exigidos por los entes territoriales de salud.&quot;
         </p>
       </footer>
 
