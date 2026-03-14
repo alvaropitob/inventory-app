@@ -24,7 +24,7 @@ interface NavItem {
   subItems?: { name: string; href: string }[];
 }
 
-export default function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
+export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -233,5 +233,13 @@ export default function SidebarContent({ user, isMobileOpen, onClose }: SidebarP
         }
       `}</style>
     </>
+  );
+}
+
+export default function Sidebar(props: SidebarProps) {
+  return (
+    <Suspense fallback={<div className="sidebar" />}>
+      <SidebarContent {...props} />
+    </Suspense>
   );
 }

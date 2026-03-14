@@ -100,3 +100,39 @@ export async function toggleStatus(id: string, currentStatus: boolean) {
   await CatalogService.toggleCatalogItem(id, !currentStatus);
   revalidatePath("/dashboard/inventario");
 }
+
+export async function handleConsumeAction(formData: FormData) {
+  const batchId = formData.get("batch_id") as string;
+  const quantity = Number(formData.get("quantity"));
+  const reason = formData.get("reason") as string;
+  
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("No autenticado");
+    if (!batchId || quantity <= 0) throw new Error("Datos inválidos");
+
+    const { error: consumeError } = await StockService.consumeStock({
+      batch_id: batchId,
+      quantity,
+      consumed_by: user.id,
+      reason
+    });
+
+    if (consumeError) {
+      console.error("Consume error:", consumeError);
+      let errorMsg = typeof consumeError === 'object' && 'message' in consumeError ? (consumeError as any).message : "Error al registrar consumo";
+      errorMsg = encodeURIComponent(errorMsg);
+      redirect(`/dashboard/inventario?view=salidas&error=${errorMsg}`);
+    }
+  } catch (error: any) {
+    if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+    console.error("Fatal Consume Error:", error);
+    const errorMsg = encodeURIComponent(error.message || "Error inesperado");
+    redirect(`/dashboard/inventario?view=salidas&error=${errorMsg}`);
+  }
+  
+  revalidatePath("/dashboard/inventario");
+  redirect("/dashboard/inventario?view=movimientos");
+}

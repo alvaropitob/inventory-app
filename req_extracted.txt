@@ -1,0 +1,3405 @@
+Descripción del Sistema de EasyLabTools 
+ 
+Introducción 
+EasyLabTools es un sistema integral de gestión de inventario orientado a entornos de 
+laboratorio, diseñado para garantizar el control preciso, la trazabilidad completa y la 
+administración segura de equipos, insumos y materiales. El sistema centraliza la 
+información operativa relacionada con existencias, movimientos, usuarios y 
+auditoría, permitiendo a la organización mantener un registro confiable de todos los 
+recursos físicos y de las actividades realizadas sobre ellos. 
+La plataforma busca resolver problemas comunes en la gestión manual o dispersa de 
+inventarios, tales como pérdidas de material, inconsistencias en los registros, falta de 
+trazabilidad, errores humanos y ausencia de controles de seguridad. A través de 
+procesos automatizados, validaciones de negocio y registros auditables, 
+EasyLabTools asegura integridad de datos, control de permisos por roles y visibilidad 
+operativa en tiempo real. 
+El sistema está concebido como una solución modular, escalable e independiente de 
+tecnología, lo que permite su implementación en distintos entornos (web, escritorio o 
+híbrido) sin alterar sus reglas de negocio fundamentales. Su arquitectura favorece la 
+mantenibilidad, la extensibilidad futura y la integración con otros sistemas 
+institucionales. 
+Entre sus capacidades principales se incluyen: 
+• 
+Gestión estructurada de inventario 
+• 
+Registro de entradas, salidas y ajustes 
+• 
+Generación de reportes técnicos 
+• 
+Administración de usuarios y permisos 
+• 
+Auditoría completa de operaciones 
+• 
+Configuración de parámetros del sistema 
+Este documento presenta la especificación funcional y técnica necesaria para 
+reconstruir el sistema desde cero, preservando todas sus capacidades operativas y 
+reglas de negocio. La especificación está diseñada para servir como guía de 
+desarrollo, referencia técnica y base de validación del sistema final. 
+
+ 
+Qué hace el sistema (análisis funcional preliminar) 
+EasyLabTools maneja: 
+• 
+Inventario de equipos e insumos 
+• 
+Registro de entradas y salidas 
+• 
+Usuarios y roles 
+• 
+Reportes PDF/Excel 
+• 
+Historial de movimientos 
+• 
+Conexión a base de datos relacional 
+• 
+Exportación de datos 
+• 
+Configuración XML 
+Especificación Funcional – EasyLabTools 2.0 
+Documento independiente de lenguaje y arquitectura 
+MÓDULO 1 — Autenticación y Gestión de Usuarios 
+1.1 Objetivo 
+Permitir el acceso controlado al sistema y administrar usuarios con distintos niveles 
+de permiso. 
+1.2 Actores 
+• 
+Administrador 
+• 
+Usuario operativo 
+• 
+Supervisor 
+1.3 Funcionalidades 
+1.3.1 Inicio de sesión 
+Descripción: 
+Permite autenticar un usuario en el sistema. 
+Entradas: 
+• 
+Usuario 
+
+• 
+Contraseña 
+Validaciones: 
+• 
+Usuario existente 
+• 
+Contraseña correcta 
+• 
+Usuario activo 
+Resultados: 
+• 
+Acceso concedido 
+• 
+Acceso denegado con mensaje de error 
+Errores: 
+• 
+Usuario inexistente 
+• 
+Contraseña incorrecta 
+• 
+Usuario inactivo 
+1.3.2 Gestión de usuarios 
+Acciones: 
+• 
+Crear usuario 
+• 
+Editar usuario 
+• 
+Desactivar usuario 
+• 
+Reactivar usuario 
+• 
+Eliminar usuario 
+Campos mínimos: 
+Campo 
+Obligatorio 
+Nombre 
+Sí 
+Usuario 
+Sí 
+Contraseña Sí 
+Rol 
+Sí 
+
+Campo 
+Obligatorio 
+Estado 
+Sí 
+1.3.3 Gestión de roles 
+Cada rol define permisos sobre módulos: 
+Ejemplo: 
+Rol 
+Permisos 
+Admin 
+Total 
+Operador Inventario 
+Supervisor Reportes 
+MÓDULO 2 — Gestión de Inventario 
+2.1 Objetivo 
+Registrar y controlar insumos y equipos del laboratorio. 
+2.2 Entidades principales 
+• 
+Insumo 
+• 
+Equipo 
+• 
+Categoría 
+• 
+Proveedor 
+• 
+Ubicación 
+ 
+2.3 Funcionalidades 
+2.3.1 Registrar insumo/equipo 
+Campos: 
+Campo 
+Tipo 
+Código 
+único 
+
+Campo 
+Tipo 
+Nombre 
+texto 
+Categoría referencia 
+Cantidad entero ≥ 0 
+Ubicación referencia 
+Proveedor referencia 
+Estado 
+activo/inactivo 
+ 
+2.3.2 Editar inventario 
+• 
+Cambiar cantidad 
+• 
+Actualizar datos 
+• 
+Cambiar ubicación 
+ 
+2.3.3 Consulta de inventario 
+Filtros: 
+• 
+Por nombre 
+• 
+Por categoría 
+• 
+Por ubicación 
+• 
+Por disponibilidad 
+MÓDULO 3 — Movimientos de Inventario 
+3.1 Objetivo 
+Registrar entradas y salidas de stock. 
+3.2 Tipos de movimiento 
+• 
+Entrada 
+• 
+Salida 
+
+• 
+Ajuste 
+• 
+Transferencia 
+3.3 Registrar movimiento 
+Entradas: 
+Campo 
+Descripción 
+Tipo 
+entrada/salida 
+Ítem 
+referencia inventario 
+Cantidad 
+> 0 
+Usuario 
+automático 
+Fecha 
+automática 
+Observación opcional 
+3.4 Validaciones 
+• 
+Stock suficiente para salidas 
+• 
+Cantidad válida 
+• 
+Ítem activo 
+3.5 Resultados 
+• 
+Actualiza inventario 
+• 
+Guarda historial 
+• 
+Genera registro auditado 
+MÓDULO 4 — Reportes 
+4.1 Objetivo 
+Generar informes del sistema. 
+4.2 Tipos de reportes 
+• 
+Inventario actual 
+• 
+Historial de movimientos 
+
+• 
+Reporte por fechas 
+• 
+Reporte por categoría 
+• 
+Reporte por usuario 
+4.3 Formatos 
+• 
+PDF 
+• 
+Excel 
+4.4 Filtros 
+• 
+Rango de fechas 
+• 
+Categoría 
+• 
+Ubicación 
+• 
+Usuario 
+• 
+Estado 
+ 
+ MÓDULO 5 — Configuración del sistema 
+5.1 Objetivo 
+Permitir configuración general. 
+5.2 Parámetros 
+• 
+Conexión base de datos 
+• 
+Rutas de exportación 
+• 
+Idioma 
+• 
+Formato de fecha 
+• 
+Backup automático 
+MÓDULO 6 — Auditoría y trazabilidad 
+6.1 Objetivo 
+Registrar toda acción crítica del sistema. 
+6.2 Eventos auditables 
+• 
+Inicio de sesión 
+
+• 
+Cambios de inventario 
+• 
+Creación de usuarios 
+• 
+Eliminaciones 
+• 
+Generación de reportes 
+6.3 Registro 
+Cada evento guarda: 
+Campo 
+Descripción 
+Usuario 
+actor 
+Acción 
+evento 
+Fecha 
+timestamp 
+Detalle 
+texto 
+IP / equipo opcional 
+ 
+ MÓDULO 7 — Exportación de datos 
+7.1 Objetivo 
+Permitir exportar información. 
+7.2 Tipos 
+• 
+Excel 
+• 
+CSV 
+• 
+PDF 
+7.3 Datos exportables 
+• 
+Inventario 
+• 
+Movimientos 
+• 
+Usuarios 
+• 
+Reportes 
+ 
+
+Reglas globales del sistema 
+• 
+No permitir stock negativo 
+• 
+Todo movimiento genera auditoría 
+• 
+Usuarios inactivos no acceden 
+• 
+Datos obligatorios validados 
+• 
+Fechas automáticas del sistema 
+• 
+Permisos por rol obligatorios 
+Requisitos no funcionales 
+Seguridad 
+• 
+Contraseñas cifradas 
+• 
+Sesión protegida 
+• 
+Control de permisos 
+Rendimiento 
+• 
+Soportar inventarios grandes 
+• 
+Respuesta < 2s consultas 
+Integridad 
+• 
+Transacciones atómicas 
+• 
+Sin pérdida de datos 
+Usabilidad 
+• 
+Mensajes claros 
+• 
+Confirmaciones críticas 
+Resultado de esta especificación 
+Este documento permite: 
+ 
+ Rehacer el sistema en cualquier lenguaje 
+ 
+ Web o escritorio 
+ 
+ Cambiar arquitectura 
+
+ 
+ Mantener funcionalidad intacta 
+ 
+ Validar implementación futura 
+MODELO ENTIDAD RELACIÓN 
+Voy a entregarlo en 4 partes: 
+1.  
+ Lista de entidades 
+2.  
+ Diccionario de datos 
+3.  
+ Relaciones 
+4.  
+ Reglas de integridad 
+5.  
+ Diagrama ER en texto (representación lógica) 
+ 
+ 
+ Modelo Entidad–Relación 
+EasyLabTools 2.0 
+ 
+ 
+ 1. Entidades principales 
+El sistema gira alrededor de: 
+• 
+Usuario 
+• 
+Rol 
+• 
+Permiso 
+• 
+InventarioItem 
+• 
+Categoría 
+• 
+Proveedor 
+• 
+Ubicación 
+• 
+Movimiento 
+• 
+TipoMovimiento 
+• 
+Auditoría 
+• 
+Reporte 
+
+• 
+Configuración 
+ 
+ 
+ 2. Diccionario de datos 
+ 
+ 
+ 
+ ENTIDAD: Usuario 
+Campo 
+Tipo 
+Restricción 
+id_usuario 
+PK 
+autoincrement 
+nombre 
+texto 
+obligatorio 
+usuario 
+texto 
+único 
+contraseña 
+hash 
+obligatorio 
+rol_id 
+FK 
+obligatorio 
+estado 
+enum 
+activo/inactivo 
+fecha_creación datetime automático 
+ 
+ 
+ ENTIDAD: Rol 
+Campo 
+Tipo 
+id_rol 
+PK 
+nombre 
+texto 
+descripción texto 
+ 
+ 
+ ENTIDAD: Permiso 
+Campo 
+Tipo 
+id_permiso PK 
+
+Campo 
+Tipo 
+nombre 
+texto 
+descripción texto 
+ 
+ 
+ ENTIDAD: RolPermiso (tabla intermedia) 
+Campo 
+Tipo 
+rol_id 
+FK 
+permiso_id FK 
+Relación muchos a muchos. 
+ 
+ 
+ ENTIDAD: InventarioItem 
+Representa equipo o insumo. 
+Campo 
+Tipo 
+id_item 
+PK 
+código 
+texto único 
+nombre 
+texto 
+descripción 
+texto 
+categoría_id 
+FK 
+proveedor_id FK 
+ubicación_id FK 
+cantidad 
+entero ≥ 0 
+estado 
+enum 
+fecha_registro datetime 
+ 
+
+🗂 ENTIDAD: Categoría 
+Campo 
+Tipo 
+id_categoria PK 
+nombre 
+texto 
+descripción texto 
+ 
+ 
+ ENTIDAD: Proveedor 
+Campo 
+Tipo 
+id_proveedor PK 
+nombre 
+texto 
+contacto 
+texto 
+teléfono 
+texto 
+email 
+texto 
+ 
+ 
+ ENTIDAD: Ubicación 
+Campo 
+Tipo 
+id_ubicacion PK 
+nombre 
+texto 
+descripción texto 
+Ejemplo: Laboratorio A, Bodega 1, Estantería 3 
+ 
+ 
+ ENTIDAD: Movimiento 
+Historial de entradas/salidas. 
+
+Campo 
+Tipo 
+id_movimiento 
+PK 
+item_id 
+FK 
+tipo_movimiento_id FK 
+cantidad 
+entero > 0 
+usuario_id 
+FK 
+fecha 
+datetime 
+observación 
+texto 
+ 
+ 
+ ENTIDAD: TipoMovimiento 
+Campo Tipo 
+id_tipo PK 
+nombre enum 
+Valores: 
+• 
+ENTRADA 
+• 
+SALIDA 
+• 
+AJUSTE 
+• 
+TRANSFERENCIA 
+ 
+ 
+ ENTIDAD: Auditoría 
+Campo 
+Tipo 
+id_evento PK 
+usuario_id FK 
+
+Campo 
+Tipo 
+acción 
+texto 
+detalle 
+texto 
+fecha 
+datetime 
+ip_equipo texto 
+ 
+ 
+ ENTIDAD: Reporte 
+Campo 
+Tipo 
+id_reporte PK 
+usuario_id FK 
+tipo 
+texto 
+parámetros texto/json 
+fecha 
+datetime 
+ 
+⚙ ENTIDAD: Configuración 
+Campo 
+Tipo 
+id_config 
+PK 
+clave 
+texto único 
+valor 
+texto 
+descripción texto 
+Ejemplo: 
+• 
+db_host 
+• 
+idioma 
+• 
+ruta_exportación 
+
+ 
+ 
+ 3. Relaciones 
+Usuario — Rol 
+Rol 1 —— N Usuario 
+Un rol puede tener muchos usuarios. 
+ 
+Rol — Permiso 
+Rol N —— M Permiso 
+Implementado con tabla intermedia RolPermiso. 
+ 
+InventarioItem — Categoría 
+Categoría 1 —— N InventarioItem 
+ 
+InventarioItem — Proveedor 
+Proveedor 1 —— N InventarioItem 
+ 
+InventarioItem — Ubicación 
+Ubicación 1 —— N InventarioItem 
+ 
+InventarioItem — Movimiento 
+InventarioItem 1 —— N Movimiento 
+Cada ítem tiene historial. 
+ 
+Usuario — Movimiento 
+Usuario 1 —— N Movimiento 
+Registra quién hizo el movimiento. 
+
+ 
+Usuario — Auditoría 
+Usuario 1 —— N Auditoría 
+ 
+Usuario — Reporte 
+Usuario 1 —— N Reporte 
+ 
+ 
+ 4. Reglas de integridad 
+• 
+No permitir inventario negativo 
+• 
+Movimiento obligatorio vinculado a usuario 
+• 
+Eliminaciones lógicas (estado inactivo) 
+• 
+Claves foráneas obligatorias 
+• 
+Usuarios inactivos no pueden operar 
+• 
+Auditoría obligatoria para acciones críticas 
+• 
+Código de ítem único 
+• 
+Cantidades ≥ 0 
+ 
+ 
+ 5. Representación ER textual 
+ROL ───< USUARIO >───< AUDITORÍA 
+  │          │ 
+  │          └───< MOVIMIENTO >─── INVENTARIO_ITEM 
+  │                                   │ 
+  └──< ROL_PERMISO >── PERMISO        ├── CATEGORÍA 
+                                      ├── PROVEEDOR 
+                                      └── UBICACIÓN 
+ 
+
+USUARIO ───< REPORTE 
+ 
+CONFIGURACIÓN (independiente) 
+ 
+ 
+ Casos de Uso UML 
+EasyLabTools 2.0 
+ 
+ 
+ 1. Actores del sistema 
+Actor 
+Descripción 
+Administrador Control total del sistema 
+Operador 
+Gestiona inventario y movimientos 
+Supervisor 
+Consulta reportes 
+Sistema 
+Actor automático (auditoría/configuración) 
+ 
+ 
+ 2. Lista general de casos de uso 
+Seguridad 
+• 
+CU01 – Iniciar sesión 
+• 
+CU02 – Cerrar sesión 
+• 
+CU03 – Gestionar usuarios 
+• 
+CU04 – Gestionar roles y permisos 
+Inventario 
+• 
+CU05 – Registrar ítem 
+• 
+CU06 – Editar ítem 
+• 
+CU07 – Consultar inventario 
+• 
+CU08 – Desactivar ítem 
+
+Movimientos 
+• 
+CU09 – Registrar entrada 
+• 
+CU10 – Registrar salida 
+• 
+CU11 – Ajustar inventario 
+• 
+CU12 – Transferir ítems 
+Reportes 
+• 
+CU13 – Generar reporte de inventario 
+• 
+CU14 – Generar reporte de movimientos 
+• 
+CU15 – Exportar datos 
+Configuración 
+• 
+CU16 – Configurar sistema 
+Auditoría 
+• 
+CU17 – Consultar auditoría 
+ 
+3. Especificación detallada 
+CU01 – Iniciar sesión 
+Actor: Usuario 
+Descripción: Permite autenticarse. 
+Precondición: Usuario registrado 
+Flujo principal: 
+1. Usuario ingresa credenciales 
+2. Sistema valida datos 
+3. Sistema concede acceso 
+Flujo alterno: 
+• 
+Credenciales incorrectas → mensaje de error 
+Postcondición: Sesión activa 
+
+CU03 – Gestionar usuarios 
+Actor: Administrador 
+Flujo principal: 
+1. Crear usuario 
+2. Editar datos 
+3. Activar/desactivar 
+4. Asignar rol 
+Reglas: 
+• 
+Usuario único 
+• 
+Contraseña cifrada 
+CU05 – Registrar ítem 
+Actor: Operador 
+Flujo principal: 
+1. Ingresar datos del ítem 
+2. Validar campos 
+3. Guardar en inventario 
+4. Registrar auditoría 
+Postcondición: Ítem disponible 
+CU07 – Consultar inventario 
+Actor: Operador / Supervisor 
+Flujo principal: 
+1. Aplicar filtros 
+2. Mostrar resultados 
+Opcional: Exportar 
+CU09 – Registrar entrada 
+Actor: Operador 
+
+Flujo: 
+1. Seleccionar ítem 
+2. Ingresar cantidad 
+3. Confirmar 
+4. Actualizar inventario 
+5. Registrar movimiento 
+6. Registrar auditoría 
+CU10 – Registrar salida 
+Validación crítica: 
+Stock suficiente 
+Si no → error 
+ 
+CU13 – Generar reporte 
+Actor: Supervisor 
+Flujo: 
+1. Seleccionar tipo 
+2. Aplicar filtros 
+3. Generar 
+4. Exportar PDF/Excel 
+ 
+CU16 – Configurar sistema 
+Actor: Administrador 
+Permite: 
+• 
+Cambiar parámetros 
+• 
+Conexión BD 
+• 
+Rutas exportación 
+
+• 
+Idioma 
+CU17 – Consultar auditoría 
+Actor: Administrador 
+Consulta: 
+• 
+Usuario 
+• 
+Acción 
+• 
+Fecha 
+• 
+Detalle 
+ 4. Diagrama UML (texto) 
+                +------------------+ 
+                |   Administrador  | 
+                +------------------+ 
+                    |  |  |  | 
+                    |  |  |  +---- Gestionar usuarios 
+                    |  |  +------- Configurar sistema 
+                    |  +---------- Consultar auditoría 
+                    +------------- Gestionar roles 
+ 
+                +------------------+ 
+                |     Operador     | 
+                +------------------+ 
+                    |  |  | 
+                    |  |  +---- Registrar movimientos 
+                    |  +------- Gestionar inventario 
+                    +---------- Consultar inventario 
+ 
+
+                +------------------+ 
+                |    Supervisor    | 
+                +------------------+ 
+                    | 
+                    +---- Generar reportes 
+Resultado 
+Ahora tienes: 
+✔ Casos de uso formales 
+✔ Flujos principales 
+✔ Reglas 
+✔ Validaciones 
+✔ Base para UML gráfico 
+✔ Base para desarrollo real 
+ 
+ 1. Flujo: Inicio de sesión 
+[Inicio] 
+   | 
+   v 
+Usuario ingresa credenciales 
+   | 
+   v 
+¿Usuario existe? 
+ ├── No → Mostrar error → [Fin] 
+ └── Sí 
+        | 
+        v 
+¿Contraseña correcta? 
+
+ ├── No → Mostrar error → [Fin] 
+ └── Sí 
+        | 
+        v 
+¿Usuario activo? 
+ ├── No → Acceso denegado → [Fin] 
+ └── Sí 
+        | 
+        v 
+Crear sesión 
+Registrar auditoría 
+Ir a menú principal 
+   | 
+  [Fin] 
+ 
+ 
+ 2. Flujo: Registrar ítem de inventario 
+[Inicio] 
+   | 
+   v 
+Abrir formulario registro 
+   | 
+   v 
+Ingresar datos del ítem 
+   | 
+   v 
+¿Campos válidos? 
+
+ ├── No → Mostrar errores → volver formulario 
+ └── Sí 
+        | 
+        v 
+¿Código único? 
+ ├── No → Mostrar error 
+ └── Sí 
+        | 
+        v 
+Guardar ítem 
+Registrar auditoría 
+Mostrar confirmación 
+   | 
+  [Fin] 
+ 
+ 3. Flujo: Registrar salida de inventario 
+[Inicio] 
+   | 
+   v 
+Seleccionar ítem 
+Ingresar cantidad 
+   | 
+   v 
+¿Cantidad válida (>0)? 
+ ├── No → Error 
+ └── Sí 
+        | 
+
+        v 
+¿Stock suficiente? 
+ ├── No → Error: stock insuficiente 
+ └── Sí 
+        | 
+        v 
+Actualizar inventario 
+Registrar movimiento 
+Registrar auditoría 
+Confirmar operación 
+   | 
+  [Fin] 
+ 
+ 
+ 4. Flujo: Registrar entrada de inventario 
+[Inicio] 
+   | 
+   v 
+Seleccionar ítem 
+Ingresar cantidad 
+   | 
+   v 
+¿Cantidad válida? 
+ ├── No → Error 
+ └── Sí 
+        | 
+        v 
+
+Actualizar stock (+) 
+Registrar movimiento 
+Registrar auditoría 
+Mostrar confirmación 
+   | 
+  [Fin] 
+ 
+ 
+ 5. Flujo: Generar reporte 
+[Inicio] 
+   | 
+   v 
+Seleccionar tipo de reporte 
+Aplicar filtros 
+   | 
+   v 
+Consultar datos 
+   | 
+   v 
+¿Datos encontrados? 
+ ├── No → Mostrar mensaje 
+ └── Sí 
+        | 
+        v 
+Generar reporte 
+Exportar PDF/Excel 
+Registrar auditoría 
+
+   | 
+  [Fin] 
+ 
+ 
+ 6. Flujo: Gestión de usuarios 
+[Inicio] 
+   | 
+   v 
+Administrador abre módulo usuarios 
+   | 
+   v 
+Seleccionar acción: 
+  → Crear 
+  → Editar 
+  → Desactivar 
+  → Eliminar 
+   | 
+   v 
+Validar permisos 
+Validar datos 
+   | 
+   v 
+Guardar cambios 
+Registrar auditoría 
+   | 
+  [Fin] 
+ 
+
+ 
+ 7. Flujo: Consulta de inventario 
+[Inicio] 
+   | 
+   v 
+Abrir búsqueda 
+Aplicar filtros 
+   | 
+   v 
+Consultar base de datos 
+   | 
+   v 
+Mostrar resultados 
+   | 
+   v 
+¿Exportar? 
+ ├── Sí → Generar archivo 
+ └── No 
+   | 
+  [Fin] 
+ 
+ 
+ 8. Flujo: Auditoría 
+[Inicio] 
+   | 
+   v 
+Administrador consulta eventos 
+   | 
+
+   v 
+Aplicar filtros (fecha/usuario) 
+   | 
+   v 
+Mostrar historial 
+   | 
+  [Fin] 
+ 
+ 
+ 
+ Historias de Usuario – EasyLabTools 2.0 
+ 
+ MÓDULO: Autenticación 
+HU01 – Iniciar sesión 
+ 
+ Historia 
+Como usuario autorizado 
+quiero iniciar sesión 
+para acceder al sistema de forma segura. 
+ 
+ Criterios de aceptación 
+• 
+Credenciales válidas permiten acceso 
+• 
+Credenciales inválidas muestran error 
+• 
+Usuario inactivo no puede entrar 
+• 
+Se registra auditoría de login 
+ 
+ Prioridad: Alta 
+HU02 – Cerrar sesión 
+ 
+ Como usuario 
+quiero cerrar sesión 
+para proteger mi cuenta. 
+ 
+ Criterios: 
+
+• 
+La sesión se invalida 
+• 
+No se puede volver atrás sin login 
+ 
+ Prioridad: Alta 
+ 
+ MÓDULO: Usuarios 
+ 
+HU03 – Crear usuario 
+ 
+ Como administrador 
+quiero crear usuarios 
+para asignar acceso al sistema. 
+ 
+ Criterios: 
+• 
+Usuario único 
+• 
+Contraseña cifrada 
+• 
+Rol obligatorio 
+• 
+Auditoría registrada 
+ 
+ Prioridad: Alta 
+ 
+HU04 – Editar usuario 
+ 
+ Como administrador 
+quiero modificar datos de usuarios 
+para mantener información actualizada. 
+ 
+ Criterios: 
+• 
+Cambios guardados correctamente 
+• 
+No afecta historial 
+• 
+Auditoría registrada 
+ 
+ Prioridad: Media 
+ 
+HU05 – Desactivar usuario 
+
+ 
+ Como administrador 
+quiero desactivar usuarios 
+para bloquear accesos. 
+ 
+ Criterios: 
+• 
+Usuario no puede iniciar sesión 
+• 
+Historial intacto 
+ 
+ Prioridad: Alta 
+ 
+ 
+ MÓDULO: Inventario 
+ 
+HU06 – Registrar ítem 
+ 
+ Como operador 
+quiero registrar un ítem 
+para incorporarlo al inventario. 
+ 
+ Criterios: 
+• 
+Código único 
+• 
+Campos obligatorios validados 
+• 
+Cantidad ≥ 0 
+• 
+Auditoría registrada 
+ 
+ Prioridad: Alta 
+ 
+HU07 – Editar ítem 
+ 
+ Como operador 
+quiero modificar datos de un ítem 
+para corregir información. 
+ 
+ Criterios: 
+• 
+No pierde historial 
+
+• 
+Cambios auditados 
+ 
+ Prioridad: Media 
+ 
+HU08 – Consultar inventario 
+ 
+ Como usuario 
+quiero buscar ítems 
+para conocer disponibilidad. 
+ 
+ Criterios: 
+• 
+Filtros funcionales 
+• 
+Resultados rápidos 
+• 
+Opción exportar 
+ 
+ Prioridad: Alta 
+ 
+ 
+ MÓDULO: Movimientos 
+ 
+HU09 – Registrar entrada 
+ 
+ Como operador 
+quiero registrar entradas 
+para aumentar stock. 
+ 
+ Criterios: 
+• 
+Cantidad válida 
+• 
+Stock actualizado 
+• 
+Movimiento registrado 
+• 
+Auditoría creada 
+ 
+ Prioridad: Alta 
+ 
+HU10 – Registrar salida 
+
+ 
+ Como operador 
+quiero registrar salidas 
+para descontar inventario. 
+ 
+ Criterios: 
+• 
+No permite stock negativo 
+• 
+Validación automática 
+• 
+Historial guardado 
+ 
+ Prioridad: Alta 
+ 
+HU11 – Ajuste de inventario 
+ 
+ Como administrador 
+quiero ajustar inventario 
+para corregir inconsistencias. 
+ 
+ Criterios: 
+• 
+Requiere permiso especial 
+• 
+Justificación obligatoria 
+• 
+Auditoría crítica 
+ 
+ Prioridad: Media 
+ 
+ 
+ MÓDULO: Reportes 
+ 
+HU12 – Generar reporte 
+ 
+ Como supervisor 
+quiero generar reportes 
+para analizar inventario. 
+ 
+ Criterios: 
+• 
+Filtros por fecha/categoría 
+
+• 
+Exportación PDF/Excel 
+• 
+Datos consistentes 
+ 
+ Prioridad: Alta 
+ 
+HU13 – Exportar datos 
+ 
+ Como usuario 
+quiero exportar información 
+para uso externo. 
+ 
+ Criterios: 
+• 
+Formatos válidos 
+• 
+Archivo correcto 
+ 
+ Prioridad: Media 
+ 
+ 
+ MÓDULO: Auditoría 
+ 
+HU14 – Consultar auditoría 
+ 
+ Como administrador 
+quiero ver historial de acciones 
+para control y seguridad. 
+ 
+ Criterios: 
+• 
+Filtro por usuario/fecha 
+• 
+Eventos completos 
+• 
+No editable 
+ 
+ Prioridad: Alta 
+ 
+ 
+ MÓDULO: Configuración 
+ 
+
+HU15 – Configurar sistema 
+ 
+ Como administrador 
+quiero cambiar parámetros 
+para adaptar el sistema. 
+ 
+ Criterios: 
+• 
+Persistencia garantizada 
+• 
+Validación de datos 
+• 
+Auditoría registrada 
+ 
+ Prioridad: Media 
+ 
+ 
+ 
+ Especificación API – EasyLabTools 2.0 
+Base URL: 
+/api/v1 
+Formato de datos: 
+JSON 
+UTF-8 
+Autenticación: 
+Token (JWT o equivalente) 
+Header: Authorization: Bearer <token> 
+ 
+ 
+ 1. Autenticación 
+ 
+POST /auth/login 
+Inicia sesión. 
+Request 
+
+{ 
+  "usuario": "admin", 
+  "password": "1234" 
+} 
+Response 200 
+{ 
+  "token": "jwt_token", 
+  "usuario": { 
+    "id": 1, 
+    "nombre": "Administrador", 
+    "rol": "ADMIN" 
+  } 
+} 
+Errores 
+• 
+401 Credenciales inválidas 
+• 
+403 Usuario inactivo 
+ 
+POST /auth/logout 
+Invalida sesión. 
+Response: 
+204 No Content 
+ 
+ 
+ 2. Usuarios 
+ 
+GET /usuarios 
+Lista usuarios. 
+
+Query opcional: 
+?estado=activo 
+Response: 
+[ 
+  { 
+    "id": 1, 
+    "nombre": "Juan", 
+    "usuario": "juan", 
+    "rol": "OPERADOR", 
+    "estado": "activo" 
+  } 
+] 
+ 
+POST /usuarios 
+Crear usuario. 
+Request: 
+{ 
+  "nombre": "Ana", 
+  "usuario": "ana", 
+  "password": "abc123", 
+  "rol_id": 2 
+} 
+Response: 
+201 Created 
+ 
+PUT /usuarios/{id} 
+
+Editar usuario. 
+ 
+DELETE /usuarios/{id} 
+Desactivar usuario (eliminación lógica). 
+ 
+ 
+ 3. Inventario 
+ 
+GET /inventario 
+Filtros: 
+?nombre=microscopio 
+?categoria=quimica 
+?disponible=true 
+ 
+POST /inventario 
+Registrar ítem. 
+{ 
+  "codigo": "EQ-001", 
+  "nombre": "Microscopio", 
+  "categoria_id": 1, 
+  "cantidad": 5, 
+  "ubicacion_id": 2 
+} 
+ 
+PUT /inventario/{id} 
+Editar ítem. 
+ 
+
+DELETE /inventario/{id} 
+Desactivar ítem. 
+ 
+ 
+ 4. Movimientos 
+ 
+POST /movimientos/entrada 
+{ 
+  "item_id": 1, 
+  "cantidad": 3, 
+  "observacion": "Compra nueva" 
+} 
+ 
+POST /movimientos/salida 
+{ 
+  "item_id": 1, 
+  "cantidad": 2, 
+  "observacion": "Uso en laboratorio" 
+} 
+Errores: 
+400 Stock insuficiente 
+ 
+GET /movimientos 
+Filtros: 
+?desde=2026-01-01 
+?hasta=2026-01-31 
+?usuario=5 
+
+ 
+ 
+ 5. Reportes 
+ 
+GET /reportes/inventario 
+Genera reporte. 
+Query: 
+?formato=pdf 
+Response: 
+file stream 
+ 
+GET /reportes/movimientos 
+Filtros: 
+?desde= 
+?hasta= 
+?formato=excel 
+ 
+ 
+ 6. Auditoría 
+ 
+GET /auditoria 
+Filtros: 
+?usuario=1 
+?desde= 
+?hasta= 
+Response: 
+[ 
+  { 
+
+    "usuario": "admin", 
+    "accion": "LOGIN", 
+    "fecha": "2026-02-10T10:00:00" 
+  } 
+] 
+ 
+ 
+ 7. Configuración 
+ 
+GET /configuracion 
+Lista parámetros. 
+ 
+PUT /configuracion/{clave} 
+{ 
+  "valor": "es" 
+} 
+ 
+ 
+ 8. Respuestas estándar 
+Éxito: 
+200 OK 
+201 Created 
+204 No Content 
+Errores: 
+400 Bad Request 
+401 Unauthorized 
+403 Forbidden 
+404 Not Found 
+
+500 Server Error 
+Formato error: 
+{ 
+  "error": "Mensaje descriptivo" 
+} 
+ 
+ 
+ 9. Reglas API 
+• 
+Todas las operaciones requieren token 
+• 
+Auditoría automática en endpoints críticos 
+• 
+Transacciones atómicas 
+• 
+Validación obligatoria 
+• 
+JSON estricto 
+• 
+UTF-8 
+• 
+Timestamps ISO 8601 
+ 
+ 
+ Resultado 
+Esta API permite: 
+✔ Implementar backend moderno 
+✔ Integrar apps móviles 
+✔ UI web o escritorio 
+✔ Microservicios 
+✔ Escalabilidad 
+✔ Seguridad 
+✔ Migración limpia 
+ 
+ 
+ 
+ Base de Datos SQL – EasyLabTools 2.0 
+
+ 
+ 
+ 1. Tabla: roles 
+CREATE TABLE roles ( 
+    id_rol SERIAL PRIMARY KEY, 
+    nombre VARCHAR(50) NOT NULL UNIQUE, 
+    descripcion TEXT 
+); 
+ 
+ 
+ 2. Tabla: permisos 
+CREATE TABLE permisos ( 
+    id_permiso SERIAL PRIMARY KEY, 
+    nombre VARCHAR(100) NOT NULL UNIQUE, 
+    descripcion TEXT 
+); 
+ 
+ 
+ 3. Tabla: rol_permiso 
+CREATE TABLE rol_permiso ( 
+    rol_id INT NOT NULL, 
+    permiso_id INT NOT NULL, 
+    PRIMARY KEY (rol_id, permiso_id), 
+    FOREIGN KEY (rol_id) REFERENCES roles(id_rol), 
+    FOREIGN KEY (permiso_id) REFERENCES permisos(id_permiso) 
+); 
+ 
+ 
+ 4. Tabla: usuarios 
+CREATE TABLE usuarios ( 
+
+    id_usuario SERIAL PRIMARY KEY, 
+    nombre VARCHAR(100) NOT NULL, 
+    usuario VARCHAR(50) NOT NULL UNIQUE, 
+    contrasena VARCHAR(255) NOT NULL, 
+    rol_id INT NOT NULL, 
+    estado VARCHAR(10) NOT NULL DEFAULT 'activo', 
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    FOREIGN KEY (rol_id) REFERENCES roles(id_rol) 
+); 
+ 
+ 
+ 5. Tabla: categorias 
+CREATE TABLE categorias ( 
+    id_categoria SERIAL PRIMARY KEY, 
+    nombre VARCHAR(100) NOT NULL UNIQUE, 
+    descripcion TEXT 
+); 
+ 
+ 
+ 6. Tabla: proveedores 
+CREATE TABLE proveedores ( 
+    id_proveedor SERIAL PRIMARY KEY, 
+    nombre VARCHAR(150) NOT NULL, 
+    contacto VARCHAR(150), 
+    telefono VARCHAR(50), 
+    email VARCHAR(150) 
+); 
+ 
+
+ 
+ 7. Tabla: ubicaciones 
+CREATE TABLE ubicaciones ( 
+    id_ubicacion SERIAL PRIMARY KEY, 
+    nombre VARCHAR(100) NOT NULL UNIQUE, 
+    descripcion TEXT 
+); 
+ 
+ 
+ 8. Tabla: inventario 
+CREATE TABLE inventario ( 
+    id_item SERIAL PRIMARY KEY, 
+    codigo VARCHAR(50) NOT NULL UNIQUE, 
+    nombre VARCHAR(150) NOT NULL, 
+    descripcion TEXT, 
+    categoria_id INT NOT NULL, 
+    proveedor_id INT, 
+    ubicacion_id INT NOT NULL, 
+    cantidad INT NOT NULL CHECK (cantidad >= 0), 
+    estado VARCHAR(10) DEFAULT 'activo', 
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id_categoria), 
+    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id_proveedor), 
+    FOREIGN KEY (ubicacion_id) REFERENCES ubicaciones(id_ubicacion) 
+); 
+ 
+ 
+ 9. Tabla: tipos_movimiento 
+CREATE TABLE tipos_movimiento ( 
+
+    id_tipo SERIAL PRIMARY KEY, 
+    nombre VARCHAR(20) NOT NULL UNIQUE 
+); 
+Datos iniciales: 
+INSERT INTO tipos_movimiento (nombre) VALUES 
+('ENTRADA'), 
+('SALIDA'), 
+('AJUSTE'), 
+('TRANSFERENCIA'); 
+ 
+ 
+ 10. Tabla: movimientos 
+CREATE TABLE movimientos ( 
+    id_movimiento SERIAL PRIMARY KEY, 
+    item_id INT NOT NULL, 
+    tipo_movimiento_id INT NOT NULL, 
+    cantidad INT NOT NULL CHECK (cantidad > 0), 
+    usuario_id INT NOT NULL, 
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    observacion TEXT, 
+    FOREIGN KEY (item_id) REFERENCES inventario(id_item), 
+    FOREIGN KEY (tipo_movimiento_id) REFERENCES tipos_movimiento(id_tipo), 
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario) 
+); 
+ 
+ 
+ 11. Tabla: auditoria 
+CREATE TABLE auditoria ( 
+
+    id_evento SERIAL PRIMARY KEY, 
+    usuario_id INT, 
+    accion VARCHAR(100) NOT NULL, 
+    detalle TEXT, 
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    ip_equipo VARCHAR(100), 
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario) 
+); 
+ 
+ 
+ 12. Tabla: reportes 
+CREATE TABLE reportes ( 
+    id_reporte SERIAL PRIMARY KEY, 
+    usuario_id INT, 
+    tipo VARCHAR(100), 
+    parametros TEXT, 
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id_usuario) 
+); 
+ 
+ 
+ 13. Tabla: configuracion 
+CREATE TABLE configuracion ( 
+    id_config SERIAL PRIMARY KEY, 
+    clave VARCHAR(100) NOT NULL UNIQUE, 
+    valor TEXT, 
+    descripcion TEXT 
+); 
+
+ 
+ 
+ Índices recomendados 
+CREATE INDEX idx_inventario_nombre ON inventario(nombre); 
+CREATE INDEX idx_movimientos_fecha ON movimientos(fecha); 
+CREATE INDEX idx_auditoria_fecha ON auditoria(fecha); 
+CREATE INDEX idx_usuarios_usuario ON usuarios(usuario); 
+ 
+ 
+ Reglas críticas implementadas 
+✔ Stock no negativo 
+✔ Claves únicas 
+✔ Integridad referencial 
+✔ Transacciones seguras 
+✔ Auditoría persistente 
+✔ Eliminación lógica vía estado 
+✔ Timestamps automáticos 
+ 
+ Estructura de Base de Datos 
+EasyLabTools 2.0 
+ 
+ 
+ Visión general 
+La base de datos se divide en 5 dominios funcionales: 
+1. Seguridad 
+2. Inventario 
+3. Movimientos 
+4. Reportes y Auditoría 
+5. Configuración 
+Cada dominio agrupa tablas relacionadas. 
+ 
+
+ 
+ 1. Dominio: Seguridad 
+Gestiona acceso, permisos y control. 
+Tablas 
+roles 
+permisos 
+rol_permiso 
+usuarios 
+Estructura lógica 
+ROL 
+  └──< ROL_PERMISO >── PERMISO 
+ 
+ROL 
+  └──< USUARIO 
+Propósito 
+• 
+Control de acceso 
+• 
+Autenticación 
+• 
+Autorización 
+• 
+Permisos granulares 
+ 
+ 
+ 2. Dominio: Inventario 
+Define los elementos físicos. 
+Tablas 
+inventario 
+categorias 
+proveedores 
+ubicaciones 
+
+Estructura 
+CATEGORIA ───< INVENTARIO >─── PROVEEDOR 
+                       │ 
+                       └── UBICACION 
+Propósito 
+• 
+Catalogar equipos 
+• 
+Control de stock 
+• 
+Clasificación 
+• 
+Localización física 
+ 
+ 
+ 3. Dominio: Movimientos 
+Historial de cambios de inventario. 
+Tablas 
+movimientos 
+tipos_movimiento 
+Estructura 
+INVENTARIO ───< MOVIMIENTO >─── USUARIO 
+                     │ 
+                     └── TIPO_MOVIMIENTO 
+Propósito 
+• 
+Trazabilidad total 
+• 
+Entradas y salidas 
+• 
+Ajustes 
+• 
+Transferencias 
+ 
+ 
+ 4. Dominio: Reportes y Auditoría 
+
+Control y supervisión. 
+Tablas 
+reportes 
+auditoria 
+Estructura 
+USUARIO ───< AUDITORIA 
+USUARIO ───< REPORTE 
+Propósito 
+• 
+Control de acciones 
+• 
+Seguridad 
+• 
+Historial legal 
+• 
+Supervisión operativa 
+ 
+⚙ 5. Dominio: Configuración 
+Parámetros del sistema. 
+Tabla 
+configuracion 
+Propósito 
+• 
+Variables globales 
+• 
+Parámetros técnicos 
+• 
+Ajustes operativos 
+Tabla independiente. 
+ 
+ 
+ Jerarquía global del sistema 
+Vista completa: 
+SEGURIDAD 
+
+  ├── usuarios 
+  ├── roles 
+  └── permisos 
+ 
+INVENTARIO 
+  ├── inventario 
+  ├── categorias 
+  ├── proveedores 
+  └── ubicaciones 
+ 
+MOVIMIENTOS 
+  ├── movimientos 
+  └── tipos_movimiento 
+ 
+CONTROL 
+  ├── auditoria 
+  └── reportes 
+ 
+CONFIGURACION 
+  └── configuracion 
+ 
+ 
+ Relaciones críticas 
+Las tablas núcleo del sistema son: 
+usuarios 
+inventario 
+movimientos 
+
+Estas tres forman el eje operativo. 
+Regla: 
+ 
+ Todo movimiento pertenece a un usuario 
+ 
+ Todo movimiento afecta inventario 
+ 
+ Todo cambio genera auditoría 
+ 
+ 
+ Principios estructurales 
+La base de datos sigue: 
+• 
+Normalización 3FN 
+• 
+Integridad referencial 
+• 
+Eliminación lógica 
+• 
+Trazabilidad total 
+• 
+Auditoría obligatoria 
+• 
+Transacciones atómicas 
+ 
+ 
+ Flujo de datos estructural 
+Usuario → Acción → Movimiento → Inventario 
+                      ↓ 
+                   Auditoría 
+Esto garantiza: 
+✔ Historial completo 
+✔ No pérdida de datos 
+✔ Control total 
+✔ Reversibilidad lógica 
+ 
+ Manual Técnico y Funcional 
+EasyLabTools 2.0 
+ 
+
+ 
+ PARTE 1 — MANUAL FUNCIONAL 
+(orientado a usuarios finales) 
+ 
+1. Introducción 
+EasyLabTools es un sistema para la gestión de inventario de laboratorio que permite: 
+• 
+Control de equipos e insumos 
+• 
+Registro de movimientos 
+• 
+Reportes 
+• 
+Auditoría 
+• 
+Gestión de usuarios 
+El sistema garantiza trazabilidad total y seguridad. 
+ 
+2. Acceso al sistema 
+Inicio de sesión 
+El usuario debe ingresar: 
+• 
+Usuario 
+• 
+Contraseña 
+El sistema valida: 
+• 
+Existencia 
+• 
+Estado activo 
+• 
+Credenciales correctas 
+Si falla → acceso denegado. 
+ 
+3. Roles de usuario 
+Administrador 
+• 
+Control total 
+
+• 
+Usuarios 
+• 
+Configuración 
+• 
+Auditoría 
+Operador 
+• 
+Inventario 
+• 
+Movimientos 
+Supervisor 
+• 
+Reportes 
+• 
+Consulta 
+ 
+4. Módulo de Inventario 
+Permite: 
+• 
+Registrar ítems 
+• 
+Editar información 
+• 
+Consultar disponibilidad 
+• 
+Desactivar ítems 
+Reglas: 
+• 
+Código único 
+• 
+No stock negativo 
+• 
+Historial preservado 
+ 
+5. Módulo de Movimientos 
+Permite: 
+• 
+Entradas 
+• 
+Salidas 
+• 
+Ajustes 
+
+• 
+Transferencias 
+Cada movimiento: 
+• 
+Actualiza inventario 
+• 
+Genera auditoría 
+• 
+Guarda historial 
+ 
+6. Reportes 
+El sistema genera: 
+• 
+Inventario actual 
+• 
+Movimientos por fecha 
+• 
+Reportes por categoría 
+• 
+Exportación PDF/Excel 
+ 
+7. Auditoría 
+Registra: 
+• 
+Inicios de sesión 
+• 
+Cambios críticos 
+• 
+Movimientos 
+• 
+Creación de usuarios 
+No editable por usuarios. 
+ 
+8. Configuración 
+Solo administradores. 
+Permite: 
+• 
+Parámetros globales 
+• 
+Rutas 
+
+• 
+Idioma 
+• 
+Ajustes técnicos 
+ 
+9. Mensajes del sistema 
+Ejemplos: 
+• 
+“Stock insuficiente” 
+• 
+“Usuario inactivo” 
+• 
+“Operación exitosa” 
+• 
+“Datos inválidos” 
+ 
+10. Seguridad funcional 
+• 
+Contraseñas cifradas 
+• 
+Permisos por rol 
+• 
+Sesiones protegidas 
+• 
+Auditoría obligatoria 
+ 
+ 
+⚙ PARTE 2 — MANUAL TÉCNICO 
+(orientado a desarrolladores y administradores) 
+ 
+1. Arquitectura conceptual 
+Sistema basado en: 
+Usuarios → API/Lógica → Base de datos 
+Dominios: 
+• 
+Seguridad 
+• 
+Inventario 
+
+• 
+Movimientos 
+• 
+Reportes 
+• 
+Auditoría 
+• 
+Configuración 
+ 
+2. Modelo de datos 
+Tablas principales: 
+usuarios 
+roles 
+permisos 
+inventario 
+movimientos 
+auditoria 
+reportes 
+configuracion 
+Relaciones clave: 
+• 
+Usuario → Movimiento 
+• 
+Movimiento → Inventario 
+• 
+Usuario → Auditoría 
+ 
+3. Reglas de negocio críticas 
+• 
+No permitir stock negativo 
+• 
+Todo movimiento genera auditoría 
+• 
+Eliminaciones lógicas 
+• 
+Transacciones atómicas 
+• 
+Validación obligatoria 
+
+• 
+Permisos por rol 
+ 
+4. Seguridad técnica 
+• 
+Hash de contraseñas (bcrypt recomendado) 
+• 
+Tokens de sesión 
+• 
+Validación de entrada 
+• 
+Protección contra inyección SQL 
+• 
+Control de concurrencia 
+ 
+5. API conceptual 
+La API expone: 
+/auth 
+/usuarios 
+/inventario 
+/movimientos 
+/reportes 
+/auditoria 
+/configuracion 
+Formato: 
+JSON + UTF-8 
+ 
+6. Integridad de datos 
+Garantizada mediante: 
+• 
+Claves foráneas 
+• 
+Constraints 
+• 
+Transacciones 
+
+• 
+Validaciones backend 
+ 
+7. Auditoría técnica 
+Toda acción crítica debe registrar: 
+• 
+Usuario 
+• 
+Acción 
+• 
+Fecha 
+• 
+Detalle 
+Registro inmutable. 
+ 
+8. Escalabilidad 
+El sistema permite: 
+• 
+Migrar a microservicios 
+• 
+Backend distribuido 
+• 
+Base de datos replicada 
+• 
+API pública 
+ 
+9. Mantenimiento 
+Recomendaciones: 
+• 
+Backup diario 
+• 
+Logs monitoreados 
+• 
+Índices optimizados 
+• 
+Limpieza de datos históricos 
+ 
+10. Recuperación ante fallos 
+• 
+Transacciones ACID 
+
+• 
+Rollback automático 
+• 
+Restauración desde backup 
+• 
+Auditoría intacta 
+🏗 Arquitectura Recomendada — EasyLabTools 
+ 
+ 
+ Objetivos de arquitectura 
+• 
+Modularidad 
+• 
+Escalabilidad 
+• 
+Mantenibilidad 
+• 
+Seguridad 
+• 
+Portabilidad 
+• 
+Independencia de tecnología 
+• 
+Alta trazabilidad 
+ 
+ 
+ Arquitectura propuesta 
+ 
+ Clean Architecture + API + Capas 
+Una arquitectura híbrida: 
+Clean Architecture + Arquitectura en capas + API-first 
+Visualmente: 
+UI (Web / Desktop / Mobile) 
+        ↓ 
+    API Gateway 
+        ↓ 
+ Application Layer 
+        ↓ 
+   Domain Layer 
+
+        ↓ 
+ Infrastructure Layer 
+        ↓ 
+    Database 
+ 
+ 
+ 1. Domain Layer (Núcleo del negocio) 
+ 
+ Esta capa NO depende de tecnología. 
+Contiene: 
+• 
+Entidades 
+• 
+Reglas de negocio 
+• 
+Casos de uso 
+• 
+Validaciones críticas 
+Ejemplo: 
+InventoryItem 
+Movement 
+User 
+AuditRecord 
+Aquí vive la lógica real del sistema. 
+ 
+ Esta capa debe poder ejecutarse sola. 
+ 
+⚙ 2. Application Layer 
+Orquesta el dominio. 
+Responsabilidades: 
+• 
+Casos de uso 
+• 
+Coordinación de operaciones 
+• 
+Transacciones 
+
+• 
+Control de permisos 
+Ejemplo: 
+RegisterMovementUseCase 
+CreateUserUseCase 
+GenerateReportUseCase 
+No contiene UI ni base de datos. 
+Solo lógica de aplicación. 
+ 
+ 
+ 3. Infrastructure Layer 
+Implementa la tecnología. 
+Incluye: 
+• 
+Base de datos 
+• 
+Repositorios 
+• 
+API REST 
+• 
+Archivos 
+• 
+Excel/PDF 
+• 
+Logs 
+• 
+Seguridad 
+• 
+Integraciones externas 
+Ejemplo: 
+SQLRepository 
+AuditLogger 
+PDFExporter 
+AuthProvider 
+Esta capa se puede cambiar sin romper el dominio. 
+ 
+
+🖥 4. Presentation Layer 
+Interfaz de usuario: 
+• 
+Web 
+• 
+Escritorio 
+• 
+App móvil 
+• 
+CLI 
+Puede haber múltiples interfaces conectadas a la misma API. 
+Ejemplo: 
+React frontend 
+Desktop app 
+Admin console 
+ 
+ 
+ 5. API Gateway 
+Expone servicios al exterior. 
+Funciones: 
+• 
+Autenticación 
+• 
+Autorización 
+• 
+Validación 
+• 
+Rate limiting 
+• 
+Logging 
+• 
+Versionado 
+ 
+ 
+ Arquitectura de despliegue 
+Opción A — Monolito modular 
+Recomendado para comenzar: 
+[App única] 
+
+ ├ Domain 
+ ├ Application 
+ ├ Infrastructure 
+ └ API 
+Ventajas: 
+• 
+Simple 
+• 
+Barato 
+• 
+Fácil de mantener 
+ 
+Opción B — Microservicios (futuro) 
+Cuando el sistema crezca: 
+Auth Service 
+Inventory Service 
+Movement Service 
+Report Service 
+Audit Service 
+Con: 
+• 
+API Gateway 
+• 
+Base de datos separadas 
+• 
+Mensajería (eventos) 
+ 
+ 
+ Seguridad recomendada 
+• 
+JWT o OAuth2 
+• 
+Hash bcrypt 
+• 
+RBAC (roles y permisos) 
+• 
+Auditoría obligatoria 
+
+• 
+Logs firmados 
+• 
+HTTPS obligatorio 
+ 
+ 
+ Base de datos 
+Recomendación: 
+• 
+PostgreSQL o MySQL empresarial 
+• 
+Transacciones ACID 
+• 
+Índices optimizados 
+• 
+Backup automático 
+Opcional: 
+• 
+Redis (caché) 
+• 
+ElasticSearch (reportes) 
+ 
+ 
+ Arquitectura de datos 
+Patrón: 
+Repository Pattern 
+Unit of Work 
+CQRS (opcional) 
+Event sourcing (opcional) 
+ 
+ 
+ Comunicación interna 
+Opciones: 
+• 
+REST 
+• 
+gRPC 
+• 
+Eventos asincrónicos 
+• 
+Message broker (RabbitMQ/Kafka) 
+
+ 
+ 
+ Escalabilidad 
+El sistema soporta: 
+• 
+Horizontal scaling 
+• 
+Load balancing 
+• 
+Cloud deployment 
+• 
+Containerización (Docker) 
+• 
+Kubernetes 
+ 
+ 
+ Testing recomendado 
+• 
+Unit tests (dominio) 
+• 
+Integration tests 
+• 
+API tests 
+• 
+Security tests 
+• 
+Load tests 
+ 
+ 
+ Flujo de una operación 
+Ejemplo: registrar salida de inventario 
+UI → API → UseCase → Domain Rules → Repository → DB 
+                             ↓ 
+                          Audit log 
+ 
+ 
+ Wireframes de Interfaz — EasyLabTools 
+ 
+🖥 1. Pantalla de Login 
++--------------------------------------------------+ 
+
+|                 EasyLabTools                     | 
+|--------------------------------------------------| 
+|                                                  | 
+|   Usuario:      [____________________]          | 
+|                                                  | 
+|   Contraseña:   [____________________]          | 
+|                                                  | 
+|                 ( Iniciar sesión )              | 
+|                                                  | 
+|   ¿Olvidó contraseña?                            | 
+|                                                  | 
++--------------------------------------------------+ 
+Funcionalidad 
+• 
+Validación en tiempo real 
+• 
+Enter = login 
+• 
+Bloqueo tras intentos fallidos 
+• 
+Mensajes claros de error 
+ 
+ 
+ 2. Dashboard Principal 
++--------------------------------------------------+ 
+| Logo | Usuario | Rol | Fecha | Cerrar sesión    | 
++--------------------------------------------------+ 
+| Menú lateral                                     | 
+|--------------------------------------------------| 
+| > Dashboard                                      | 
+| > Inventario                                     | 
+
+| > Movimientos                                    | 
+| > Reportes                                       | 
+| > Usuarios                                       | 
+| > Auditoría                                      | 
+| > Configuración                                  | 
+|                                                  | 
+|--------------------------------------------------| 
+|                  Panel principal                 | 
+|                                                  | 
+|  [ Total ítems ]   [ Movimientos hoy ]          | 
+|                                                  | 
+|  [ Alertas stock bajo ]                         | 
+|                                                  | 
+|  Gráfica actividad reciente                      | 
+|                                                  | 
++--------------------------------------------------+ 
+ 
+ 
+ 3. Módulo Inventario 
+Lista de inventario 
++--------------------------------------------------+ 
+| Inventario                                       | 
++--------------------------------------------------+ 
+| Buscar: [___________]  Categoría [▼]  Estado    | 
+|--------------------------------------------------| 
+| Código | Nombre | Stock | Ubicación | Estado    | 
+|--------------------------------------------------| 
+
+| 00123  | Micros | 10    | Lab A     | Activo    | 
+| 00451  | Tubos  | 200   | Bodega    | Activo    | 
+|--------------------------------------------------| 
+| ( + Nuevo )   ( Editar )   ( Desactivar )       | 
++--------------------------------------------------+ 
+ 
+Crear / editar ítem 
++--------------------------------------------------+ 
+| Nuevo ítem                                       | 
++--------------------------------------------------+ 
+| Código:        [___________]                     | 
+| Nombre:        [___________]                     | 
+| Categoría:     [▼__________]                     | 
+| Stock inicial: [___________]                     | 
+| Ubicación:     [___________]                     | 
+| Descripción:   [___________________________]     | 
+|                                                  | 
+|            ( Guardar )   ( Cancelar )           | 
++--------------------------------------------------+ 
+ 
+ 
+ 4. Movimientos 
+Registro de movimiento 
++--------------------------------------------------+ 
+| Registrar movimiento                             | 
++--------------------------------------------------+ 
+| Tipo: [ Entrada ▼ / Salida ▼ / Ajuste ▼ ]        | 
+
+| Ítem: [ Buscar inventario ▼ ]                    | 
+| Cantidad: [________]                             | 
+| Responsable: [________]                          | 
+| Motivo: [_____________________________]          | 
+|                                                  | 
+|              ( Confirmar movimiento )            | 
++--------------------------------------------------+ 
+ 
+Historial de movimientos 
++--------------------------------------------------+ 
+| Historial                                        | 
++--------------------------------------------------+ 
+| Fecha | Tipo | Ítem | Cantidad | Usuario        | 
+|--------------------------------------------------| 
+| 01/02 | Sal  | Micr | 2        | Admin          | 
+| 01/02 | Ent  | Tubo | 50       | Operador       | 
++--------------------------------------------------+ 
+ 
+ 
+ 5. Reportes 
++--------------------------------------------------+ 
+| Reportes                                         | 
++--------------------------------------------------+ 
+| Tipo de reporte: [▼ Inventario actual ]         | 
+| Fecha desde: [____]   Fecha hasta: [____]       | 
+| Categoría: [▼]                                  | 
+|                                                  | 
+
+| ( Generar )  ( Exportar Excel ) ( Exportar PDF )| 
+|--------------------------------------------------| 
+| Vista previa del reporte                         | 
+|                                                  | 
++--------------------------------------------------+ 
+ 
+ 
+ 6. Gestión de usuarios 
++--------------------------------------------------+ 
+| Usuarios                                         | 
++--------------------------------------------------+ 
+| Usuario | Rol | Estado | Último acceso          | 
+|--------------------------------------------------| 
+| admin   | Adm | Activo | 01/02                  | 
+| ana     | Op  | Activo | 31/01                  | 
+|--------------------------------------------------| 
+| ( + Nuevo ) ( Editar ) ( Desactivar )           | 
++--------------------------------------------------+ 
+ 
+Crear usuario 
++--------------------------------------------------+ 
+| Nuevo usuario                                    | 
++--------------------------------------------------+ 
+| Usuario: [___________]                           | 
+| Contraseña: [___________]                        | 
+| Rol: [▼]                                         | 
+| Estado: Activo [✓]                               | 
+
+|                                                  | 
+|           ( Crear usuario )                      | 
++--------------------------------------------------+ 
+ 
+ 
+ 7. Auditoría 
++--------------------------------------------------+ 
+| Auditoría                                        | 
++--------------------------------------------------+ 
+| Fecha | Usuario | Acción | Detalle              | 
+|--------------------------------------------------| 
+| 01/02 | admin   | Login  | OK                   | 
+| 01/02 | ana     | Salida | Item 00123           | 
++--------------------------------------------------+ 
+Filtros: 
+• 
+Fecha 
+• 
+Usuario 
+• 
+Tipo de acción 
+ 
+⚙ 8. Configuración 
++--------------------------------------------------+ 
+| Configuración                                    | 
++--------------------------------------------------+ 
+| Parámetros del sistema                           | 
+|--------------------------------------------------| 
+| Idioma: [▼]                                      | 
+| Formato fecha: [▼]                               | 
+
+| Ruta reportes: [___________]                     | 
+| Alertas stock bajo: [ 10 ]                       | 
+|                                                  | 
+|                ( Guardar )                       | 
++--------------------------------------------------+ 
+ 
+Principios UX recomendados 
+• 
+Minimalista 
+• 
+Menos clics posibles 
+• 
+Confirmación en acciones críticas 
+• 
+Feedback inmediato 
+• 
+Mensajes claros 
+• 
+Colores semánticos: 
+o Verde = éxito 
+o Rojo = error 
+o Amarillo = alerta 
+• 
+Atajos de teclado 
+• 
+Responsive 
+ 
+RESUMEN: 
+ 
+Requerimientos Normativos: 
+Módulo / Función 
+del software 
+Requerimiento funcional concreto 
+Norma / referencia principal 
+Registro maestro 
+de insumos 
+Registrar nombre, código interno, tipo de insumo 
+(reactivo, calibrador, control, dispositivo médico, 
+material fungible), fabricante, proveedor. 
+ISO 15189:2022, cl. 6.6 – Reactivos y 
+materiales consumibles; Estándares de 
+calidad laboratorios clínicos – Minsalud. 
+
+Registro maestro 
+de insumos 
+Registrar número de lote, fecha de fabricación (si 
+aplica), fecha de vencimiento y condiciones de 
+almacenamiento requeridas. 
+ISO 15189:2022, cl. 6.6; Decreto 3770 de 
+2004 (reactivos de diagnóstico in vitro); 
+Resolución 132 de 2006 (Invima). 
+Registro maestro 
+de insumos 
+Registrar número de registro sanitario Invima y 
+clasificación (reactivo de diagnóstico in vitro, 
+dispositivo médico, medicamento, etc.). 
+Decreto 3770 de 2004; Resolución 132 
+de 2006; lineamientos Invima sobre 
+reactivos de diagnóstico in vitro. 
+Gestión de lotes y 
+recepción 
+Registrar evento de recepción por cada lote: fecha, 
+proveedor, cantidad recibida, responsable que recibe. 
+ISO 15189:2022, cl. 6.6; Estándares de 
+calidad laboratorio clínico – 
+Minsalud/INS. 
+Gestión de lotes y 
+recepción 
+Registrar inspección en recepción (estado del 
+empaque, integridad, temperatura al recibo si aplica). 
+ISO 15189:2022, cl. 6.6; manuales de 
+habilitación y calidad de laboratorios 
+clínicos (INS, Minsalud). 
+Gestión de lotes y 
+recepción 
+Registrar pruebas de aceptación/verificación del lote 
+antes de uso (resultado, fecha, responsable). 
+ISO 15189:2022, cl. 6.6; Estándares de 
+calidad laboratorios clínicos. 
+Estado del insumo 
+Permitir marcar cada lote con estado: “en 
+cuarentena”, “aceptado”, “rechazado”, “vencido”, “en 
+retiro/recall”. 
+ISO 15189:2022, cl. 6.6 (control de 
+insumos no conformes); Estándares de 
+calidad lab. clínico. 
+Estado del insumo 
+Bloquear el uso de insumos en estado “rechazado” o 
+“vencido” en los módulos de consumo/uso. 
+ISO 15189:2022, cl. 6.6; Resolución 3100 
+de 2019 (condiciones de insumos). 
+Control de 
+inventario 
+Registrar movimientos de inventario: entradas, 
+salidas, ajustes, devoluciones, descartes, con fecha, 
+cantidad y usuario. 
+ISO 15189:2022 (registros y trazabilidad); 
+Estándares de calidad laboratorios 
+clínicos; Resolución 3100 de 2019. 
+Control de 
+inventario 
+Configurar niveles mínimos y máximos por insumo y 
+generar alertas de “por debajo del mínimo”. 
+ISO 15189:2022, cl. 6.6 (gestión de 
+inventario); manuales de 
+habilitación/INS. 
+Control de 
+inventario 
+Generar alertas de vencimiento próximo (p. ej. X días 
+antes) y de insumos vencidos en stock. 
+ISO 15189:2022, cl. 6.6; Estándares de 
+calidad laboratorios; normas de 
+bioseguridad. 
+Control de 
+inventario 
+Soportar lógica FEFO/FIFO para la sugerencia de uso 
+de lotes (usar primero lo que vence antes). 
+ISO 15189:2022, cl. 6.6 (minimizar riesgo 
+de uso de productos vencidos). 
+Trazabilidad con 
+pruebas 
+Registrar, por cada salida/uso de insumo, el 
+servicio/sección, equipo/analizador o tipo de prueba 
+en el que se va a usar. 
+ISO 15189:2022 (trazabilidad de 
+reactivos hacia resultados); Estándares 
+de calidad laboratorio clínico. 
+Trazabilidad con 
+pruebas 
+Permitir consultar qué lotes se usaron en un rango de 
+fechas, área o tipo de examen, para análisis de no 
+conformidades o recall. 
+ISO 15189:2022 (sistema de gestión de 
+la calidad, trazabilidad); lineamientos 
+INS. 
+Soporte a 
+habilitación 
+(3100/544) 
+Generar reportes de inventario vigente, insumos 
+próximos a vencer y descartados, por servicio 
+habilitado. 
+Resolución 3100 de 2019 (estándar de 
+medicamentos, dispositivos e insumos); 
+Resolución 544 de 2023 (autoevaluación 
+y verificación). 
+Soporte a 
+habilitación 
+(3100/544) 
+Generar informes para autoevaluación de condiciones 
+(existencia, suficiencia y conservación de insumos). 
+Resolución 3100 de 2019, arts. sobre 
+habilitación; Resolución 544 de 2023 
+(art. 7 modificado – autoevaluación). 
+Soporte a 
+habilitación 
+(3100/544) 
+Permitir extraer reportes para visitas de verificación 
+(historial de inventario, consumo, descartes por fecha 
+y responsable). 
+Resolución 3100 de 2019 y 544 de 2023 
+(verificación); Manual de verificación de 
+condiciones. 
+
+Reactivos INVIMA 
+Registrar datos específicos requeridos por INVIMA: 
+fabricante, país de origen, presentación, condiciones 
+críticas de conservación. 
+Decreto 3770 de 2004; Resolución 132 
+de 2006; guías Invima. 
+Reactivos INVIMA 
+Identificar en el sistema si el producto tiene 
+restricciones de uso (por ejemplo, uso exclusivo en 
+laboratorio clínico, no uso en punto de atención, etc.). 
+Decreto 3770 de 2004; lineamientos 
+Invima. 
+Bioseguridad y 
+residuos 
+Clasificar los insumos según riesgo (inflamable, 
+corrosivo, tóxico, biológico, etc.) para fines de 
+almacenamiento y disposición final. 
+Normas de bioseguridad en 
+laboratorios; normativa de residuos 
+hospitalarios (p. ej. lineamientos citados 
+por INS/Minsalud). 
+Bioseguridad y 
+residuos 
+Registrar salidas por disposición final/destrucción, 
+indicando método de eliminación y proveedor/gestor 
+de residuos. 
+Normativa de residuos hospitalarios y 
+similares; políticas internas de 
+bioseguridad. 
+Gestión de 
+proveedores 
+Mantener un maestro de proveedores con datos de 
+contacto, productos suministrados, tiempos de 
+entrega y observaciones. 
+ISO 15189:2022 (gestión de compras y 
+proveedores); Estándares de calidad 
+laboratorio clínico. 
+Gestión de 
+proveedores 
+Registrar evaluaciones de desempeño de 
+proveedores (cumplimiento de tiempos, calidad de 
+productos, incidentes). 
+ISO 15189:2022 (evaluación de 
+proveedores); Manuales de calidad del 
+laboratorio. 
+Seguridad de la 
+información 
+Definir roles de usuario (almacén, laboratorio, 
+dirección de calidad, auditor) y permisos 
+diferenciados por módulo. 
+ISO 15189:2022 (gestión de registros y 
+confidencialidad); buenas prácticas de 
+SGSI. 
+Seguridad de la 
+información 
+Mantener trazabilidad de usuario en cada 
+movimiento (quién creó, modificó o eliminó un 
+registro y cuándo). 
+ISO 15189:2022 (trazabilidad de 
+registros); Resolución 3100/2019 
+(responsabilidad y soporte documental). 
+Seguridad de la 
+información 
+Implementar control de acceso (usuario/contraseña, 
+idealmente autenticación por roles) y registro de 
+sesiones. 
+ISO 15189:2022 (seguridad de la 
+información y registros); políticas 
+institucionales de TI. 
+Reportes y 
+auditoría 
+Generar reportes de consumo por periodo, servicio y 
+tipo de insumo, para análisis de costos y 
+planificación. 
+ISO 15189:2022 (mejora continua, uso 
+de datos); Estándares de calidad 
+laboratorio clínico. 
+Reportes y 
+auditoría 
+Generar reportes de no conformidades relacionadas 
+con insumos (lotes rechazados, retirados, incidentes). 
+ISO 15189:2022 (gestión de no 
+conformidades); manual de calidad 
+institucional. 
+ 
+Requerimientos Funcionales: 
+ID 
+Requerimiento 
+funcional 
+Descripción 
+Usuario 
+RF-01 
+Autenticación de 
+usuarios 
+El sistema debe permitir a los 
+usuarios iniciar sesión con 
+credenciales válidas 
+Todos 
+RF-02 
+Validación de 
+credenciales 
+El sistema debe validar 
+usuario, contraseña y estado 
+activo 
+Sistema 
+
+RF-03 
+Bloqueo por 
+intentos fallidos 
+El sistema debe bloquear 
+acceso tras múltiples intentos 
+incorrectos 
+Sistema 
+RF-04 
+Gestión de 
+sesiones 
+El sistema debe mantener 
+sesiones seguras activas 
+Todos 
+RF-05 
+Cierre de sesión 
+El usuario debe poder cerrar 
+sesión manualmente 
+Todos 
+Gestión de 
+usuarios 
+  
+  
+  
+RF-06 
+Crear usuarios 
+El administrador puede 
+registrar nuevos usuarios 
+Administrador 
+RF-07 
+Editar usuarios 
+Modificar información de 
+usuarios 
+Administrador 
+RF-08 
+Desactivar 
+usuarios 
+Desactivar acceso sin eliminar 
+historial 
+Administrador 
+RF-09 
+Asignación de 
+roles 
+Definir permisos por rol 
+Administrador 
+RF-10 
+Restablecer 
+contraseña 
+Cambiar credenciales de 
+usuarios 
+Administrador 
+Inventario 
+  
+  
+  
+RF-11 
+Registrar ítem 
+Crear nuevo elemento de 
+inventario 
+Operador 
+RF-12 
+Editar ítem 
+Modificar datos de inventario 
+Operador 
+RF-13 
+Consultar 
+inventario 
+Visualizar inventario 
+disponible 
+Todos 
+RF-14 
+Desactivar ítem 
+Inhabilitar ítem sin eliminarlo 
+Administrador 
+RF-15 
+Validación de 
+código único 
+No permitir códigos 
+duplicados 
+Sistema 
+RF-16 
+Control de stock 
+Mostrar existencias actuales 
+Sistema 
+RF-17 
+Alerta de stock 
+bajo 
+Notificar mínimos de 
+inventario 
+Sistema 
+Movimientos 
+  
+  
+  
+RF-18 
+Registrar entrada 
+Ingreso de nuevos materiales 
+Operador 
+RF-19 
+Registrar salida 
+Retiro de materiales 
+Operador 
+RF-20 
+Ajuste de 
+inventario 
+Corrección de stock 
+Administrador 
+RF-21 
+Transferencias 
+Movimiento entre ubicaciones Operador 
+RF-22 
+Validar stock 
+suficiente 
+Evitar salidas inválidas 
+Sistema 
+RF-23 
+Historial de 
+movimientos 
+Consultar movimientos 
+realizados 
+Supervisor 
+RF-24 
+Registro 
+automático de 
+fecha 
+Marcar hora exacta del 
+movimiento 
+Sistema 
+
+Reportes 
+  
+  
+  
+RF-25 
+Reporte inventario Generar estado actual de 
+inventario 
+Supervisor 
+RF-26 
+Reporte de 
+movimientos 
+Historial por rango de fechas 
+Supervisor 
+RF-27 
+Reportes por 
+categoría 
+Filtrado especializado 
+Supervisor 
+RF-28 
+Exportar a Excel 
+Generación de archivo Excel 
+Supervisor 
+RF-29 
+Exportar a PDF 
+Generación de reporte PDF 
+Supervisor 
+RF-30 
+Vista previa 
+Visualización antes de 
+exportar 
+Supervisor 
+Auditoría 
+  
+  
+  
+RF-31 
+Registro de 
+auditoría 
+Registrar acciones críticas 
+Sistema 
+RF-32 
+Historial de 
+accesos 
+Guardar log de inicio de sesión Sistema 
+RF-33 
+Auditoría de 
+movimientos 
+Registrar operaciones de 
+inventario 
+Sistema 
+RF-34 
+Consulta de 
+auditoría 
+Visualización de logs 
+Administrador 
+RF-35 
+Inmutabilidad de 
+auditoría 
+No permitir edición de 
+registros 
+Sistema 
+Configuración 
+  
+  
+  
+RF-36 
+Configuración 
+general 
+Ajustar parámetros globales 
+Administrador 
+RF-37 
+Rutas de reportes Definir directorios de salida 
+Administrador 
+RF-38 
+Umbrales de 
+alerta 
+Configurar mínimos de stock 
+Administrador 
+RF-39 
+Idioma del 
+sistema 
+Configurar idioma 
+Administrador 
+Seguridad 
+  
+  
+  
+RF-40 
+Cifrado de 
+contraseñas 
+Almacenamiento seguro 
+Sistema 
+RF-41 
+Control de 
+permisos 
+Restricción por rol 
+Sistema 
+RF-42 
+Validación de 
+datos 
+Evitar datos inválidos 
+Sistema 
+RF-43 
+Protección de 
+integridad 
+Evitar corrupción de datos 
+Sistema 
+Sistema 
+  
+  
+  
+RF-44 
+Manejo de errores Mostrar mensajes claros 
+Sistema 
+RF-45 
+Registro de logs 
+Almacenar errores técnicos 
+Sistema 
+RF-46 
+Backup de datos 
+Respaldo automático 
+Sistema 
+
+RF-47 
+Recuperación 
+ante fallos 
+Restaurar consistencia 
+Sistema 
+ 
+Requerimientos No Funcionales 
+ 
+ID 
+Categoría 
+Requerimiento no 
+funcional 
+Descripción 
+RNF-01 
+Rendimiento 
+Tiempo de respuesta 
+Las operaciones comunes 
+deben responder en menos 
+de 2 segundos 
+RNF-02 
+Rendimiento 
+Carga simultánea 
+El sistema debe soportar al 
+menos 50 usuarios 
+concurrentes sin 
+degradación crítica 
+RNF-03 
+Rendimiento 
+Procesamiento de 
+reportes 
+La generación de reportes 
+debe completarse en menos 
+de 5 segundos 
+RNF-04 
+Rendimiento 
+Optimización de 
+consultas 
+Las consultas a base de 
+datos deben estar indexadas 
+y optimizadas 
+Seguridad 
+  
+  
+  
+RNF-05 
+Seguridad 
+Cifrado de contraseñas 
+Las contraseñas deben 
+almacenarse usando hash 
+seguro (bcrypt o superior) 
+RNF-06 
+Seguridad 
+Control de acceso 
+Acceso basado en roles y 
+permisos 
+RNF-07 
+Seguridad 
+Protección de datos 
+Validación contra inyección 
+SQL y ataques comunes 
+RNF-08 
+Seguridad 
+Sesiones seguras 
+Expiración automática de 
+sesión por inactividad 
+RNF-09 
+Seguridad 
+Comunicación segura 
+Uso de HTTPS o cifrado de 
+comunicación 
+RNF-10 
+Seguridad 
+Auditoría obligatoria 
+Toda acción crítica debe 
+quedar registrada 
+Usabilidad 
+  
+  
+  
+RNF-11 
+Usabilidad 
+Interfaz intuitiva 
+La interfaz debe ser clara y 
+fácil de aprender 
+RNF-12 
+Usabilidad 
+Feedback visual 
+El sistema debe mostrar 
+confirmaciones y errores 
+claros 
+
+RNF-13 
+Usabilidad 
+Consistencia UI 
+Elementos visuales deben 
+seguir un diseño uniforme 
+RNF-14 
+Usabilidad 
+Accesibilidad 
+Cumplimiento básico de 
+estándares de accesibilidad 
+RNF-15 
+Usabilidad 
+Navegación rápida 
+Acceso a funciones 
+principales en ≤ 3 clics 
+Confiabilidad 
+  
+  
+  
+RNF-16 
+Confiabilidad 
+Disponibilidad 
+El sistema debe tener 
+disponibilidad ≥ 99% 
+RNF-17 
+Confiabilidad 
+Tolerancia a fallos 
+Manejo de errores sin 
+pérdida de datos 
+RNF-18 
+Confiabilidad 
+Recuperación 
+Capacidad de restauración 
+desde backups 
+RNF-19 
+Confiabilidad 
+Integridad 
+transaccional 
+Operaciones críticas deben 
+ser atómicas (ACID) 
+Mantenibilidad 
+  
+  
+  
+RNF-20 
+Mantenibilidad 
+Arquitectura modular 
+El sistema debe estar 
+dividido en módulos 
+independientes 
+RNF-21 
+Mantenibilidad 
+Documentación técnica Debe existir documentación 
+actualizada 
+RNF-22 
+Mantenibilidad 
+Código legible 
+Convenciones claras de 
+desarrollo 
+RNF-23 
+Mantenibilidad 
+Pruebas automatizadas Soporte para testing unitario 
+e integración 
+Escalabilidad 
+  
+  
+  
+RNF-24 
+Escalabilidad 
+Escalamiento 
+horizontal 
+Soporte para múltiples 
+instancias del sistema 
+RNF-25 
+Escalabilidad 
+Crecimiento de datos 
+Manejo eficiente de grandes 
+volúmenes de inventario 
+RNF-26 
+Escalabilidad 
+Separación de servicios Capacidad futura de migrar 
+a microservicios 
+Portabilidad 
+  
+  
+  
+RNF-27 
+Portabilidad 
+Multiplataforma 
+Compatible con 
+Windows/Linux/macOS 
+RNF-28 
+Portabilidad 
+Independencia 
+tecnológica 
+No depender de un lenguaje 
+específico 
+RNF-29 
+Portabilidad 
+Migración futura 
+Soporte para migración a 
+web o nube 
+Compatibilidad 
+  
+  
+  
+RNF-33 
+Compatibilidad Exportación estándar 
+Soporte para PDF y Excel 
+
+RNF-34 
+Compatibilidad Integración futura 
+API abierta para 
+integraciones externas 
+Integridad de 
+datos 
+  
+  
+  
+RNF-30 
+Integridad 
+Validaciones 
+obligatorias 
+Datos deben ser verificados 
+antes de guardar 
+RNF-31 
+Integridad 
+Consistencia de 
+inventario 
+No permitir stock negativo 
+RNF-32 
+Integridad 
+Auditoría inmutable 
+Los registros no pueden 
+editarse 
+Soporte y 
+operación 
+  
+  
+  
+RNF-35 
+Operación 
+Backup automático 
+Respaldo periódico de datos 
+RNF-36 
+Operación 
+Logs del sistema 
+Registro de eventos técnicos 
+RNF-37 
+Operación 
+Monitoreo 
+Capacidad de supervisión 
+del sistema 
+RNF-38 
+Operación 
+Recuperación ante 
+fallos 
+Restauración rápida del 
+servicio 
+ 

@@ -28,7 +28,8 @@ export default async function InventarioPage({
     { data: sections },
     { data: suppliers },
     { data: locations },
-    { data: allBatches }
+    { data: allBatches },
+    { data: allMovements }
   ] = await Promise.all([
     CatalogService.getCatalogItems(),
     CatalogService.getCategories(),
@@ -36,6 +37,7 @@ export default async function InventarioPage({
     CatalogService.getSuppliers(),
     CatalogService.getLocations(),
     StockService.getAllBatches(),
+    StockService.getAllMovements(),
   ]);
 
   const editingItem = editId ? catalogItems?.find(i => i.id === editId) : null;
@@ -86,6 +88,12 @@ export default async function InventarioPage({
           className={`tab-link ${currentView === 'salidas' ? 'active-tab' : ''}`}
         >
           Salida de Productos
+        </a>
+        <a 
+          href="?view=movimientos" 
+          className={`tab-link ${currentView === 'movimientos' ? 'active-tab' : ''}`}
+        >
+          Kardex (Historial)
         </a>
       </div>
 
@@ -363,9 +371,135 @@ export default async function InventarioPage({
         )}
 
         {currentView === 'salidas' && (
-          <div className="stat-card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <h2 style={{ color: 'var(--navy)', marginBottom: '1rem' }}>Salida de Productos</h2>
-            <p>Módulo de registro de consumos y ajustes de inventario (Próximamente).</p>
+          <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+              <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>Registrar Salida / Consumo</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Descuente stock del inventario para uso operativo o ajustes.</p>
+            </div>
+            
+            <form action={Actions.handleConsumeAction} style={{ padding: '2rem' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 600px)', gap: '1.5rem', justifyContent: 'center' }}>
+                <div className="form-section" style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Producto / Lote a Consumir *</label>
+                      <select name="batch_id" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                        <option value="">Seleccione Lote con Stock Disponible...</option>
+                        {allBatches?.filter((b: any) => b.current_stock > 0).map((b: any) => (
+                          <option key={b.id} value={b.id}>
+                            {b.item?.technical_name} (Lote: {b.batch_number}) - Disp: {b.current_stock}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Cantidad a Descontar *</label>
+                        <input type="number" name="quantity" defaultValue="1" min="1" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Motivo / Justificación *</label>
+                        <select name="reason" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                          <option value="Consumo operativo">Consumo Operativo</option>
+                          <option value="Descarte por vencimiento">Descarte por Vencimiento</option>
+                          <option value="Ajuste por pérdida">Ajuste por Pérdida/Daño</option>
+                          <option value="Calibración/Control">Uso en Calibración/Control</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                <button 
+                  type="submit" 
+                  style={{ 
+                    padding: '0.875rem 2.5rem', 
+                    background: 'var(--error)', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '8px', 
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  Registrar Salida
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {currentView === 'movimientos' && (
+          <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+              <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>Kardex (Historial de Movimientos)</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Registro auditable de todas las entradas, salidas y ajustes de inventario.</p>
+            </div>
+            <div className="table-responsive">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
+                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem' }}>Fecha y Hora</th>
+                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem' }}>Tipo</th>
+                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem' }}>Producto</th>
+                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem' }}>Lote / Vencimiento</th>
+                    <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem' }}>Cantidad</th>
+                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem' }}>Usuario / Notas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allMovements?.map((m: any) => (
+                    <tr key={m.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
+                      <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
+                        {new Date(m.created_at).toLocaleDateString()}
+                        <br/><span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{new Date(m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <span style={{ 
+                          padding: '0.25rem 0.6rem', 
+                          borderRadius: '12px', 
+                          fontSize: '0.75rem', 
+                          fontWeight: '700',
+                          background: m.movement_type === 'entry' ? '#dcfce7' : m.movement_type === 'exit' ? '#fee2e2' : '#fef9c3',
+                          color: m.movement_type === 'entry' ? '#166534' : m.movement_type === 'exit' ? '#991b1b' : '#854d0e',
+                          textTransform: 'uppercase'
+                        }}>
+                          {m.movement_type === 'entry' ? 'Entrada' : m.movement_type === 'exit' ? 'Salida' : m.movement_type === 'adjustment' ? 'Ajuste' : 'Descarte'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <div style={{ fontWeight: '700', color: 'var(--navy)', fontSize: '0.85rem' }}>{m.batch?.item?.technical_name || 'Desconocido'}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{m.batch?.item?.internal_code || 'N/A'}</div>
+                      </td>
+                      <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
+                        <div style={{ fontWeight: '600' }}>{m.batch?.batch_number}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--error)' }}>
+                          Vence: {m.batch && 'expiration_date' in m.batch && m.batch.expiration_date ? new Date((m.batch as any).expiration_date).toLocaleDateString() : 'N/A'}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem', textAlign: 'center', fontWeight: '800', fontSize: '1rem', color: m.movement_type === 'entry' ? 'var(--success)' : m.movement_type === 'adjustment' ? 'var(--warning)' : 'var(--error)' }}>
+                        {m.movement_type === 'entry' ? '+' : '-'}{m.quantity}
+                      </td>
+                      <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
+                        <div style={{ fontWeight: '600' }}>{m.user?.full_name || m.user?.username || 'Sistema'}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.reason}</div>
+                      </td>
+                    </tr>
+                  ))}
+                  {(!allMovements || allMovements.length === 0) && (
+                    <tr>
+                      <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        No hay movimientos registrados en el historial.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
