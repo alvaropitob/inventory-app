@@ -87,7 +87,7 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
         </select>
       </div>
 
-      <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+      <div className="form-row">
         <div className="form-group">
           <label>Fecha Estimada de Entrega (Opcional)</label>
           <input type="date" value={expectedDate} onChange={e => setExpectedDate(e.target.value)} />
@@ -100,8 +100,8 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
 
       <h3 style={{ marginTop: '2rem', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>Productos Requeridos</h3>
       
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '8px' }}>
-        <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
+      <div className="form-row" style={{ alignItems: 'flex-end', marginBottom: '1.5rem', background: '#f8fafc', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+        <div className="form-group" style={{ flex: 2 }}>
           <label>Producto a Pedir</label>
           <select value={selectedItem} onChange={e => setSelectedItem(e.target.value)}>
             <option value="">-- Buscar Producto --</option>
@@ -112,15 +112,15 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
             ))}
           </select>
         </div>
-        <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+        <div className="form-group" style={{ flex: 1 }}>
           <label>Cantidad</label>
           <input type="number" min="1" value={selectedQty} onChange={e => setSelectedQty(Number(e.target.value))} />
         </div>
-        <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+        <div className="form-group" style={{ flex: 1 }}>
           <label>Precio Unit. Est. ($)</label>
           <input type="number" step="0.01" min="0" value={selectedPrice} onChange={e => setSelectedPrice(Number(e.target.value))} />
         </div>
-        <button type="button" onClick={handleAddItem} className="btn-secondary" style={{ height: '42px', padding: '0 1.5rem' }}>
+        <button type="button" onClick={handleAddItem} className="btn-secondary">
           Agregar
         </button>
       </div>
@@ -171,7 +171,7 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
       )}
 
       <div className="form-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-        <Link href="/dashboard/pedidos" className="btn-secondary" style={{ textDecoration: 'none' }}>
+        <Link href="/dashboard/pedidos" className="btn-secondary">
           Cancelar
         </Link>
         <button type="submit" className="btn-primary" disabled={loading || orderItems.length === 0}>

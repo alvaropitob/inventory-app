@@ -144,38 +144,16 @@ export default async function UsuariosPage() {
                     </span>
                   </td>
                   <td style={{ padding: '1.25rem' }}>
-                    <form action={updateRole} style={{ display: 'flex', gap: '0.5rem' }}>
+                    <form action={updateRole} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <input type="hidden" name="userId" value={u.id} />
-                      <select 
-                        name="roleId" 
-                        defaultValue={(Array.isArray(u.roles) ? u.roles[0] : u.roles)?.id}
-                        style={{ 
-                          padding: '0.5rem', 
-                          borderRadius: 'var(--radius)', 
-                          border: '1px solid var(--border)',
-                          fontSize: '0.875rem',
-                          background: 'var(--white)',
-                          color: 'var(--navy)'
-                        }}
-                      >
-                        {roles?.map((r: { id: string, name: string }) => (
-                          <option key={r.id} value={r.id}>{r.name.toUpperCase()}</option>
-                        ))}
-                      </select>
-                      <button 
-                        type="submit"
-                        style={{ 
-                          padding: '0.5rem 1rem', 
-                          background: 'var(--primary)', 
-                          color: 'white', 
-                          border: 'none', 
-                          borderRadius: 'var(--radius)',
-                          fontSize: '0.8125rem',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                      >
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <select name="roleId" defaultValue={(Array.isArray(u.roles) ? u.roles[0] : u.roles)?.id}>
+                          {roles?.map((r: { id: string, name: string }) => (
+                            <option key={r.id} value={r.id}>{r.name.toUpperCase()}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <button type="submit" className="btn-primary" style={{ padding: '0.625rem 1rem', fontSize: '0.75rem' }}>
                         Actualizar
                       </button>
                     </form>
