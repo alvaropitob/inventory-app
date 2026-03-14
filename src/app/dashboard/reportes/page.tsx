@@ -140,7 +140,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                                 <tbody>
                                     {logs.map(log => (
                                         <tr key={log.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                            <td style={{ padding: '1rem', fontSize: '0.85rem' }}>{new Date(log.recorded_at).toLocaleString()}</td>
+                                            <td style={{ padding: '1rem', fontSize: '0.85rem' }}>{new Date(log.created_at).toLocaleString()}</td>
                                             <td style={{ padding: '1rem', fontSize: '0.85rem' }}>{log.locations?.name}</td>
                                             <td style={{ padding: '1rem', textAlign: 'center', fontWeight: '700' }}>{log.temperature}</td>
                                             <td style={{ padding: '1rem', textAlign: 'center' }}>{log.humidity || '--'}</td>
