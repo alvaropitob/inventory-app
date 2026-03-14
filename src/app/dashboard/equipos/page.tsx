@@ -10,23 +10,23 @@ export default async function EquipmentPage() {
   ]);
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header" style={{ marginBottom: '2rem' }}>
-        <div>
-          <h1 className="text-2xl font-bold text-navy">Gestión de Equipos y Analizadores</h1>
-          <p className="text-navy-light">Hoja de vida técnica y control de mantenimiento (ISO 15189)</p>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <div className="card" style={{ padding: '1.5rem', position: 'sticky', top: '2rem' }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--primary)' }}>Registro de Equipo</h2>
+    <div className="dashboard-main">
+      <div className="welcome-section" style={{ marginBottom: '2rem' }}>
+        <h1>Gestión de Equipos y Analizadores</h1>
+        <p>Hoja de vida técnica y control de mantenimiento (ISO 15189)</p>
+      </div>
+ 
+      <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', alignItems: 'start' }}>
+        <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+          <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
+            <h2 style={{ fontSize: '1.1rem', color: 'var(--navy)', fontWeight: '700', margin: 0 }}>Registro de Equipo</h2>
+          </div>
+          <div style={{ padding: '1.5rem' }}>
             <EquipmentForm locations={locations.data || []} />
           </div>
         </div>
         
-        <div className="lg:col-span-2">
+        <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'stretch', padding: 0 }}>
           <EquipmentList equipments={equipments.data || []} />
         </div>
       </div>

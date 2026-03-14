@@ -25,31 +25,31 @@ export default function EquipmentForm({ locations }: { locations: Location[] }) 
   }
 
   return (
-    <form id="equipment-form" action={clientAction} className="space-y-4">
-      <div>
-        <label className="block text-xs font-bold mb-1 uppercase text-navy-light">Nombre del Equipo / Analizador</label>
-        <input name="name" required placeholder="Ej: Cobas c311" className="w-full p-2 border rounded-md" />
+    <form id="equipment-form" action={clientAction} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div className="form-group">
+        <label>Nombre del Equipo / Analizador *</label>
+        <input name="name" required placeholder="Ej: Cobas c311" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-bold mb-1 uppercase text-navy-light">Marca</label>
-          <input name="brand" placeholder="Ej: Roche" className="w-full p-2 border rounded-md" />
+      <div className="form-row">
+        <div className="form-group">
+          <label>Marca</label>
+          <input name="brand" placeholder="Ej: Roche" />
         </div>
-        <div>
-          <label className="block text-xs font-bold mb-1 uppercase text-navy-light">Modelo</label>
-          <input name="model" placeholder="Ej: c311" className="w-full p-2 border rounded-md" />
+        <div className="form-group">
+          <label>Modelo</label>
+          <input name="model" placeholder="Ej: c311" />
         </div>
       </div>
 
-      <div>
-        <label className="block text-xs font-bold mb-1 uppercase text-navy-light">Número de Serie</label>
-        <input name="serial_number" placeholder="SN-XXXXX" className="w-full p-2 border rounded-md" />
+      <div className="form-group">
+        <label>Número de Serie</label>
+        <input name="serial_number" placeholder="SN-XXXXX" />
       </div>
 
-      <div>
-        <label className="block text-xs font-bold mb-1 uppercase text-navy-light">Ubicación Actual</label>
-        <select name="location_id" className="w-full p-2 border rounded-md">
+      <div className="form-group">
+        <label>Ubicación Actual *</label>
+        <select name="location_id" required>
           <option value="">Seleccione una ubicación...</option>
           {locations.map(loc => (
             <option key={loc.id} value={loc.id}>{loc.name}</option>
@@ -57,9 +57,9 @@ export default function EquipmentForm({ locations }: { locations: Location[] }) 
         </select>
       </div>
 
-      <div>
-        <label className="block text-xs font-bold mb-1 uppercase text-navy-light">Estado</label>
-        <select name="status" className="w-full p-2 border rounded-md" defaultValue="active">
+      <div className="form-group">
+        <label>Estado</label>
+        <select name="status" defaultValue="active">
           <option value="active">Activo / Operativo</option>
           <option value="maintenance">En Mantenimiento</option>
           <option value="out_of_service">Fuera de Servicio</option>
@@ -69,7 +69,8 @@ export default function EquipmentForm({ locations }: { locations: Location[] }) 
       <button 
         type="submit" 
         disabled={loading}
-        className="w-full bg-primary text-white p-3 rounded-md font-bold transition-all hover:bg-primary-dark disabled:opacity-50"
+        className="btn-primary"
+        style={{ marginTop: '0.5rem', width: '100%' }}
       >
         {loading ? "Guardando..." : "Registrar Equipo"}
       </button>
