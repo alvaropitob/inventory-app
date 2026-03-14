@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createPurchaseOrder } from "../actions";
+import { createPurchaseOrder } from "@/app/dashboard/pedidos/actions";
 import Link from "next/link";
 
 interface Supplier { id: string; name: string; }

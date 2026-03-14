@@ -1,7 +1,6 @@
 import { OrderService } from "@/lib/services/orders";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { updateOrderStatus } from "./actions";
 
 export const dynamic = "force-dynamic";
 

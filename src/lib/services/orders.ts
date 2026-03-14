@@ -15,7 +15,7 @@ export interface PurchaseOrder {
   updated_at?: string;
   
   // joined relations
-  supplier?: { id: string; name: string };
+  supplier?: { id: string; name: string; contact_name?: string | null; contact_email?: string | null };
   creator?: { id: string; full_name: string; email: string };
   items?: PurchaseOrderItem[];
 }
