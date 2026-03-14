@@ -3,6 +3,7 @@ import { getCurrentUserProfile } from "@/lib/services/user";
 import { CatalogService } from "@/lib/services/catalog";
 import { ComplianceServiceV2 } from "@/lib/services/compliance_v2";
 import * as Actions from "./actions";
+import ContextualHelp from "@/components/ContextualHelp";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,20 @@ export default async function MonitoreoPage() {
                 
                 {/* Formulario de Registro */}
                 <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-                    <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-                        <h2 style={{ fontSize: '1.1rem', color: 'var(--navy)', fontWeight: '700', margin: 0 }}>Nueva Lectura</h2>
+                    <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <h2 style={{ fontSize: '1.1rem', color: 'var(--navy)', fontWeight: '700', margin: 0 }}>
+                            Nueva Lectura
+                            <ContextualHelp content={{
+                                title: "Control de Red de Frío",
+                                description: "El monitoreo diario asegura que los reactivos mantengan su estabilidad (ISO 15189).",
+                                steps: [
+                                    "Seleccione la ubicación o equipo específico.",
+                                    "Ingrese temperatura en grados Celsius (°C).",
+                                    "La humedad es opcional pero recomendada en almacenes."
+                                ],
+                                tips: ["Si la temperatura está fuera de rango (ej. > 8°C en nevera), registre la acción correctiva en Notas."]
+                            }} />
+                        </h2>
                     </div>
                     
                     <form action={Actions.submitEnvironmentalLog} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

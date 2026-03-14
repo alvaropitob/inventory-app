@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitTechnicalReception } from "@/app/dashboard/recepcion/actions";
+import ContextualHelp from "./ContextualHelp";
 
 interface OrderItem {
     catalog_item_id: string;
@@ -120,7 +121,19 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                 </div>
             </div>
 
-            <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Detalle de Ítems y Lotes</h3>
+            <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                Detalle de Ítems y Lotes
+                <ContextualHelp content={{
+                    title: "Inspección de Lotes",
+                    description: "Debe verificar físicamente que el lote y la fecha de vencimiento coincidan con el producto entregado.",
+                    steps: [
+                        "Identifique el lote en la caja o envase.",
+                        "Registre la fecha de vencimiento exacta.",
+                        "Verifique la integridad del empaque primario."
+                    ],
+                    tips: ["Si el producto vence en menos de 6 meses, considere marcarlo para uso prioritario o notificar a supervisión."]
+                }} />
+            </h3>
             
             <div className="table-responsive" style={{ marginBottom: '2rem' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>

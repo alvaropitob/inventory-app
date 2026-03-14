@@ -2,6 +2,7 @@
 
 import { handleEquipmentAction } from "@/app/dashboard/equipos/actions";
 import { useState } from "react";
+import ContextualHelp from "./ContextualHelp";
 
 interface Location {
   id: string;
@@ -10,6 +11,17 @@ interface Location {
 
 export default function EquipmentForm({ locations }: { locations: Location[] }) {
   const [loading, setLoading] = useState(false);
+
+  const helpContent = {
+    title: "Registro de Hoja de Vida",
+    description: "Este formulario registra equipos nuevos para el inventario técnico y control de mantenimiento preventivo.",
+    steps: [
+      "Ingrese el nombre comercial y marca del equipo.",
+      "Asocie el equipo a una ubicación física actual.",
+      "Defina el estado operativo inicial."
+    ],
+    tips: ["Asegúrese de copiar el número de serie exacto de la placa del equipo para trazabilidad ISO."]
+  };
 
   async function clientAction(formData: FormData) {
     setLoading(true);
