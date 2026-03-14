@@ -118,9 +118,9 @@ export default async function MonitoreoPage() {
                                 {logs.map((log) => (
                                     <tr key={log.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                         <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
-                                            {new Date(log.recorded_at).toLocaleDateString()}
+                                            {new Date(log.created_at).toLocaleDateString()}
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                                {new Date(log.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </div>
                                         </td>
                                         <td style={{ padding: '1rem', fontWeight: '600', color: 'var(--navy)', fontSize: '0.85rem' }}>

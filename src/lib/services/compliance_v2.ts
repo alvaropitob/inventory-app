@@ -7,7 +7,7 @@ export interface EnvironmentalLog {
     location_id: string;
     temperature: number;
     humidity?: number;
-    recorded_at: string;
+    created_at: string;
     recorded_by: string;
     notes?: string;
     locations?: { name: string };
@@ -66,7 +66,7 @@ export const ComplianceServiceV2 = {
         const { data, error } = await supabase
             .from('environmental_readings')
             .select('*, locations(name)')
-            .order('recorded_at', { ascending: false })
+            .order('created_at', { ascending: false })
             .limit(limit);
 
         if (error) throw error;
