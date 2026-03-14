@@ -29,7 +29,7 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
 
     // Form states
     const [packagingStatus, setPackagingStatus] = useState("Intacto");
-    const [integrityVerified, setIntegrityVerified] = useState(true);
+    const [integrityVerified] = useState(true);
     const [receptionTemp, setReceptionTemp] = useState(20);
     const [isApproved, setIsApproved] = useState(true);
     const [notes, setNotes] = useState("");
