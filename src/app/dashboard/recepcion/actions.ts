@@ -1,4 +1,3 @@
-"use client"; // Wait, actions must be "use server"
 "use server";
 
 import { ComplianceService } from "@/lib/services/compliance";
