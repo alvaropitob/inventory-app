@@ -6,6 +6,51 @@ import * as Actions from "./actions";
 
 export const dynamic = "force-dynamic";
 
+interface Category {
+  id: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+}
+
+interface Section {
+  id: string;
+  name: string;
+  description: string | null;
+  category_id: string | null;
+  is_active: boolean;
+  categories?: { name: string } | null;
+}
+
+interface Supplier {
+  id: string;
+  name: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  tax_id: string | null;
+  is_active: boolean;
+}
+
+interface Location {
+  id: string;
+  name: string;
+  section_id: string;
+  location_type: string;
+  is_active: boolean;
+  sections?: { name: string } | null;
+}
+
+interface CatalogItem {
+  id: string;
+  internal_code: string;
+  technical_name: string;
+  commercial_name: string | null;
+  section_id: string;
+  purchase_unit: string | null;
+  minimum_stock_threshold: number | null;
+  is_active: boolean;
+}
+
 export default async function ConfiguracionPage({
   searchParams,
 }: {
@@ -21,7 +66,13 @@ export default async function ConfiguracionPage({
   const activeTab = tab || "secciones";
 
   // Data fetching based on active tab
-  const [{ data: sections }, { data: suppliers }, { data: categories }, { data: locations }, { data: catalogItems }] = await Promise.all([
+  const [
+    { data: rawSections }, 
+    { data: rawSuppliers }, 
+    { data: rawCategories }, 
+    { data: rawLocations }, 
+    { data: rawCatalogItems }
+  ] = await Promise.all([
     CatalogService.getSections(),
     CatalogService.getSuppliers(),
     CatalogService.getCategories(),
@@ -29,13 +80,19 @@ export default async function ConfiguracionPage({
     CatalogService.getCatalogItems(),
   ]);
 
+  const sections = rawSections as Section[] | null;
+  const suppliers = rawSuppliers as Supplier[] | null;
+  const categories = rawCategories as Category[] | null;
+  const locations = rawLocations as Location[] | null;
+  const catalogItems = rawCatalogItems as CatalogItem[] | null;
+
   // Find item to edit if editId is present
   const editingItem = editId ? (
-    activeTab === "secciones" ? sections?.find((s: { id: string }) => s.id === editId) :
-      activeTab === "proveedores" ? suppliers?.find((s: { id: string }) => s.id === editId) :
-        activeTab === "categorias" ? categories?.find((c: { id: string }) => c.id === editId) :
-          activeTab === "ubicaciones" ? locations?.find((l: { id: string }) => l.id === editId) :
-            activeTab === "productos" ? catalogItems?.find((i: { id: string }) => i.id === editId) :
+    activeTab === "secciones" ? sections?.find(s => s.id === editId) :
+      activeTab === "proveedores" ? suppliers?.find(s => s.id === editId) :
+        activeTab === "categorias" ? categories?.find(c => c.id === editId) :
+          activeTab === "ubicaciones" ? locations?.find(l => l.id === editId) :
+            activeTab === "productos" ? catalogItems?.find(i => i.id === editId) :
               null
   ) : null;
 
@@ -73,10 +130,10 @@ export default async function ConfiguracionPage({
               {editingItem && <a href="?tab=secciones" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
             <form action={Actions.handleSectionAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
-              <input type="hidden" name="id" value={editingItem?.id || ""} />
+              <input type="hidden" name="id" value={(editingItem as Section)?.id || ""} />
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Nombre de Subcategoría</label>
-                <input name="name" defaultValue={editingItem?.name || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Hematología" />
+                <input name="name" defaultValue={(editingItem as Section)?.name || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Hematología" />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Categoría Padre</label>
@@ -87,7 +144,7 @@ export default async function ConfiguracionPage({
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Descripción</label>
-                <input name="description" defaultValue={editingItem?.description || ""} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Breve descripción..." />
+                <input name="description" defaultValue={(editingItem as Section)?.description || ""} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Breve descripción..." />
               </div>
               <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
                 {editingItem ? "Actualizar" : "Añadir"}
@@ -104,7 +161,7 @@ export default async function ConfiguracionPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {sections?.map((s: any) => (
+                  {sections?.map((s: Section) => (
                     <tr key={s.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{s.name}</td>
                       <td style={{ padding: '1rem' }}>
@@ -147,8 +204,8 @@ export default async function ConfiguracionPage({
               {editingItem && <a href="?tab=proveedores" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
             <form action={Actions.handleSupplierAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
-              <input type="hidden" name="id" value={editingItem?.id || ""} />
-              <input name="name" defaultValue={editingItem?.name || ""} placeholder="Empresa" required style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              <input type="hidden" name="id" value={(editingItem as Supplier)?.id || ""} />
+              <input name="name" defaultValue={(editingItem as Supplier)?.name || ""} placeholder="Empresa" required style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
               <input name="contact_name" defaultValue={(editingItem as { contact_name?: string })?.contact_name || ""} placeholder="Contacto" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
               <input name="contact_email" defaultValue={(editingItem as { contact_email?: string })?.contact_email || ""} placeholder="Email" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
               <input name="tax_id" defaultValue={(editingItem as { tax_id?: string })?.tax_id || ""} placeholder="NIT/Tax ID" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
@@ -167,7 +224,7 @@ export default async function ConfiguracionPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {suppliers?.map((sup: any) => (
+                  {suppliers?.map((sup: Supplier) => (
                     <tr key={sup.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{sup.name}</td>
                       <td style={{ padding: '1rem' }}>
@@ -208,9 +265,9 @@ export default async function ConfiguracionPage({
               {editingItem && <a href="?tab=categorias" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
             <form action={Actions.handleCategoryAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
-              <input type="hidden" name="id" value={editingItem?.id || ""} />
-              <input name="name" defaultValue={editingItem?.name || ""} placeholder="Nombre" required style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
-              <input name="description" defaultValue={editingItem?.description || ""} placeholder="Descripción" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              <input type="hidden" name="id" value={(editingItem as Category)?.id || ""} />
+              <input name="name" defaultValue={(editingItem as Category)?.name || ""} placeholder="Nombre" required style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              <input name="description" defaultValue={(editingItem as Category)?.description || ""} placeholder="Descripción" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
               <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
@@ -226,7 +283,7 @@ export default async function ConfiguracionPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {categories?.map((c: any) => (
+                  {categories?.map((c: Category) => (
                     <tr key={c.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{c.name}</td>
                       <td style={{ padding: '1rem' }}>{c.description}</td>
@@ -264,10 +321,10 @@ export default async function ConfiguracionPage({
               {editingItem && <a href="?tab=ubicaciones" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
             <form action={Actions.handleLocationAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
-              <input type="hidden" name="id" value={editingItem?.id || ""} />
+              <input type="hidden" name="id" value={(editingItem as Location)?.id || ""} />
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Nombre de Ubicación *</label>
-                <input name="name" defaultValue={editingItem?.name || ""} placeholder="Nombre (ej: Nevera A1)" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                <input name="name" defaultValue={(editingItem as Location)?.name || ""} placeholder="Nombre (ej: Nevera A1)" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Categoría / Sección *</label>
@@ -299,7 +356,7 @@ export default async function ConfiguracionPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {locations?.map((l: any) => (
+                  {locations?.map((l: Location) => (
                     <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{l.name}</td>
                        <td style={{ padding: '1rem' }}>{(l as { sections?: { name: string } }).sections?.name}</td>
@@ -337,7 +394,7 @@ export default async function ConfiguracionPage({
               {editingItem && <a href="?tab=productos" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
             <form action={Actions.handleCatalogAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
-              <input type="hidden" name="id" value={editingItem?.id || ""} />
+              <input type="hidden" name="id" value={(editingItem as CatalogItem)?.id || ""} />
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Código / Referencia *</label>
                 <input name="internal_code" defaultValue={(editingItem as { internal_code?: string })?.internal_code || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: REF-001" />

@@ -1,10 +1,34 @@
 import { redirect } from "next/navigation";
 import { getAuditLogs } from "./actions";
 import ExportCSVButton from "@/components/ExportCSVButton";
-
 import { getCurrentUserProfile } from "@/lib/services/user";
 
 export const dynamic = "force-dynamic";
+
+interface AuditUser {
+  id: string;
+  username: string;
+  full_name: string;
+  email: string;
+}
+
+interface AuditLog {
+  id: string;
+  table_name: string;
+  record_id: string;
+  action: string;
+  old_data: Record<string, any> | null;
+  new_data: Record<string, any> | null;
+  ip_address: string | null;
+  created_at: string;
+  users: AuditUser | AuditUser[] | null;
+}
+
+function getUserDisplayName(users: AuditUser | AuditUser[] | null): string {
+  if (!users) return 'Sistema';
+  const user = Array.isArray(users) ? users[0] : users;
+  return user?.full_name || user?.username || 'Sistema';
+}
 
 export default async function AuditoriaPage() {
   const user = await getCurrentUserProfile();
@@ -13,7 +37,7 @@ export default async function AuditoriaPage() {
     redirect("/dashboard");
   }
 
-  const logs = await getAuditLogs();
+  const logs = await getAuditLogs() as unknown as AuditLog[];
 
   return (
     <div className="dashboard-main">
@@ -24,12 +48,12 @@ export default async function AuditoriaPage() {
         </div>
         <ExportCSVButton 
           filename="Auditoria_Sistema" 
-          data={logs.map((log: any) => ({
+          data={logs.map((log: AuditLog) => ({
             'Fecha y Hora': new Date(log.created_at).toLocaleString(),
             'Acción': log.action,
             'Tabla Modificada': log.table_name,
             'ID Registro': log.record_id,
-            'Usuario': log.users?.[0]?.full_name || log.users?.[0]?.username || 'Sistema',
+            'Usuario': getUserDisplayName(log.users),
             'IP': log.ip_address || 'N/A',
             'Datos Anteriores': log.old_data ? JSON.stringify(log.old_data) : '',
             'Nuevos Datos': log.new_data ? JSON.stringify(log.new_data) : ''
@@ -74,7 +98,7 @@ export default async function AuditoriaPage() {
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>ID: {log.record_id?.substring(0,8)}...</div>
                   </td>
                   <td style={{ padding: '1.25rem' }}>
-                      <div style={{ fontWeight: '600', fontSize: '0.85rem' }}>{(log.users as any)?.[0]?.full_name || (log.users as any)?.[0]?.username || 'Sistema'}</div>
+                    <div style={{ fontWeight: '600', fontSize: '0.85rem' }}>{getUserDisplayName(log.users)}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>IP: {log.ip_address || 'Desconocida'}</div>
                   </td>
                   <td style={{ padding: '1.25rem', maxWidth: '300px' }}>

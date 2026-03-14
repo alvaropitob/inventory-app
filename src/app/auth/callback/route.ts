@@ -17,14 +17,14 @@ export async function GET(request: Request) {
     if (error) {
       console.error("Auth callback error:", error);
       return NextResponse.redirect(
-        `${origin}/error?message=${encodeURIComponent(error.message || "Code exchange failed")}`
+        new URL(`/error?message=${encodeURIComponent(error.message || "Code exchange failed")}`, request.url)
       );
     }
     
-    return NextResponse.redirect(`${origin}${next}`);
+    return NextResponse.redirect(new URL(next, request.url));
   }
 
   return NextResponse.redirect(
-    `${origin}/error?message=${encodeURIComponent("No authorization code provided")}`
+    new URL(`/error?message=${encodeURIComponent("No authorization code provided")}`, request.url)
   );
 }

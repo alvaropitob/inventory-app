@@ -5,6 +5,21 @@ import { getCurrentUserProfile } from "@/lib/services/user";
 
 export const dynamic = "force-dynamic";
 
+interface UserRole {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
+interface UserWithRoles {
+  id: string;
+  email: string;
+  full_name: string | null;
+  username: string | null;
+  created_at: string;
+  roles: UserRole | UserRole[];
+}
+
 export default async function UsuariosPage() {
   const supabase = await createClient();
 
@@ -97,7 +112,7 @@ export default async function UsuariosPage() {
               </tr>
             </thead>
             <tbody>
-              {users?.map((u: { id: string, full_name: string, email: string, roles: any }) => (
+              {users?.map((u: UserWithRoles) => (
                 <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '1.25rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -116,16 +131,16 @@ export default async function UsuariosPage() {
                       borderRadius: '20px', 
                       fontSize: '0.75rem', 
                       fontWeight: '800',
-                      background: (u.roles as unknown as { name: string })?.name === 'admin' ? '#fee2e2' : 
-                                 (u.roles as unknown as { name: string })?.name === 'operator' ? '#dcfce7' : 
-                                 (u.roles as unknown as { name: string })?.name === 'supervisor' ? '#fef3c7' : '#f1f5f9',
-                      color: (u.roles as unknown as { name: string })?.name === 'admin' ? '#ef4444' : 
-                             (u.roles as unknown as { name: string })?.name === 'operator' ? '#10b981' : 
-                             (u.roles as unknown as { name: string })?.name === 'supervisor' ? '#d97706' : '#64748b',
+                      background: (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'admin' ? '#fee2e2' : 
+                                 (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'operator' ? '#dcfce7' : 
+                                 (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'supervisor' ? '#fef3c7' : '#f1f5f9',
+                      color: (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'admin' ? '#ef4444' : 
+                             (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'operator' ? '#10b981' : 
+                             (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'supervisor' ? '#d97706' : '#64748b',
                       display: 'inline-block',
                       textTransform: 'uppercase'
                     }}>
-                      {(u.roles as unknown as { name: string })?.name}
+                      {(Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name}
                     </span>
                   </td>
                   <td style={{ padding: '1.25rem' }}>
@@ -133,7 +148,7 @@ export default async function UsuariosPage() {
                       <input type="hidden" name="userId" value={u.id} />
                       <select 
                         name="roleId" 
-                        defaultValue={(u.roles as unknown as { id: string })?.id}
+                        defaultValue={(Array.isArray(u.roles) ? u.roles[0] : u.roles)?.id}
                         style={{ 
                           padding: '0.5rem', 
                           borderRadius: 'var(--radius)', 

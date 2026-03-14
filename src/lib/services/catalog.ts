@@ -16,6 +16,10 @@ export interface Supplier extends MasterItem {
   tax_id?: string | null;
 }
 
+export interface Section extends MasterItem {
+  category_id: string | null;
+}
+
 export interface CatalogItem {
   id: string;
   internal_code: string;
@@ -45,7 +49,7 @@ export const CatalogService = {
     return await supabase.from("sections").select("*, categories(name)").order("name");
   },
 
-  async upsertSection(data: any) {
+  async upsertSection(data: Partial<Section>) {
     const supabase = await createClient();
     return await supabase.from("sections").upsert(data).select().single();
   },
@@ -87,7 +91,7 @@ export const CatalogService = {
     return await supabase.from("locations").select("*, sections(name)").order("name");
   },
 
-  async upsertLocation(data: any) {
+  async upsertLocation(data: { id?: string; name: string; section_id: string; location_type: string; is_active?: boolean }) {
     const supabase = await createClient();
     return await supabase.from("locations").upsert(data).select().single();
   },

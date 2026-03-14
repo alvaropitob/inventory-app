@@ -8,6 +8,20 @@ import ExportCSVButton from "@/components/ExportCSVButton";
 import * as Actions from "./actions";
 export const dynamic = "force-dynamic";
 
+interface AuditUser {
+  full_name: string | null;
+  username: string | null;
+}
+
+interface Supplier {
+  id: string;
+  name: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  tax_id: string | null;
+  is_active: boolean;
+}
+
 interface CatalogItem {
   id: string;
   internal_code: string;
@@ -38,13 +52,19 @@ interface StockMovement {
   created_at: string;
   quantity: number;
   reason?: string | null;
-  batch?: any;
-  batches?: any;
-  users?: any;
-  catalog_items?: any;
-  suppliers?: any;
+  batch?: Batch | null;
+  batches?: Batch | null;
+  users?: AuditUser | AuditUser[] | null;
+  catalog_items?: CatalogItem | null;
+  suppliers?: Supplier | null;
   purchase_order_id?: string | null;
   internal_order_id?: string | null;
+}
+
+function getUserDisplayName(users: AuditUser | AuditUser[] | null | undefined): string {
+  if (!users) return 'Sistema';
+  const user = Array.isArray(users) ? users[0] : users;
+  return user?.full_name || user?.username || 'Sistema';
 }
 
 export default async function InventarioPage({
@@ -591,7 +611,7 @@ export default async function InventarioPage({
                   'Número de Lote': row.batch?.batch_number || 'N/A',
                   'Fecha Vencimiento': row.batch?.expiration_date ? new Date(row.batch.expiration_date).toLocaleDateString() : 'N/A',
                   'Impacto en Stock': (row.movement_type === 'entry' ? '+' : '-') + (row.quantity || 0),
-                  'Responsable': row.users?.full_name || row.users?.username || 'Sistema',
+                  'Responsable': getUserDisplayName(row.users),
                   'Motivo / Justificación': row.reason || null
                 }))} 
               />
@@ -642,7 +662,7 @@ export default async function InventarioPage({
                         {m.movement_type === 'entry' ? '+' : '-'}{m.quantity}
                       </td>
                       <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
-                        <div style={{ fontWeight: '600' }}>{(m.users as any)?.[0]?.full_name || (m.users as any)?.full_name || (m.users as any)?.[0]?.username || (m.users as any)?.username || 'Sistema'}</div>
+                        <div style={{ fontWeight: '600' }}>{getUserDisplayName(m.users)}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.reason}</div>
                       </td>
                     </tr>

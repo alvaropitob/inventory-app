@@ -16,7 +16,7 @@ export interface UserProfile {
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   const supabase = await createClient();
   
-  let { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   
   // LOCAL DEVELOPMENT BYPASS
   if (!user && process.env.NODE_ENV === 'development') {
@@ -41,6 +41,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
       full_name,
       username,
       roles (
+        id,
         name
       )
     `)
@@ -60,12 +61,15 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     };
   }
 
+  const rolesData = dbUser.roles;
+  const roleName = (Array.isArray(rolesData) ? rolesData[0]?.name : (rolesData as { name: string })?.name) || "operator";
+
   return {
     id: dbUser.id,
     email: dbUser.email,
     fullName: dbUser.full_name || "Usuario",
     username: dbUser.username,
-    role: (dbUser.roles as { name: string })?.name || "operator",
+    role: roleName,
     // Avatar is still fetched from Google metadata for simplicity
     avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
   };

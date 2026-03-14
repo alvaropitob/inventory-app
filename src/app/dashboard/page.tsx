@@ -24,11 +24,6 @@ export default async function DashboardPage() {
   const orders = await OrderService.getOrders();
   const activeOrders = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled' && o.status !== 'draft');
 
-  // Process Inventory Value
-  const totalInventoryValue = (batches || []).reduce((sum, b) => {
-    const cost = (b as { unit_cost?: number }).unit_cost || 0; 
-    return sum + (b.current_stock * cost);
-  }, 0);
 
   // Process Stock Alerts
   const stockLevels = (items || []).map(item => {

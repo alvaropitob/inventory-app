@@ -31,8 +31,17 @@ export async function signInWithGoogle() {
   
   // Ultra-robust origin detection for Vercel/Production vs Local
   const host = headersList.get("x-forwarded-host") || headersList.get("host");
-  const protocol = headersList.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
-  const origin = host ? `${protocol}://${host}` : "https://inventory-app-ten-omega.vercel.app";
+  
+  let origin: string;
+  let protocol: string;
+  
+  if (process.env.NODE_ENV === 'development') {
+    protocol = 'http';
+    origin = 'http://localhost:3000';
+  } else {
+    protocol = headersList.get("x-forwarded-proto") || "https";
+    origin = host ? `${protocol}://${host}` : "https://inventory-app-ten-omega.vercel.app";
+  }
 
   console.log("Auth Origin Debug:", { host, protocol, origin });
 

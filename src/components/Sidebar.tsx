@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import Image from "next/image";
 
 interface SidebarProps {
   user: {
@@ -192,7 +193,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
         <div className="sidebar-footer">
           <div className="user-profile-mini">
             {user.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.fullName} className="avatar-img" />
+              <Image src={user.avatarUrl} alt={user.fullName} className="avatar-img" width={32} height={32} />
             ) : (
               <div className="avatar">
                 {user.fullName.charAt(0).toUpperCase()}

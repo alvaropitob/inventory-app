@@ -16,7 +16,7 @@ export async function createClient() {
           setAll(cookiesToSet: Cookie[]) {
             try {
               cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
+                cookieStore.set(name, value, options as any)
               );
             } catch {
               // The `setAll` method was called from a Server Component.
@@ -37,5 +37,5 @@ export async function createClient() {
 interface Cookie {
   name: string;
   value: string;
-  options: any;
+  options: unknown;
 }
