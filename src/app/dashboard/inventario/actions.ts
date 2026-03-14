@@ -20,6 +20,7 @@ export async function handleCatalogAction(formData: FormData) {
       internal_code: formData.get("internal_code") as string,
       technical_name: formData.get("technical_name") as string,
       commercial_name: (formData.get("commercial_name") as string) || null,
+      sanitary_registration: (formData.get("sanitary_registration") as string) || null,
       category_id: (selectedSection as { category_id: string | null })?.category_id || null,
       section_id: sectionId || null, 
       supplier_id: (formData.get("supplier_id") as string) || null,
@@ -113,11 +114,14 @@ export async function handleConsumeAction(formData: FormData) {
     if (!user) throw new Error("No autenticado");
     if (!batchId || quantity <= 0) throw new Error("Datos inválidos");
 
+    const equipment = formData.get("equipment") as string;
+    
     const { error: consumeError } = await StockService.consumeStock({
       batch_id: batchId,
       quantity,
       consumed_by: user.id,
-      reason
+      reason,
+      equipment
     });
 
     if (consumeError) {

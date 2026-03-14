@@ -115,6 +115,14 @@ export const ComplianceService = {
             if (itemError) throw itemError;
         }
 
+        // 3. Actualizar el estado del pedido a 'completed' (o 'partially_received' según lógica de negocio)
+        const { error: orderUpdateError } = await supabase
+            .from('purchase_orders')
+            .update({ status: 'completed' })
+            .eq('id', data.order_id);
+
+        if (orderUpdateError) throw orderUpdateError;
+
         return { success: true, receptionId: reception.id };
     }
 };

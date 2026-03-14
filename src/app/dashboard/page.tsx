@@ -101,16 +101,16 @@ export default async function DashboardPage() {
           <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '500' }}>Pendientes de entrega</p>
         </div>
 
-        {/* KPI 3: Lotes Activos */}
+        {/* KPI 3: Lotes Aceptados */}
         <div style={{ background: 'white', borderRadius: '16px', padding: '1.5rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-            <h3 style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: '600' }}>Lotes Activos</h3>
+            <h3 style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: '600' }}>Lotes Aceptados</h3>
             <div style={{ padding: '0.5rem', borderRadius: '8px', background: '#dcfce7', color: '#166534' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
             </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--navy)', lineHeight: 1 }}>{batches?.length || 0}</div>
-          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: 'var(--success)', fontWeight: '600' }}>Verificados físicamente</p>
+          <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--navy)', lineHeight: 1 }}>{batches?.filter(b => (b as any).clinical_status === 'accepted').length || 0}</div>
+          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: 'var(--success)', fontWeight: '600' }}>Listos para uso clínico</p>
         </div>
 
         {/* KPI 4: Alertas */}
@@ -253,22 +253,38 @@ export default async function DashboardPage() {
                     .filter(e => e.priority === 'high' || e.priority === 'medium')
                     .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime())
                     .slice(0, 6)
-                    .map(batch => (
-                      <div key={batch.id} style={{ display: 'flex', flexDirection: 'column', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                          <span style={{ fontWeight: '600', color: 'var(--navy)', fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '70%' }}>
-                            {(batch as { item?: { technical_name: string } }).item?.technical_name}
-                          </span>
-                          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: batch.priority === 'high' ? 'var(--error)' : 'var(--warning)' }}>
-                            {new Date(batch.expiration_date).toLocaleDateString()}
-                          </span>
+                    .map(batch => {
+                      const cStatus = (batch as any).clinical_status || 'accepted';
+                      return (
+                        <div key={batch.id} style={{ display: 'flex', flexDirection: 'column', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                            <span style={{ fontWeight: '600', color: 'var(--navy)', fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60%' }}>
+                              {(batch as { item?: { technical_name: string } }).item?.technical_name}
+                            </span>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: batch.priority === 'high' ? 'var(--error)' : 'var(--warning)' }}>
+                              {new Date(batch.expiration_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', alignItems: 'center' }}>
+                            <span>Lote: {batch.batch_number}</span>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <span style={{ 
+                                fontSize: '0.65rem', 
+                                padding: '2px 6px', 
+                                borderRadius: '4px', 
+                                background: cStatus === 'accepted' ? '#dcfce7' : '#fef3c7',
+                                color: cStatus === 'accepted' ? '#166534' : '#92400e',
+                                fontWeight: '700',
+                                textTransform: 'uppercase'
+                              }}>
+                                {cStatus === 'accepted' ? 'Aceptado' : 'Cuarentena'}
+                              </span>
+                              <span style={{ fontWeight: '600', color: 'var(--navy)' }}>Stock: {batch.current_stock}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          <span>Lote: {batch.batch_number}</span>
-                          <span style={{ fontWeight: '600', color: 'var(--navy)' }}>Stock: {batch.current_stock}</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               )}
             </div>

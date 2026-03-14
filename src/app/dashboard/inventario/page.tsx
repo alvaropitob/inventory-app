@@ -255,22 +255,38 @@ export default async function InventarioPage({
                         </div>
                       </div>
 
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Presentación / Comercial</label>
-                        <input 
-                          name="commercial_name" 
-                          defaultValue={editingItem?.commercial_name || ""} 
-                          readOnly={!!editingItem}
-                          style={{ 
-                            width: '100%', 
-                            padding: '0.75rem', 
-                            borderRadius: '8px', 
-                            border: '1px solid var(--border)',
-                            background: editingItem ? 'var(--bg-app)' : 'white',
-                            cursor: editingItem ? 'not-allowed' : 'text'
-                          }} 
-                          placeholder="Ej: Kit KIT01" 
-                        />
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '1rem' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Presentación / Comercial</label>
+                          <input 
+                            name="commercial_name" 
+                            defaultValue={editingItem?.commercial_name || ""} 
+                            readOnly={!!editingItem}
+                            style={{ 
+                              width: '100%', 
+                              padding: '0.75rem', 
+                              borderRadius: '8px', 
+                              border: '1px solid var(--border)',
+                              background: editingItem ? 'var(--bg-app)' : 'white',
+                              cursor: editingItem ? 'not-allowed' : 'text'
+                            }} 
+                            placeholder="Ej: Kit KIT01" 
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Registro Sanitario / INVIMA</label>
+                          <input 
+                            name="sanitary_registration" 
+                            defaultValue={(editingItem as any)?.sanitary_registration || ""}
+                            placeholder="Ej: INVIMA 2024RD-..."
+                            style={{ 
+                              width: '100%', 
+                              padding: '0.75rem', 
+                              borderRadius: '8px', 
+                              border: '1px solid var(--border)',
+                            }} 
+                          />
+                        </div>
                       </div>
 
                       <div>
@@ -492,18 +508,36 @@ export default async function InventarioPage({
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>{item.purchase_unit}</span>
                         </td>
                         <td style={{ padding: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          {item.itemBatches?.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => (
-                            <div key={b.id} style={{ marginBottom: '0.25rem', whiteSpace: 'nowrap' }}>
-                              <span>{b.batch_number}: <strong>{b.current_stock}</strong></span>
-                              {b.expiration_date && (
-                                <span style={{ marginLeft: '0.5rem', color: new Date(b.expiration_date) < new Date() ? 'var(--error)' : 'inherit' }}>
-                                  (Vence: {new Date(b.expiration_date).toLocaleDateString()})
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                          {item.itemBatches?.filter((b: Batch) => b.current_stock > 0).length === 0 && (
-                            <span>Sin stock en lotes</span>
+                          {item.itemBatches?.filter((b: Batch) => (b as any).current_stock > 0).map((b: Batch) => {
+                            const cStatus = (b as any).clinical_status || 'accepted';
+                            return (
+                              <div key={b.id} style={{ marginBottom: '0.4rem', padding: '0.4rem', background: 'rgba(0,0,0,0.02)', borderRadius: '6px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                                  <span style={{ fontWeight: '700' }}>{b.batch_number}</span>
+                                  <span style={{ 
+                                    fontSize: '0.6rem', 
+                                    padding: '1px 5px', 
+                                    borderRadius: '4px', 
+                                    background: cStatus === 'accepted' ? '#dcfce7' : cStatus === 'quarantine' ? '#fef3c7' : '#fee2e2',
+                                    color: cStatus === 'accepted' ? '#166534' : cStatus === 'quarantine' ? '#92400e' : '#991b1b',
+                                    fontWeight: '800'
+                                  }}>
+                                    {cStatus.toUpperCase()}
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <span>Cant: <strong>{b.current_stock}</strong></span>
+                                  {b.expiration_date && (
+                                    <span style={{ color: new Date(b.expiration_date) < new Date() ? 'var(--error)' : 'inherit' }}>
+                                      Vence: {new Date(b.expiration_date).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {item.itemBatches?.filter((b: Batch) => (b as any).current_stock > 0).length === 0 && (
+                            <span style={{ fontStyle: 'italic' }}>Sin stock disponible</span>
                           )}
                         </td>
                         <td style={{ padding: '1rem', textAlign: 'center' }}>
@@ -545,12 +579,24 @@ export default async function InventarioPage({
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Producto / Lote a Consumir *</label>
                       <select name="batch_id" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                        <option value="">Seleccione Lote con Stock Disponible...</option>
-                        {allBatches?.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => (
+                        <option value="">Seleccione Lote (Sugiere el más próximo a vencer)...</option>
+                        {allBatches
+                          ?.filter((b: Batch) => (b as any).current_stock > 0 && (b as any).clinical_status === 'accepted')
+                          .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime())
+                          .map((b: Batch, idx) => (
                           <option key={b.id} value={b.id}>
-                            {b.item?.technical_name} (Lote: {b.batch_number}) - Disp: {b.current_stock}
+                            {idx === 0 ? "👉 SUGERIDO (FEFO): " : ""}{b.item?.technical_name} (Lote: {b.batch_number}) - Vence: {new Date(b.expiration_date).toLocaleDateString()} - Disp: {b.current_stock}
                           </option>
                         ))}
+                        <optgroup label="⚠️ Otros Lotes (No Aceptados / Cuarentena)">
+                          {allBatches
+                            ?.filter((b: Batch) => (b as any).current_stock > 0 && (b as any).clinical_status !== 'accepted')
+                            .map((b: Batch) => (
+                            <option key={b.id} value={b.id} disabled>
+                              BLOQUEADO: {b.item?.technical_name} (Lote: {b.batch_number}) - Estado: {(b as any).clinical_status}
+                            </option>
+                          ))}
+                        </optgroup>
                       </select>
                     </div>
 
@@ -568,6 +614,15 @@ export default async function InventarioPage({
                           <option value="Calibración/Control">Uso en Calibración/Control</option>
                         </select>
                       </div>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Analizador / Equipo Destino (Opcional - ISO 15189)</label>
+                      <input 
+                        name="equipment" 
+                        placeholder="Ej: Cobas c311, Sysmex XN-1000..." 
+                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} 
+                      />
                     </div>
                   </div>
                 </div>
@@ -626,6 +681,7 @@ export default async function InventarioPage({
                     <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem' }}>Lote / Vencimiento</th>
                     <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem' }}>Cantidad</th>
                     <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem' }}>Usuario / Notas</th>
+                    <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem' }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -663,7 +719,31 @@ export default async function InventarioPage({
                       </td>
                       <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
                         <div style={{ fontWeight: '600' }}>{getUserDisplayName(m.users)}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.reason}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{m.reason}</span>
+                          {(m as any).equipment_name && (
+                            <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: '700' }}>🔬 Equipo: {(m as any).equipment_name}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem', textAlign: 'center' }}>
+                        {m.batch?.id && (
+                          <a 
+                            href={`/dashboard/seguridad/reportar/${m.batch.id}`} 
+                            title="Reportar Incidente de Calidad / Recall"
+                            style={{ 
+                              display: 'inline-flex', 
+                              padding: '0.4rem', 
+                              background: '#fff1f2', 
+                              color: '#e11d48', 
+                              borderRadius: '6px', 
+                              border: '1px solid #fda4af',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                          </a>
+                        )}
                       </td>
                     </tr>
                   ))}

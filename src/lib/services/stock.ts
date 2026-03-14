@@ -97,6 +97,7 @@ export class StockService {
     quantity: number;
     consumed_by: string;
     reason: string;
+    equipment?: string;
   }): Promise<{ data: { success: true } | null; error: PostgrestError | { message: string } | null }> {
     const supabase = await createClient();
 
@@ -121,7 +122,8 @@ export class StockService {
         user_id: data.consumed_by,
         movement_type: 'exit',
         quantity: data.quantity,
-        reason: data.reason || 'Consumo operativo'
+        reason: data.reason,
+        equipment_name: data.equipment
       });
 
     if (movementError) return { data: null, error: movementError };
@@ -178,5 +180,18 @@ export class StockService {
       .eq('item_id', itemId)
       .order('created_at', { ascending: false })
       .maybeSingle();
+  }
+
+  static async getBatchById(id: string) {
+    const supabase = await createClient();
+    return await supabase
+      .from('inventory_batches')
+      .select(`
+        *,
+        item:catalog_items(technical_name, commercial_name, internal_code),
+        location:locations(name)
+      `)
+      .eq('id', id)
+      .single();
   }
 }
