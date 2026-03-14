@@ -17,8 +17,8 @@ interface AuditLog {
   table_name: string;
   record_id: string;
   action: string;
-  old_data: Record<string, any> | null;
-  new_data: Record<string, any> | null;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
   ip_address: string | null;
   created_at: string;
   users: AuditUser | AuditUser[] | null;

@@ -20,7 +20,6 @@ export async function createPurchaseOrder(formData: FormData) {
 
   const expected_delivery_date = formData.get("expected_delivery_date") as string;
   const notes = formData.get("notes") as string;
-  const total_estimated_value = Number(formData.get("total_estimated_value") || 0);
   
   const itemsStr = formData.get("items") as string;
   if (!itemsStr) {
