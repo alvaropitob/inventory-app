@@ -40,7 +40,7 @@ export const OrderService = {
       .select(`
         *,
         supplier:suppliers(id, name),
-        creator:users!purchase_orders_created_by_fkey(id, full_name, email)
+        creator:users(id, full_name, email)
       `)
       .order("created_at", { ascending: false });
 
@@ -63,7 +63,7 @@ export const OrderService = {
       .select(`
         *,
         supplier:suppliers(id, name, contact_name, contact_email),
-        creator:users!purchase_orders_created_by_fkey(id, full_name, email),
+        creator:users(id, full_name, email),
         items:purchase_order_items(
           *,
           catalog_item:catalog_items(id, internal_code, technical_name, commercial_name)
