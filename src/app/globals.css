@@ -290,7 +290,7 @@ html, body {
   z-index: 1000;
   transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  /* Remove overflow: hidden to allow inner scrolling */
 }
 
 .sidebar-expanded {
@@ -349,6 +349,26 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom Premium Scrollbar for Sidebar */
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: var(--text-subtle);
 }
 
 .nav-item {
