@@ -159,6 +159,17 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
     },
   ];
 
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
+  const toggleMenu = (name: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpenMenus(prev => ({
+      ...prev,
+      [name]: !prev[name]
+    }));
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -202,29 +213,64 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
 
         <nav className="sidebar-nav">
           {navItems.filter(item => item.show).map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.subItems?.some(s => pathname === s.href.split('?')[0]));
             const hasSubItems = item.subItems && item.subItems.length > 0;
+            const isOpen = openMenus[item.name] || (isActive && openMenus[item.name] === undefined);
             
             return (
               <div key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`nav-item ${isActive ? "active" : ""}`}
-                  onClick={() => {
-                    if (typeof window !== 'undefined' && window.innerWidth <= 768 && onClose) onClose();
-                  }}
-                >
-                  <div className="nav-icon">{item.icon}</div>
-                  <span className="nav-text">{item.name}</span>
-                </Link>
+                <div style={{ position: 'relative' }}>
+                  <Link
+                    href={item.href}
+                    className={`nav-item ${isActive ? "active" : ""}`}
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.innerWidth <= 768 && !hasSubItems && onClose) onClose();
+                    }}
+                  >
+                    <div className="nav-icon">{item.icon}</div>
+                    <span className="nav-text">{item.name}</span>
+                  </Link>
+                  
+                  {hasSubItems && (isExpanded || isMobileOpen) && (
+                    <button
+                      onClick={(e) => toggleMenu(item.name, e)}
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'inherit',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'transform 0.2s'
+                      }}
+                    >
+                      <svg 
+                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                        strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 
-                {hasSubItems && (isExpanded || isMobileOpen) && (
+                {hasSubItems && (isExpanded || isMobileOpen) && isOpen && (
                   <div className="sub-nav">
                     {item.subItems?.map(sub => (
                       <Link 
                         key={sub.href} 
                         href={sub.href} 
                         className={`sub-nav-item ${fullPath === sub.href ? "active-sub" : ""}`}
+                        onClick={() => {
+                          if (typeof window !== 'undefined' && window.innerWidth <= 768 && onClose) onClose();
+                        }}
                       >
                         <div className="sub-nav-dot" />
                         <span className="nav-text">{sub.name}</span>
@@ -298,9 +344,6 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           border-radius: 50%;
           background: currentColor;
           opacity: 0.5;
-        }
-        .nav-item.active + .sub-nav {
-          display: flex;
         }
       `}</style>
     </>

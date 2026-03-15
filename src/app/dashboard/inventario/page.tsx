@@ -8,6 +8,7 @@ import ExportCSVButton from "@/components/ExportCSVButton";
 import RealtimeStockTable from "./RealtimeStockTable";
 import ContextualHelp from "@/components/ContextualHelp";
 import * as Actions from "./actions";
+import CollapsibleSection from "@/components/CollapsibleSection";
 export const dynamic = "force-dynamic";
 
 interface AuditUser {
@@ -182,13 +183,12 @@ export default async function InventarioPage({
         )}
         {currentView === 'entradas' && (
           <>
-            <div className="welcome-section" style={{ padding: '0.5rem 1rem 1.5rem 1rem' }}>
-              <h2 style={{ fontSize: '1.125rem', color: 'var(--navy)', fontWeight: '800' }}>Catálogo Maestro de Productos</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Defina los productos maestros que ingresarán al inventario.</p>
-            </div>
-
-            {/* Registration Form */}
-            <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch', marginBottom: '2rem' }}>
+            <CollapsibleSection 
+              title="Nuevo Registro en Catálogo" 
+              subtitle="Defina los productos maestros que ingresarán al inventario."
+              icon={<span>📦</span>}
+            >
+              <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch', border: 'none', boxShadow: 'none' }}>
               <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
                 <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>
                   {editingItem ? "Editar Producto" : "Nuevo Registro en Catálogo"}
@@ -399,13 +399,15 @@ export default async function InventarioPage({
                   </button>
                 </div>
               </form>
-            </div>
-
-            {/* Catalog Table */}
-            <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-              <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-                <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>Catálogo Vigente</h2>
               </div>
+            </CollapsibleSection>
+
+            <CollapsibleSection 
+              title="Catálogo Vigente" 
+              subtitle="Consulta y gestión de productos maestros."
+              icon={<span>📋</span>}
+            >
+              <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch', border: 'none', boxShadow: 'none' }}>
               <div className="table-responsive">
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
@@ -457,7 +459,8 @@ export default async function InventarioPage({
                   </tbody>
                 </table>
               </div>
-            </div>
+              </div>
+            </CollapsibleSection>
           </>
         )}
 
@@ -487,96 +490,89 @@ export default async function InventarioPage({
         )}
 
         {currentView === 'salidas' && (
-          <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)', margin: 0 }}>Registrar Salida / Consumo</h2>
-                <ContextualHelp 
-                  content={{
-                    title: "Consumo de Reactivos", 
-                    description: "Selecciona el lote a utilizar. Por seguridad clínica, el sistema solo permite consumir lotes con estado 'Aceptado'. El lote sugerido es siempre el más próximo a vencer.",
-                    tips: ["Recuerde realizar la verificación de calidad antes del primer uso."]
-                  }} 
-                />
-              </div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Descuente stock del inventario para uso operativo o ajustes.</p>
-            </div>
-            
-            <form action={Actions.handleConsumeAction} style={{ padding: '2rem' }}>
-              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 600px)', gap: '1.5rem', justifyContent: 'center' }}>
-                <div className="form-section" style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Producto / Lote a Consumir *</label>
-                      <select name="batch_id" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                        <option value="">Seleccione Lote (Sugiere el más próximo a vencer)...</option>
-                        {allBatches
-                          ?.filter((b: Batch) => b.current_stock > 0 && b.clinical_status === 'accepted')
-                          .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime())
-                          .map((b: Batch, idx) => (
-                          <option key={b.id} value={b.id}>
-                            {idx === 0 ? "👉 SUGERIDO (FEFO): " : ""}{b.item?.technical_name} (Lote: {b.batch_number}) - Vence: {new Date(b.expiration_date).toLocaleDateString()} - Disp: {b.current_stock}
-                          </option>
-                        ))}
-                        <optgroup label="⚠️ Otros Lotes (No Aceptados / Cuarentena)">
+          <CollapsibleSection 
+            title="Registrar Salida / Consumo" 
+            subtitle="Descuente stock del inventario para uso operativo o ajustes."
+            icon={<span>📤</span>}
+          >
+            <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch', border: 'none', boxShadow: 'none' }}>
+              <form action={Actions.handleConsumeAction} style={{ padding: '2rem' }}>
+                {/* Form Content */}
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 600px)', gap: '1.5rem', justifyContent: 'center' }}>
+                  <div className="form-section" style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Producto / Lote a Consumir *</label>
+                        <select name="batch_id" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                          <option value="">Seleccione Lote (Sugiere el más próximo a vencer)...</option>
                           {allBatches
-                            ?.filter((b: Batch) => b.current_stock > 0 && b.clinical_status !== 'accepted')
-                            .map((b: Batch) => (
-                            <option key={b.id} value={b.id} disabled>
-                              BLOQUEADO: {b.item?.technical_name} (Lote: {b.batch_number}) - Estado: {b.clinical_status}
+                            ?.filter((b: Batch) => b.current_stock > 0 && b.clinical_status === 'accepted')
+                            .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime())
+                            .map((b: Batch, idx) => (
+                            <option key={b.id} value={b.id}>
+                              {idx === 0 ? "👉 SUGERIDO (FEFO): " : ""}{b.item?.technical_name} (Lote: {b.batch_number}) - Vence: {new Date(b.expiration_date).toLocaleDateString()} - Disp: {b.current_stock}
                             </option>
                           ))}
-                        </optgroup>
-                      </select>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Cantidad a Descontar *</label>
-                        <input type="number" name="quantity" defaultValue="1" min="1" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Motivo / Justificación *</label>
-                        <select name="reason" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                          <option value="Consumo operativo">Consumo Operativo</option>
-                          <option value="Descarte por vencimiento">Descarte por Vencimiento</option>
-                          <option value="Ajuste por pérdida">Ajuste por Pérdida/Daño</option>
-                          <option value="Calibración/Control">Uso en Calibración/Control</option>
+                          <optgroup label="⚠️ Otros Lotes (No Aceptados / Cuarentena)">
+                            {allBatches
+                              ?.filter((b: Batch) => b.current_stock > 0 && b.clinical_status !== 'accepted')
+                              .map((b: Batch) => (
+                              <option key={b.id} value={b.id} disabled>
+                                BLOQUEADO: {b.item?.technical_name} (Lote: {b.batch_number}) - Estado: {b.clinical_status}
+                              </option>
+                            ))}
+                          </optgroup>
                         </select>
                       </div>
-                    </div>
 
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Analizador / Equipo Destino (Opcional - ISO 15189)</label>
-                      <input 
-                        name="equipment" 
-                        placeholder="Ej: Cobas c311, Sysmex XN-1000..." 
-                        style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} 
-                      />
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Cantidad a Descontar *</label>
+                          <input type="number" name="quantity" defaultValue="1" min="1" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Motivo / Justificación *</label>
+                          <select name="reason" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                            <option value="Consumo operativo">Consumo Operativo</option>
+                            <option value="Descarte por vencimiento">Descarte por Vencimiento</option>
+                            <option value="Ajuste por pérdida">Ajuste por Pérdida/Daño</option>
+                            <option value="Calibración/Control">Uso en Calibración/Control</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--navy-light)' }}>Analizador / Equipo Destino (Opcional - ISO 15189)</label>
+                        <input 
+                          name="equipment" 
+                          placeholder="Ej: Cobas c311, Sysmex XN-1000..." 
+                          style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} 
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-                <button 
-                  type="submit" 
-                  style={{ 
-                    padding: '0.875rem 2.5rem', 
-                    background: 'var(--error)', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '8px', 
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  Registrar Salida
-                </button>
-              </div>
-            </form>
-          </div>
+                
+                <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+                  <button 
+                    type="submit" 
+                    style={{ 
+                      padding: '0.875rem 2.5rem', 
+                      background: 'var(--error)', 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '8px', 
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    Registrar Salida
+                  </button>
+                </div>
+              </form>
+            </div>
+          </CollapsibleSection>
         )}
 
         {currentView === 'movimientos' && (
