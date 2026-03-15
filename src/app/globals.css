@@ -626,7 +626,7 @@ html, body {
   box-shadow: var(--shadow-md);
   margin-bottom: 3rem;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .welcome-section::after {
