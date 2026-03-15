@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import DigitalSignature from "@/components/DigitalSignature";
-import { ContextHelp } from "@/components/ContextHelp";
+import ContextualHelp from "@/components/ContextualHelp";
 
 interface VerificationFormProps {
   batchId: string;
@@ -21,8 +21,7 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
       <div>
         <label style={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.25rem' }}>
           Resultado de Prueba *
-          <ContextHelp 
-            title="Criterio de Aceptación" 
+          <ContextualHelp 
             content="Según ISO 15189, la liberación técnica requiere que los controles de calidad estén dentro de los rangos establecidos. 'Pasar' moverá el lote de Cuarentena a Aceptado." 
           />
         </label>
@@ -47,8 +46,7 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
         onConfirm={setSeal} 
       />
       <div style={{ marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
-        <ContextHelp 
-          title="Firma Digital" 
+        <ContextualHelp 
           content="Esta firma vincula permanentemente tu identidad a esta liberación técnica. El sello generado garantiza la integridad del registro en la auditoría forense." 
         />
       </div>

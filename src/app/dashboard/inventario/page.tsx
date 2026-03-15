@@ -6,7 +6,7 @@ import DeleteMasterButton from "@/components/DeleteMasterButton";
 import InventoryProductSelector from "@/components/InventoryProductSelector";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import RealtimeStockTable from "./RealtimeStockTable";
-import { ContextHelp } from "@/components/ContextHelp";
+import ContextualHelp from "@/components/ContextualHelp";
 import * as Actions from "./actions";
 export const dynamic = "force-dynamic";
 
@@ -317,9 +317,12 @@ export default async function InventarioPage({
                       <h3 style={{ fontSize: '0.875rem', color: 'var(--primary)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         📥 Registro de Compra / Entrada
                       </h3>
-                      <ContextHelp 
-                        title="Ingreso de Stock" 
-                        content="Registra nuevos lotes adquiridos. El sistema aplicará automáticamente la política FEFO (First Expired, First Out) basa en la fecha de vencimiento que ingreses." 
+                      <ContextualHelp 
+                        content={{
+                          title: "Ingreso de Stock", 
+                          description: "Registra nuevos lotes adquiridos. El sistema aplicará automáticamente la política FEFO (First Expired, First Out) basa en la fecha de vencimiento que ingreses.",
+                          tips: ["Verifique que el número de lote coincida con la factura."]
+                        }} 
                       />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -488,9 +491,12 @@ export default async function InventarioPage({
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)', margin: 0 }}>Registrar Salida / Consumo</h2>
-                <ContextHelp 
-                  title="Consumo de Reactivos" 
-                  content="Selecciona el lote a utilizar. Por seguridad clínica, el sistema solo permite consumir lotes con estado 'Aceptado'. El lote sugerido es siempre el más próximo a vencer." 
+                <ContextualHelp 
+                  content={{
+                    title: "Consumo de Reactivos", 
+                    description: "Selecciona el lote a utilizar. Por seguridad clínica, el sistema solo permite consumir lotes con estado 'Aceptado'. El lote sugerido es siempre el más próximo a vencer.",
+                    tips: ["Recuerde realizar la verificación de calidad antes del primer uso."]
+                  }} 
                 />
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Descuente stock del inventario para uso operativo o ajustes.</p>
