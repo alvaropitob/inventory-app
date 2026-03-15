@@ -313,13 +313,15 @@ export default async function InventarioPage({
 
                   {/* Operational Data / Stock Entry */}
                   <div className="form-section" style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                    <h3 style={{ fontSize: '0.875rem', color: 'var(--primary)', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      📥 Registro de Compra / Entrada
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                      <h3 style={{ fontSize: '0.875rem', color: 'var(--primary)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        📥 Registro de Compra / Entrada
+                      </h3>
                       <ContextHelp 
                         title="Ingreso de Stock" 
                         content="Registra nuevos lotes adquiridos. El sistema aplicará automáticamente la política FEFO (First Expired, First Out) basa en la fecha de vencimiento que ingreses." 
                       />
-                    </h3>
+                    </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
                         <div>
@@ -484,13 +486,13 @@ export default async function InventarioPage({
         {currentView === 'salidas' && (
           <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-              <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>
-                Registrar Salida / Consumo
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)', margin: 0 }}>Registrar Salida / Consumo</h2>
                 <ContextHelp 
                   title="Consumo de Reactivos" 
                   content="Selecciona el lote a utilizar. Por seguridad clínica, el sistema solo permite consumir lotes con estado 'Aceptado'. El lote sugerido es siempre el más próximo a vencer." 
                 />
-              </h2>
+              </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Descuente stock del inventario para uso operativo o ajustes.</p>
             </div>
             

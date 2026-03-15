@@ -13,13 +13,13 @@ export default async function RecepcionPage() {
     return (
       <div className="dashboard-main">
         <div className="welcome-section">
-          <h1>
-            Recepción Técnica y Trazabilidad
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h1>Recepción Técnica y Trazabilidad</h1>
             <ContextHelp 
               title="Proceso de Recepción" 
               content="La recepción técnica es el primer filtro de calidad. Debes inspeccionar la integridad de los empaques, la cadena de frío y la documentación del proveedor antes de ingresar cualquier producto al stock." 
             />
-          </h1>
+          </div>
           <p>Inspecciona y registra los reactivos que llegan al laboratorio.</p>
         </div>
 
