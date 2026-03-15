@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { type PostgrestError } from "@supabase/supabase-js";
+import { AuditService } from "./audit";
 
 export interface InventoryBatch {
   id?: string;
@@ -89,6 +90,16 @@ export class StockService {
 
     if (movementError) return { data: null, error: movementError };
 
+    // Audit Log
+    await AuditService.logAction({
+      table_name: 'inventory_batches',
+      record_id: batchId,
+      action: existingBatch ? 'UPDATE' : 'INSERT',
+      new_data: data,
+      user_id: data.received_by,
+      notes: existingBatch ? 'Actualización de stock de lote existente' : 'Ingreso de nuevo lote'
+    });
+
     return { data: { id: batchId }, error: null };
   }
 
@@ -127,6 +138,16 @@ export class StockService {
       });
 
     if (movementError) return { data: null, error: movementError };
+
+    // Audit Log
+    await AuditService.logAction({
+      table_name: 'inventory_batches',
+      record_id: data.batch_id,
+      action: 'UPDATE',
+      new_data: { quantity_consumed: data.quantity, reason: data.reason },
+      user_id: data.consumed_by,
+      notes: `Consumo de stock: ${data.quantity} unidades`
+    });
 
     return { data: { success: true }, error: null };
   }

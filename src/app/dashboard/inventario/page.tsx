@@ -5,6 +5,8 @@ import { getCurrentUserProfile } from "@/lib/services/user";
 import DeleteMasterButton from "@/components/DeleteMasterButton";
 import InventoryProductSelector from "@/components/InventoryProductSelector";
 import ExportCSVButton from "@/components/ExportCSVButton";
+import RealtimeStockTable from "./RealtimeStockTable";
+import { ContextHelp } from "@/components/ContextHelp";
 import * as Actions from "./actions";
 export const dynamic = "force-dynamic";
 
@@ -313,6 +315,10 @@ export default async function InventarioPage({
                   <div className="form-section" style={{ background: 'white', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                     <h3 style={{ fontSize: '0.875rem', color: 'var(--primary)', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       📥 Registro de Compra / Entrada
+                      <ContextHelp 
+                        title="Ingreso de Stock" 
+                        content="Registra nuevos lotes adquiridos. El sistema aplicará automáticamente la política FEFO (First Expired, First Out) basa en la fecha de vencimiento que ingreses." 
+                      />
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
@@ -471,107 +477,20 @@ export default async function InventarioPage({
                 }))}
               />
             </div>
-            <div className="table-responsive">
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
-                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', width: '12%' }}>Código</th>
-                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', width: '30%' }}>Producto</th>
-                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', width: '15%' }}>Categoría</th>
-                    <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', width: '15%' }}>Stock Actual Universitario</th>
-                    <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', width: '15%' }}>Lote / Desglose</th>
-                    <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', width: '13%' }}>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {consolidatedStock?.map((item: CatalogItem & { totalStock: number, itemBatches: Batch[] }) => {
-                    const isLowStock = item.totalStock <= (item.minimum_stock_threshold || 10);
-                    const isOutOfStock = item.totalStock === 0;
-                    
-                    return (
-                      <tr key={item.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s', background: isOutOfStock ? '#fff1f2' : 'transparent' }}>
-                        <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.internal_code}</td>
-                        <td style={{ padding: '1rem' }}>
-                          <div style={{ fontWeight: '700', color: 'var(--navy)', fontSize: '0.9rem' }}>{item.technical_name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.commercial_name}</div>
-                        </td>
-                        <td style={{ padding: '1rem' }}>
-                          <span style={{ fontSize: '0.8rem', background: '#f1f5f9', padding: '0.3rem 0.6rem', borderRadius: '12px', color: 'var(--navy-light)', fontWeight: '600' }}>
-                            {item.sections?.name || 'Genérico'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                          <span style={{ 
-                            fontSize: '1.25rem', 
-                            fontWeight: '800', 
-                            color: isOutOfStock ? 'var(--error)' : isLowStock ? 'var(--warning)' : 'var(--success)' 
-                          }}>
-                            {item.totalStock}
-                          </span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.25rem' }}>{item.purchase_unit}</span>
-                        </td>
-                        <td style={{ padding: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          {item.itemBatches?.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => {
-                            const cStatus = b.clinical_status || 'accepted';
-                            return (
-                              <div key={b.id} style={{ marginBottom: '0.4rem', padding: '0.4rem', background: 'rgba(0,0,0,0.02)', borderRadius: '6px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                                  <span style={{ fontWeight: '700' }}>{b.batch_number}</span>
-                                  <span style={{ 
-                                    fontSize: '0.6rem', 
-                                    padding: '1px 5px', 
-                                    borderRadius: '4px', 
-                                    background: cStatus === 'accepted' ? '#dcfce7' : cStatus === 'quarantine' ? '#fef3c7' : '#fee2e2',
-                                    color: cStatus === 'accepted' ? '#166534' : cStatus === 'quarantine' ? '#92400e' : '#991b1b',
-                                    fontWeight: '800'
-                                  }}>
-                                    {cStatus.toUpperCase()}
-                                  </span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <span>Cant: <strong>{b.current_stock}</strong></span>
-                                  {b.expiration_date && (
-                                    <span style={{ color: new Date(b.expiration_date) < new Date() ? 'var(--error)' : 'inherit' }}>
-                                      Vence: {new Date(b.expiration_date).toLocaleDateString()}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                          {item.itemBatches?.filter((b: Batch) => b.current_stock > 0).length === 0 && (
-                            <span style={{ fontStyle: 'italic' }}>Sin stock disponible</span>
-                          )}
-                        </td>
-                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                          {isOutOfStock ? (
-                            <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fee2e2', color: '#991b1b', textTransform: 'uppercase' }}>Agotado</span>
-                          ) : isLowStock ? (
-                            <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fef3c7', color: '#92400e', textTransform: 'uppercase' }}>Stock Bajo</span>
-                          ) : (
-                            <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#dcfce7', color: '#166534', textTransform: 'uppercase' }}>Óptimo</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {(!consolidatedStock || consolidatedStock.length === 0) && (
-                    <tr>
-                      <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        No hay productos registrados con historial de inventario.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <RealtimeStockTable initialBatches={allBatches || []} />
           </div>
         )}
 
         {currentView === 'salidas' && (
           <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)' }}>
-              <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>Registrar Salida / Consumo</h2>
+              <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)' }}>
+                Registrar Salida / Consumo
+                <ContextHelp 
+                  title="Consumo de Reactivos" 
+                  content="Selecciona el lote a utilizar. Por seguridad clínica, el sistema solo permite consumir lotes con estado 'Aceptado'. El lote sugerido es siempre el más próximo a vencer." 
+                />
+              </h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Descuente stock del inventario para uso operativo o ajustes.</p>
             </div>
             

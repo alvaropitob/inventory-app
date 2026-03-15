@@ -1,5 +1,6 @@
 import { OrderService } from "@/lib/services/orders";
 import Link from "next/link";
+import { ContextHelp } from "@/components/ContextHelp";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,13 @@ export default async function RecepcionPage() {
     return (
       <div className="dashboard-main">
         <div className="welcome-section">
-          <h1>Recepción Técnica y Trazabilidad</h1>
+          <h1>
+            Recepción Técnica y Trazabilidad
+            <ContextHelp 
+              title="Proceso de Recepción" 
+              content="La recepción técnica es el primer filtro de calidad. Debes inspeccionar la integridad de los empaques, la cadena de frío y la documentación del proveedor antes de ingresar cualquier producto al stock." 
+            />
+          </h1>
           <p>Inspecciona y registra los reactivos que llegan al laboratorio.</p>
         </div>
 

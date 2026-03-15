@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
-import { ComplianceServiceV2 } from "@/lib/services/compliance_v2";
+import { ComplianceService } from "@/lib/services/compliance";
 import { StockService } from "@/lib/services/stock";
 
 export const dynamic = "force-dynamic";
@@ -22,8 +22,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
         logs,
         movementsResponse
     ] = await Promise.all([
-        ComplianceServiceV2.getSafetyIncidents(),
-        ComplianceServiceV2.getEnvironmentalLogs(100),
+        ComplianceService.getSafetyIncidents(),
+        ComplianceService.getEnvironmentalLogs(100),
         StockService.getAllMovements()
     ]);
 

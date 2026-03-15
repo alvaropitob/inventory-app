@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { ComplianceServiceV2 } from "@/lib/services/compliance_v2";
+import { ComplianceService } from "@/lib/services/compliance";
 
 export async function submitEnvironmentalLog(formData: FormData) {
     const location_id = formData.get("location_id") as string;
@@ -14,7 +14,7 @@ export async function submitEnvironmentalLog(formData: FormData) {
     }
 
     try {
-        await ComplianceServiceV2.recordEnvironmentalLog({
+        await ComplianceService.recordEnvironmentalLog({
             location_id,
             temperature,
             humidity,

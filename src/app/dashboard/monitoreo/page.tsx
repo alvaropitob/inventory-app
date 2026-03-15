@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { CatalogService } from "@/lib/services/catalog";
-import { ComplianceServiceV2 } from "@/lib/services/compliance_v2";
+import { ComplianceService } from "@/lib/services/compliance";
 import * as Actions from "./actions";
 import ContextualHelp from "@/components/ContextualHelp";
 
@@ -18,7 +18,7 @@ export default async function MonitoreoPage() {
         logs
     ] = await Promise.all([
         CatalogService.getLocations(),
-        ComplianceServiceV2.getEnvironmentalLogs(30)
+        ComplianceService.getEnvironmentalLogs(30)
     ]);
 
     return (

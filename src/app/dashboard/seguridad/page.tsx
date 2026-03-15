@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
-import { ComplianceServiceV2 } from "@/lib/services/compliance_v2";
+import { ComplianceService } from "@/lib/services/compliance";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ export default async function SeguridadPage() {
         redirect("/auth/login");
     }
 
-    const incidents = await ComplianceServiceV2.getSafetyIncidents();
+    const incidents = await ComplianceService.getSafetyIncidents();
 
     return (
         <div className="dashboard-main">

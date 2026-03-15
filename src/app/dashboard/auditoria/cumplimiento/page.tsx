@@ -1,10 +1,10 @@
-import { ComplianceServiceV3 } from "@/lib/services/compliance_v3";
+import { ComplianceService } from "@/lib/services/compliance";
 import { EquipmentService } from "@/lib/services/equipment";
 import Link from "next/link";
 
 export default async function AuditCompliancePage() {
   const [pendingVerifications, equipments] = await Promise.all([
-    ComplianceServiceV3.getPendingVerifications(),
+    ComplianceService.getPendingVerifications(),
     EquipmentService.getEquipments()
   ]);
 

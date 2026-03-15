@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ComplianceServiceV3 } from "@/lib/services/compliance_v3";
+import { ComplianceService } from "@/lib/services/compliance";
 
 export async function submitSupplierEvaluation(formData: FormData) {
     const supplier_id = formData.get("supplier_id") as string;
@@ -16,7 +16,7 @@ export async function submitSupplierEvaluation(formData: FormData) {
     }
 
     try {
-        await ComplianceServiceV3.evaluateSupplier({
+        await ComplianceService.evaluateSupplier({
             supplier_id,
             criteria_quality,
             criteria_delivery_time,

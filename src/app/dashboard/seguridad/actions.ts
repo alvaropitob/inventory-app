@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ComplianceServiceV2, IncidentType } from "@/lib/services/compliance_v2";
+import { ComplianceService, IncidentType } from "@/lib/services/compliance";
 
 export async function submitSafetyIncident(formData: FormData) {
     const batch_id = formData.get("batch_id") as string;
@@ -15,7 +15,7 @@ export async function submitSafetyIncident(formData: FormData) {
     }
 
     try {
-        await ComplianceServiceV2.reportSafetyIncident({
+        await ComplianceService.reportSafetyIncident({
             batch_id,
             incident_type,
             description,

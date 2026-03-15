@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { CatalogService } from "@/lib/services/catalog";
-import { ComplianceServiceV3 } from "@/lib/services/compliance_v3";
+import { ComplianceService } from "@/lib/services/compliance";
 import * as Actions from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export default async function EvaluacionProveedoresPage() {
 
     const [suppliers, evaluations] = await Promise.all([
         CatalogService.getSuppliers(),
-        ComplianceServiceV3.getSupplierEvaluations()
+        ComplianceService.getSupplierEvaluations()
     ]);
 
     return (

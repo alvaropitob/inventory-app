@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "./Sidebar";
 
 interface DashboardClientLayoutProps {
@@ -15,6 +17,7 @@ interface DashboardClientLayoutProps {
 
 export default function DashboardClientLayout({ children, user }: DashboardClientLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="dashboard-layout">
@@ -40,9 +43,17 @@ export default function DashboardClientLayout({ children, user }: DashboardClien
         onClose={() => setIsMobileMenuOpen(false)} 
       />
       
-      <main className="dashboard-content">
-        {children}
-      </main>
+      <AnimatePresence mode="wait">
+        <motion.main 
+          key={pathname}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="dashboard-content"
+        >
+          {children}
+        </motion.main>
+      </AnimatePresence>
     </div>
   );
 }

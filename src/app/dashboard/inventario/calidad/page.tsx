@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
-import { ComplianceServiceV3 } from "@/lib/services/compliance_v3";
+import { ComplianceService } from "@/lib/services/compliance";
+import VerificationForm from "./VerificationForm";
 import * as Actions from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export default async function CalidadPage() {
         redirect("/auth/login");
     }
 
-    const pendingBatches = await ComplianceServiceV3.getPendingVerifications();
+    const pendingBatches = await ComplianceService.getPendingVerifications();
 
     return (
         <div className="dashboard-main">
@@ -92,31 +93,11 @@ export default async function CalidadPage() {
                                                 marginTop: '0.5rem'
                                             }}>
                                                 <h3 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--navy)' }}>Validación Técnica</h3>
-                                                <form action={Actions.submitQualityVerification} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                                    <input type="hidden" name="batch_id" value={batch.id} />
-                                                    
-                                                    <div>
-                                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.25rem' }}>Resultado de Prueba *</label>
-                                                        <select name="result" required style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                                                            <option value="pass">Aprobado (Liberar para uso)</option>
-                                                            <option value="fail">Fallido (Rechazar lote)</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <div>
-                                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.25rem' }}>Lote de Control Usado</label>
-                                                        <input type="text" name="control_lot" placeholder="Ej: CTRL-2024-X" style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border)' }} />
-                                                    </div>
-
-                                                    <div>
-                                                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.25rem' }}>Observaciones</label>
-                                                        <textarea name="observations" rows={2} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border)', resize: 'none' }}></textarea>
-                                                    </div>
-
-                                                    <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}>
-                                                        Guardar Verificación
-                                                    </button>
-                                                </form>
+                                                <VerificationForm 
+                                                  batchId={batch.id} 
+                                                  action={Actions.submitQualityVerification} 
+                                                  userName={user.username}
+                                                />
                                             </div>
                                         </details>
                                     </td>
