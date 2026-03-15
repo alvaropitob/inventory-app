@@ -76,7 +76,7 @@ export default function ComplianceChecklistPage() {
         staggerChildren: 0.1
       }
     }
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
@@ -89,7 +89,7 @@ export default function ComplianceChecklistPage() {
         damping: 12
       }
     }
-  };
+  } as const;
 
   return (
     <div className="dashboard-main">
