@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createPurchaseOrder } from "@/app/dashboard/pedidos/actions";
 import Link from "next/link";
+import SearchableProductSelect from "@/components/SearchableProductSelect";
 
 interface Supplier { id: string; name: string; }
 interface CatalogItem { id: string; technical_name: string; commercial_name: string; internal_code: string; estimated_unit_price?: number; }
@@ -77,8 +78,8 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
     <form onSubmit={handleSubmit} className="entry-form">
       {error && <div className="error-message">{error}</div>}
       
-      <div className="form-group">
-        <label>Proveedor Responsable</label>
+      <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+        <label style={{ display: 'block', marginBottom: '0.75rem' }}>Proveedor Responsable</label>
         <select value={supplierId} onChange={e => setSupplierId(e.target.value)} required>
           <option value="">-- Seleccionar Proveedor --</option>
           {suppliers.map(s => (
@@ -87,13 +88,13 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
         </select>
       </div>
 
-      <div className="form-row">
+      <div className="form-row" style={{ gap: '2rem', marginBottom: '2rem' }}>
         <div className="form-group">
-          <label>Fecha Estimada de Entrega (Opcional)</label>
+          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Fecha Estimada de Entrega (Opcional)</label>
           <input type="date" value={expectedDate} onChange={e => setExpectedDate(e.target.value)} />
         </div>
         <div className="form-group">
-          <label>Notas Adicionales</label>
+          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Notas Adicionales</label>
           <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Ej. Urgente, refrigerado..." />
         </div>
       </div>
@@ -102,32 +103,24 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
       
       <div className="form-row" style={{ alignItems: 'flex-end', marginBottom: '1.5rem', background: '#f8fafc', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
         <div className="form-group" style={{ flex: 2 }}>
-          <label>Producto a Pedir</label>
-          <select 
-            value={selectedItem} 
-            onChange={e => {
-              const id = e.target.value;
-              setSelectedItem(id);
-              const item = items.find(x => x.id === id);
-              if (item && item.estimated_unit_price) {
+          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Producto a Pedir</label>
+          <SearchableProductSelect 
+            items={items}
+            onSelect={(item) => {
+              setSelectedItem(item.id);
+              if (item.estimated_unit_price) {
                 setSelectedPrice(item.estimated_unit_price);
               }
             }}
-          >
-            <option value="">-- Buscar Producto --</option>
-            {items.map(item => (
-              <option key={item.id} value={item.id}>
-                {item.internal_code} - {item.technical_name} ({item.commercial_name})
-              </option>
-            ))}
-          </select>
+            placeholder="Escribe nombre o código..."
+          />
         </div>
         <div className="form-group" style={{ flex: 1 }}>
-          <label>Cantidad</label>
+          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Cantidad</label>
           <input type="number" min="1" value={selectedQty} onChange={e => setSelectedQty(Number(e.target.value))} />
         </div>
         <div className="form-group" style={{ flex: 1 }}>
-          <label>Precio Unit. Est. ($)</label>
+          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Precio Unit. Est. ($)</label>
           <input type="number" step="0.01" min="0" value={selectedPrice} onChange={e => setSelectedPrice(Number(e.target.value))} />
         </div>
         <button type="button" onClick={handleAddItem} className="btn-secondary">
