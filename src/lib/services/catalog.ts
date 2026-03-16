@@ -31,6 +31,7 @@ export interface CatalogItem {
   purchase_unit: string;
   usage_unit?: string | null;
   minimum_stock_threshold?: number;
+  estimated_unit_price?: number;
   sanitary_registration?: string | null;
   is_active?: boolean;
   created_at?: string;

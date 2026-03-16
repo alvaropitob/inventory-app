@@ -75,6 +75,7 @@ export async function handleCatalogAction(formData: FormData) {
     section_id: sectionId || null,
     purchase_unit: (formData.get("purchase_unit") as string) || "N/A",
     minimum_stock_threshold: Number(formData.get("minimum_stock_threshold")) || 0,
+    estimated_unit_price: Number(formData.get("estimated_unit_price")) || 0,
   };
 
   await CatalogService.upsertCatalogItem(data);

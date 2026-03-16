@@ -6,7 +6,7 @@ import { createPurchaseOrder } from "@/app/dashboard/pedidos/actions";
 import Link from "next/link";
 
 interface Supplier { id: string; name: string; }
-interface CatalogItem { id: string; technical_name: string; commercial_name: string; internal_code: string; }
+interface CatalogItem { id: string; technical_name: string; commercial_name: string; internal_code: string; estimated_unit_price?: number; }
 
 export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier[], items: CatalogItem[] }) {
   const router = useRouter();
@@ -103,7 +103,17 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
       <div className="form-row" style={{ alignItems: 'flex-end', marginBottom: '1.5rem', background: '#f8fafc', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
         <div className="form-group" style={{ flex: 2 }}>
           <label>Producto a Pedir</label>
-          <select value={selectedItem} onChange={e => setSelectedItem(e.target.value)}>
+          <select 
+            value={selectedItem} 
+            onChange={e => {
+              const id = e.target.value;
+              setSelectedItem(id);
+              const item = items.find(x => x.id === id);
+              if (item && item.estimated_unit_price) {
+                setSelectedPrice(item.estimated_unit_price);
+              }
+            }}
+          >
             <option value="">-- Buscar Producto --</option>
             {items.map(item => (
               <option key={item.id} value={item.id}>

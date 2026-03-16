@@ -48,6 +48,7 @@ interface CatalogItem {
   section_id: string;
   purchase_unit: string | null;
   minimum_stock_threshold: number | null;
+  estimated_unit_price: number | null;
   is_active: boolean;
 }
 
@@ -422,6 +423,10 @@ export default async function ConfiguracionPage({
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Stock Mínimo</label>
                 <input type="number" name="minimum_stock_threshold" defaultValue={(editingItem as { minimum_stock_threshold?: number })?.minimum_stock_threshold || 0} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
               </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>P. Estimado ($)</label>
+                <input type="number" step="0.01" name="estimated_unit_price" defaultValue={(editingItem as { estimated_unit_price?: number })?.estimated_unit_price || 0} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              </div>
               <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
                 {editingItem ? "Actualizar" : "Registrar"}
               </button>
@@ -433,6 +438,7 @@ export default async function ConfiguracionPage({
                     <th style={{ padding: '1rem' }}>Código</th>
                     <th style={{ padding: '1rem' }}>Producto</th>
                     <th style={{ padding: '1rem' }}>Presentación</th>
+                    <th style={{ padding: '1rem', textAlign: 'right' }}>P. Estimado</th>
                     <th style={{ padding: '1rem' }}>Estado</th>
                     <th style={{ padding: '1rem' }}>Acciones</th>
                   </tr>
@@ -443,6 +449,9 @@ export default async function ConfiguracionPage({
                       <td style={{ padding: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{i.internal_code}</td>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{i.technical_name}</td>
                       <td style={{ padding: '1rem' }}>{i.commercial_name || "-"}</td>
+                      <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '600' }}>
+                        ${i.estimated_unit_price?.toFixed(2) || "0.00"}
+                      </td>
                       <td style={{ padding: '1rem' }}>
                         <span className={`badge ${i.is_active ? 'badge-success' : 'badge-error'}`} style={{ padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.7rem', background: i.is_active ? '#dcfce7' : '#fee2e2', color: i.is_active ? '#10b981' : '#ef4444' }}>
                           {i.is_active ? 'ACTIVO' : 'INACTIVO'}
