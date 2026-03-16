@@ -76,17 +76,21 @@ export default function ContextualHelp({ content }: { content: string | HelpCont
             style={{
               position: 'absolute',
               top: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
+              right: '-10px', // Align to the right of the trigger by default to avoid right-edge overflow
               zIndex: 1000,
-              width: '320px',
+              width: 'max-content',
+              maxWidth: '320px',
+              minWidth: '280px',
               background: 'rgba(255, 255, 255, 0.98)',
               backdropFilter: 'blur(16px)',
               border: '1px solid var(--border)',
               borderRadius: '12px',
               padding: '1.25rem',
               boxShadow: 'var(--shadow-xl)',
-              marginTop: '0.75rem'
+              marginTop: '0.75rem',
+              // Use viewport-aware calc for very small screens
+              maxHeight: '80vh',
+              overflowY: 'auto'
             }}
           >
             <h4 style={{ 
