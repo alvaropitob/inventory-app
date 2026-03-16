@@ -39,72 +39,54 @@ export default function ProductMaintenanceList({
 
   return (
     <>
-      <div style={{ padding: '0 1.5rem 1rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ position: 'relative', maxWidth: '400px' }}>
-          <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex' }}>
+      <div style={{ padding: '0 1.5rem 1.5rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
+        <div className="form-group" style={{ maxWidth: '450px', position: 'relative' }}>
+          <span style={{ position: 'absolute', left: '1rem', top: '1.4rem', color: 'var(--text-muted)', zIndex: 1 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </span>
           <input 
             type="text" 
-            placeholder="Escribe el nombre para buscar..." 
+            placeholder="Buscar por nombre, código o presentación..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ 
-              width: '100%', 
-              padding: '0.75rem 0.75rem 0.75rem 2.8rem', 
-              borderRadius: '12px', 
-              border: '1px solid var(--border)',
-              fontSize: '0.925rem',
-              outline: 'none',
-              transition: 'border-color 0.2s',
-              background: 'white'
-            }}
-            onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
-            onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+            style={{ paddingLeft: '3rem' }}
           />
         </div>
       </div>
       
       <div className="table-responsive">
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table className="table">
           <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border)', background: '#f8fafc' }}>
-              <th style={{ padding: '1rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--navy-light)', textTransform: 'uppercase' }}>Código</th>
-              <th style={{ padding: '1rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--navy-light)', textTransform: 'uppercase' }}>Producto</th>
-              <th style={{ padding: '1rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--navy-light)', textTransform: 'uppercase' }}>Presentación</th>
-              <th style={{ padding: '1rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--navy-light)', textTransform: 'uppercase', textAlign: 'right' }}>P. Estimado</th>
-              <th style={{ padding: '1rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--navy-light)', textTransform: 'uppercase' }}>Estado</th>
-              <th style={{ padding: '1rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--navy-light)', textTransform: 'uppercase', textAlign: 'center' }}>Acciones</th>
+            <tr>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Presentación</th>
+              <th style={{ textAlign: 'right' }}>P. Estimado</th>
+              <th style={{ textAlign: 'center' }}>Estado</th>
+              <th style={{ textAlign: 'center' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {displayItems.map(i => (
-              <tr key={i.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }} className="hover-row">
-                <td style={{ padding: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{i.internal_code}</td>
-                <td style={{ padding: '1rem', fontWeight: '700', color: 'var(--navy)' }}>{i.technical_name}</td>
-                <td style={{ padding: '1rem' }}>{i.commercial_name || "-"}</td>
-                <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '700', color: 'var(--primary)' }}>
+              <tr key={i.id}>
+                <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{i.internal_code}</td>
+                <td style={{ fontWeight: '700', color: 'var(--navy)' }}>{i.technical_name}</td>
+                <td>{i.commercial_name || "-"}</td>
+                <td style={{ textAlign: 'right', fontWeight: '700', color: 'var(--primary)' }}>
                   ${i.estimated_unit_price?.toFixed(2) || "0.00"}
                 </td>
-                <td style={{ padding: '1rem' }}>
-                  <span style={{ 
-                    padding: '0.25rem 0.75rem', 
-                    borderRadius: '20px', 
-                    fontSize: '0.7rem', 
-                    fontWeight: '800',
-                    background: i.is_active ? '#dcfce7' : '#fee2e2', 
-                    color: i.is_active ? '#166534' : '#991b1b' 
-                  }}>
+                <td style={{ textAlign: 'center' }}>
+                  <span className={i.is_active ? 'badge badge-success' : 'badge badge-error'}>
                     {i.is_active ? 'ACTIVO' : 'INACTIVO'}
                   </span>
                 </td>
-                <td style={{ padding: '1rem' }}>
+                <td style={{ textAlign: 'center' }}>
                   <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                    <a href={`?tab=productos&editId=${i.id}`} style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', border: '1px solid var(--border)', borderRadius: '8px', textDecoration: 'none', color: 'var(--navy)', fontWeight: '600', background: 'white' }}>Editar</a>
+                    <a href={`?tab=productos&editId=${i.id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}>Editar</a>
                     <form action={async () => {
                       await toggleStatusAction(i.id, !!i.is_active, 'product');
                     }}>
-                      <button type="submit" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--border)', borderRadius: '8px', color: i.is_active ? 'var(--error)' : 'var(--success)', cursor: 'pointer', fontWeight: '600' }}>
+                      <button type="submit" className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', color: i.is_active ? 'var(--error)' : 'var(--success)' }}>
                         {i.is_active ? 'Inactivar' : 'Activar'}
                       </button>
                     </form>

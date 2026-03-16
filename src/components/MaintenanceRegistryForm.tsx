@@ -25,15 +25,15 @@ export default function MaintenanceRegistryForm({ equipmentId }: MaintenanceRegi
   }
 
   return (
-    <div className="card shadow-glass" style={{ padding: '2rem' }}>
-      <h3 className="text-xl font-black text-navy mb-6">Nueva Intervención Técnica</h3>
-      <form id="maintenance-form" action={handleSubmit} className="space-y-4">
+    <div className="form-container">
+      <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Nueva Intervención Técnica</h3>
+      <form id="maintenance-form" action={handleSubmit}>
         <input type="hidden" name="equipment_id" value={equipmentId} />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="form-row" style={{ marginBottom: '1.5rem' }}>
           <div className="form-group">
-            <label className="block text-xs font-black uppercase text-navy-light mb-1">Tipo de Actividad</label>
-            <select name="type" required className="input-field w-full">
+            <label>Tipo de Actividad</label>
+            <select name="type" required>
               <option value="preventive">Mantenimiento Preventivo</option>
               <option value="corrective">Mantenimiento Correctivo</option>
               <option value="calibration">Calibración / Calificación</option>
@@ -41,36 +41,38 @@ export default function MaintenanceRegistryForm({ equipmentId }: MaintenanceRegi
           </div>
           
           <div className="form-group">
-            <label className="block text-xs font-black uppercase text-navy-light mb-1">Fecha de Ejecución</label>
-            <input type="date" name="execution_date" required defaultValue={new Date().toISOString().split('T')[0]} className="input-field w-full" />
+            <label>Fecha de Ejecución</label>
+            <input type="date" name="execution_date" required defaultValue={new Date().toISOString().split('T')[0]} />
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="block text-xs font-black uppercase text-navy-light mb-1">Técnico / Empresa Responsable</label>
-          <input type="text" name="performed_by" placeholder="Ej: Servicio Técnico Abbott o Bioing. Juan Pérez" required className="input-field w-full" />
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+          <label>Técnico / Empresa Responsable</label>
+          <input type="text" name="performed_by" placeholder="Ej: Servicio Técnico Abbott o Bioing. Juan Pérez" required />
         </div>
 
-        <div className="form-group">
-          <label className="block text-xs font-black uppercase text-navy-light mb-1">Descripción de la Intervención</label>
-          <textarea name="description" rows={3} placeholder="Detalle las tareas realizadas..." className="input-field w-full" />
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+          <label>Descripción de la Intervención</label>
+          <textarea name="description" rows={3} placeholder="Detalle las tareas realizadas..." />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="form-row" style={{ marginBottom: '2rem' }}>
           <div className="form-group">
-            <label className="block text-xs font-black uppercase text-navy-light mb-1">Resultado Final</label>
-            <input type="text" name="result" placeholder="Ej: Operativo / Calibrado" required className="input-field w-full" />
+            <label>Resultado Final</label>
+            <input type="text" name="result" placeholder="Ej: Operativo / Calibrado" required />
           </div>
           
           <div className="form-group">
-            <label className="block text-xs font-black uppercase text-navy-light mb-1">Próxima Fecha (Opcional)</label>
-            <input type="date" name="next_due_date" className="input-field w-full" />
+            <label>Próxima Fecha (Opcional)</label>
+            <input type="date" name="next_due_date" />
           </div>
         </div>
 
-        <button type="submit" disabled={loading} className="btn-primary w-full mt-4">
-          {loading ? "Registrando..." : "Confirmar Registro Técnico"}
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button type="submit" disabled={loading} className="btn-primary" style={{ minWidth: '200px' }}>
+            {loading ? "Registrando..." : "Confirmar Registro Técnico"}
+          </button>
+        </div>
       </form>
     </div>
   );

@@ -99,7 +99,9 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
         </div>
       </div>
 
-      <h3 style={{ marginTop: '2rem', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>Productos Requeridos</h3>
+      <h3 style={{ marginTop: '2.5rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '2px solid var(--primary-light)', color: 'var(--navy)' }}>
+        Productos Requeridos
+      </h3>
       
       <div className="form-row" style={{ alignItems: 'flex-end', marginBottom: '1.5rem', background: '#f8fafc', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
         <div className="form-group" style={{ flex: 2 }}>

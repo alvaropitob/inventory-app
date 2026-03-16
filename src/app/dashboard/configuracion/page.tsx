@@ -131,22 +131,22 @@ export default async function ConfiguracionPage({
               <h2>{editingItem ? "Editar Categoría de Inventario" : "Categorías de Inventario"}</h2>
               {editingItem && <a href="?tab=secciones" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleSectionAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
+            <form action={Actions.handleSectionAction} className="responsive-grid" style={{ padding: '2rem', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1.5rem', alignItems: 'end' }}>
               <input type="hidden" name="id" value={(editingItem as Section)?.id || ""} />
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Nombre de Subcategoría</label>
-                <input name="name" defaultValue={(editingItem as Section)?.name || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Hematología" />
+              <div className="form-group">
+                <label>Nombre de Subcategoría</label>
+                <input name="name" defaultValue={(editingItem as Section)?.name || ""} required placeholder="Ej: Hematología" />
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Categoría Padre</label>
-                  <select name="category_id" defaultValue={(editingItem as { category_id?: string })?.category_id || ""} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+              <div className="form-group">
+                <label>Categoría Padre</label>
+                  <select name="category_id" defaultValue={(editingItem as { category_id?: string })?.category_id || ""}>
                   <option value="">(Ninguna)</option>
                   {categories?.map((c: { id: string, name: string }) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Descripción</label>
-                <input name="description" defaultValue={(editingItem as Section)?.description || ""} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Breve descripción..." />
+              <div className="form-group">
+                <label>Descripción</label>
+                <input name="description" defaultValue={(editingItem as Section)?.description || ""} placeholder="Breve descripción..." />
               </div>
               <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
                 {editingItem ? "Actualizar" : "Añadir"}
@@ -205,12 +205,24 @@ export default async function ConfiguracionPage({
               <h2>{editingItem ? "Editar Proveedor" : "Registro de Proveedores"}</h2>
               {editingItem && <a href="?tab=proveedores" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleSupplierAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
+            <form action={Actions.handleSupplierAction} className="responsive-grid" style={{ padding: '2rem', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '1.5rem', alignItems: 'end' }}>
               <input type="hidden" name="id" value={(editingItem as Supplier)?.id || ""} />
-              <input name="name" defaultValue={(editingItem as Supplier)?.name || ""} placeholder="Empresa" required style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
-              <input name="contact_name" defaultValue={(editingItem as { contact_name?: string })?.contact_name || ""} placeholder="Contacto" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
-              <input name="contact_email" defaultValue={(editingItem as { contact_email?: string })?.contact_email || ""} placeholder="Email" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
-              <input name="tax_id" defaultValue={(editingItem as { tax_id?: string })?.tax_id || ""} placeholder="NIT/Tax ID" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              <div className="form-group">
+                <label>Nombre Proveedor</label>
+                <input name="name" defaultValue={(editingItem as Supplier)?.name || ""} required placeholder="Ej: Roche Diagnostics" />
+              </div>
+              <div className="form-group">
+                <label>Contacto</label>
+                <input name="contact_name" defaultValue={(editingItem as Supplier)?.contact_name || ""} placeholder="Nombre del asesor" />
+              </div>
+              <div className="form-group">
+                <label>Email</label>
+                <input name="contact_email" type="email" defaultValue={(editingItem as Supplier)?.contact_email || ""} placeholder="email@proveedor.com" />
+              </div>
+              <div className="form-group">
+                <label>NIT / Tax ID</label>
+                <input name="tax_id" defaultValue={(editingItem as Supplier)?.tax_id || ""} placeholder="800.123.456-7" />
+              </div>
               <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
@@ -266,10 +278,16 @@ export default async function ConfiguracionPage({
               <h2>{editingItem ? "Editar Categoría Maestra" : "Categorías Maestras (Nivel Superior)"}</h2>
               {editingItem && <a href="?tab=categorias" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleCategoryAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '1rem', alignItems: 'end' }}>
+            <form action={Actions.handleCategoryAction} className="responsive-grid" style={{ padding: '2rem', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '1.5rem', alignItems: 'end' }}>
               <input type="hidden" name="id" value={(editingItem as Category)?.id || ""} />
-              <input name="name" defaultValue={(editingItem as Category)?.name || ""} placeholder="Nombre" required style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
-              <input name="description" defaultValue={(editingItem as Category)?.description || ""} placeholder="Descripción" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              <div className="form-group">
+                <label>Nombre Categoría</label>
+                <input name="name" defaultValue={(editingItem as Category)?.name || ""} required placeholder="Ej: Reactivos" />
+              </div>
+              <div className="form-group">
+                <label>Descripción</label>
+                <input name="description" defaultValue={(editingItem as Category)?.description || ""} placeholder="Uso general de la categoría" />
+              </div>
               <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
@@ -322,25 +340,25 @@ export default async function ConfiguracionPage({
               <h2>{editingItem ? "Editar Ubicación" : "Ubicaciones de Almacenamiento"}</h2>
               {editingItem && <a href="?tab=ubicaciones" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleLocationAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
+            <form action={Actions.handleLocationAction} className="responsive-grid" style={{ padding: '2rem', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1.5rem', alignItems: 'end' }}>
               <input type="hidden" name="id" value={(editingItem as Location)?.id || ""} />
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Nombre de Ubicación *</label>
-                <input name="name" defaultValue={(editingItem as Location)?.name || ""} placeholder="Nombre (ej: Nevera A1)" required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+              <div className="form-group">
+                <label>Nombre Ubicación</label>
+                <input name="name" defaultValue={(editingItem as Location)?.name || ""} required placeholder="Ej: Nevera 1 - Estante A" />
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Categoría / Sección *</label>
-                <select name="section_id" defaultValue={(editingItem as { section_id?: string })?.section_id || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                  <option value="">Seleccione Categoría...</option>
-                  {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              <div className="form-group">
+                <label>Subcategoría Asociada</label>
+                <select name="section_id" defaultValue={(editingItem as { section_id?: string })?.section_id || ""} required>
+                  <option value="">Seleccionar...</option>
+                  {sections?.map((s: { id: string, name: string }) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Tipo de Ubicación</label>
-                <select name="location_type" defaultValue={(editingItem as { location_type?: string })?.location_type || "shelf"} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                  <option value="shelf">Estantería</option>
-                  <option value="refrigerator">Nevera</option>
-                  <option value="freezer">Congelador</option>
+              <div className="form-group">
+                <label>Tipo de Almacenamiento</label>
+                <select name="location_type" defaultValue={(editingItem as Location)?.location_type || "refrigerated"}>
+                  <option value="refrigerated">Refrigerado (2-8°C)</option>
+                  <option value="room_temp">Ambiente (15-25°C)</option>
+                  <option value="frozen">Congelado (-20°C)</option>
                 </select>
               </div>
               <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>

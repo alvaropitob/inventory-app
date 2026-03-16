@@ -149,10 +149,10 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                         <tr>
                             <th style={{ padding: '1rem', textAlign: 'left' }}>Producto</th>
                             <th style={{ padding: '1rem', textAlign: 'center' }}>Solicitado</th>
-                            <th style={{ padding: '1rem', textAlign: 'center' }}>Recibido</th>
-                            <th style={{ padding: '1rem', textAlign: 'center' }}>Precio ($)</th>
-                            <th style={{ padding: '1rem', textAlign: 'left' }}>Número de Lote</th>
-                            <th style={{ padding: '1rem', textAlign: 'left' }}>Vencimiento</th>
+                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'center' }}>Recibido</th>
+                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'center' }}>Precio ($)</th>
+                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Número de Lote</th>
+                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Vencimiento</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -170,7 +170,8 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                                         max={item.quantity_requested}
                                         value={itemData[item.catalog_item_id].qty}
                                         onChange={e => handleItemChange(item.catalog_item_id, 'qty', Number(e.target.value))}
-                                        style={{ width: '80px', textAlign: 'center' }}
+                                        className="table-input"
+                                        style={{ width: '100px', textAlign: 'center' }}
                                         required
                                     />
                                 </td>
@@ -181,30 +182,29 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                                         min="0"
                                         value={itemData[item.catalog_item_id].price}
                                         onChange={e => handleItemChange(item.catalog_item_id, 'price', Number(e.target.value))}
-                                        style={{ width: '100px', textAlign: 'right' }}
+                                        className="table-input"
+                                        style={{ width: '120px', textAlign: 'right' }}
                                         required
                                     />
                                 </td>
                                 <td style={{ padding: '1rem' }}>
-                                    <div className="form-group" style={{ marginBottom: 0 }}>
-                                        <input 
-                                            type="text" 
-                                            placeholder="LOTE-XXXX"
-                                            value={itemData[item.catalog_item_id].lot}
-                                            onChange={e => handleItemChange(item.catalog_item_id, 'lot', e.target.value)}
-                                            required
-                                        />
-                                    </div>
+                                    <input 
+                                        type="text" 
+                                        placeholder="LOTE-XXXX"
+                                        value={itemData[item.catalog_item_id].lot}
+                                        onChange={e => handleItemChange(item.catalog_item_id, 'lot', e.target.value)}
+                                        className="table-input"
+                                        required
+                                    />
                                 </td>
                                 <td style={{ padding: '1rem' }}>
-                                    <div className="form-group" style={{ marginBottom: 0 }}>
-                                        <input 
-                                            type="date"
-                                            value={itemData[item.catalog_item_id].exp}
-                                            onChange={e => handleItemChange(item.catalog_item_id, 'exp', e.target.value)}
-                                            required
-                                        />
-                                    </div>
+                                    <input 
+                                        type="date"
+                                        value={itemData[item.catalog_item_id].exp}
+                                        onChange={e => handleItemChange(item.catalog_item_id, 'exp', e.target.value)}
+                                        className="table-input"
+                                        required
+                                    />
                                 </td>
                             </tr>
                         ))}
