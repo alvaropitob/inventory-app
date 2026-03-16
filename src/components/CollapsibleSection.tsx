@@ -11,10 +11,10 @@ interface CollapsibleSectionProps {
   icon?: React.ReactNode;
 }
 
-export default function CollapsibleSection({ 
-  title, 
-  subtitle, 
-  children, 
+export default function CollapsibleSection({
+  title,
+  subtitle,
+  children,
   defaultOpen = true,
   icon
 }: CollapsibleSectionProps) {
@@ -22,13 +22,13 @@ export default function CollapsibleSection({
 
   return (
     <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch', marginBottom: '2rem', overflow: 'hidden' }}>
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        style={{ 
+        style={{
           width: '100%',
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           padding: '1.5rem',
           background: 'transparent',
           border: 'none',
