@@ -56,6 +56,16 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 </form>
               </>
             )}
+
+            {(order.status === 'requested' || order.status === 'partially_received') && (
+              <Link 
+                href={`/dashboard/recepcion/${order.id}`} 
+                className="btn-primary" 
+                style={{ textDecoration: 'none', background: '#0891b2', borderColor: '#0891b2' }}
+              >
+                📥 Iniciar Recepción
+              </Link>
+            )}
           </div>
         </div>
 
