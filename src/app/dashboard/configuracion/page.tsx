@@ -3,6 +3,7 @@ import { getCurrentUserProfile } from "@/lib/services/user";
 import { CatalogService } from "@/lib/services/catalog";
 import DeleteMasterButton from "@/components/DeleteMasterButton";
 import * as Actions from "./actions";
+import ProductMaintenanceList from "@/components/ProductMaintenanceList";
 
 export const dynamic = "force-dynamic";
 
@@ -431,51 +432,11 @@ export default async function ConfiguracionPage({
                 {editingItem ? "Actualizar" : "Registrar"}
               </button>
             </form>
-            <div className="table-responsive">
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '2px solid var(--border)', background: '#f8fafc' }}>
-                    <th style={{ padding: '1rem' }}>Código</th>
-                    <th style={{ padding: '1rem' }}>Producto</th>
-                    <th style={{ padding: '1rem' }}>Presentación</th>
-                    <th style={{ padding: '1rem', textAlign: 'right' }}>P. Estimado</th>
-                    <th style={{ padding: '1rem' }}>Estado</th>
-                    <th style={{ padding: '1rem' }}>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {catalogItems?.map(i => (
-                    <tr key={i.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{i.internal_code}</td>
-                      <td style={{ padding: '1rem', fontWeight: 'bold' }}>{i.technical_name}</td>
-                      <td style={{ padding: '1rem' }}>{i.commercial_name || "-"}</td>
-                      <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '600' }}>
-                        ${i.estimated_unit_price?.toFixed(2) || "0.00"}
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <span className={`badge ${i.is_active ? 'badge-success' : 'badge-error'}`} style={{ padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.7rem', background: i.is_active ? '#dcfce7' : '#fee2e2', color: i.is_active ? '#10b981' : '#ef4444' }}>
-                          {i.is_active ? 'ACTIVO' : 'INACTIVO'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <a href={`?tab=productos&editId=${i.id}`} style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', border: '1px solid var(--border)', borderRadius: '6px', textDecoration: 'none', color: 'var(--navy)' }}>Editar</a>
-                          <form action={Actions.toggleStatus.bind(null, i.id, !!i.is_active, 'product')}>
-                            <button type="submit" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: i.is_active ? 'var(--error)' : 'var(--success)', cursor: 'pointer' }}>
-                              {i.is_active ? 'Inactivar' : 'Activar'}
-                            </button>
-                          </form>
-                          <DeleteMasterButton onDelete={Actions.handleDelete.bind(null, i.id, 'product')} />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {(!catalogItems || catalogItems.length === 0) && (
-                    <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No hay productos en el mantenimiento.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <ProductMaintenanceList 
+              initialItems={catalogItems || []} 
+              toggleStatusAction={Actions.toggleStatus}
+              handleDeleteAction={Actions.handleDelete}
+            />
           </div>
         )}
       </div>

@@ -117,7 +117,7 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
             <option value="">-- Buscar Producto --</option>
             {items.map(item => (
               <option key={item.id} value={item.id}>
-                {item.internal_code} - {item.commercial_name || item.technical_name}
+                {item.internal_code} - {item.technical_name} ({item.commercial_name})
               </option>
             ))}
           </select>
@@ -153,7 +153,10 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
               return (
                 <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '0.75rem', fontSize: '0.85rem' }}>{fullItem?.internal_code}</td>
-                  <td style={{ padding: '0.75rem', fontWeight: '500' }}>{fullItem?.commercial_name || fullItem?.technical_name}</td>
+                  <td style={{ padding: '0.75rem', fontWeight: '500' }}>
+                    <div style={{ fontWeight: '600' }}>{fullItem?.technical_name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{fullItem?.commercial_name}</div>
+                  </td>
                   <td style={{ padding: '0.75rem', textAlign: 'center' }}>{oi.quantity}</td>
                   <td style={{ padding: '0.75rem', textAlign: 'right' }}>${oi.price.toFixed(2)}</td>
                   <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600' }}>${(oi.quantity * oi.price).toFixed(2)}</td>

@@ -97,7 +97,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 {order.items?.map((item) => (
                   <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '1rem', fontSize: '0.85rem' }}>{item.catalog_item?.internal_code}</td>
-                    <td style={{ padding: '1rem', fontWeight: '500' }}>{item.catalog_item?.commercial_name || item.catalog_item?.technical_name}</td>
+                    <td style={{ padding: '1rem', fontWeight: '500' }}>
+                      <div style={{ fontWeight: '600', color: 'var(--navy)' }}>{item.catalog_item?.technical_name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.catalog_item?.commercial_name}</div>
+                    </td>
                     <td style={{ padding: '1rem', textAlign: 'center', fontWeight: '600' }}>{item.quantity_requested}</td>
                     <td style={{ padding: '1rem', textAlign: 'center' }}>
                       <span style={{ color: item.quantity_received === item.quantity_requested ? 'var(--success)' : (item.quantity_received === 0 ? 'var(--text-muted)' : 'var(--warning)'), fontWeight: '600' }}>

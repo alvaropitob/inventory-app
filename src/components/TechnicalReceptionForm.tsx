@@ -159,8 +159,8 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                         {order.items.map((item) => (
                             <tr key={item.catalog_item_id} style={{ borderBottom: '1px solid var(--border)' }}>
                                 <td style={{ padding: '1rem' }}>
-                                    <div style={{ fontWeight: '700' }}>{item.catalog_item.internal_code}</div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.catalog_item.technical_name}</div>
+                                    <div style={{ fontWeight: '700' }}>{item.catalog_item.technical_name}</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.catalog_item.commercial_name} ({item.catalog_item.internal_code})</div>
                                 </td>
                                 <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 'bold', color: 'var(--text-muted)' }}>{item.quantity_requested}</td>
                                 <td style={{ padding: '1rem' }}>
