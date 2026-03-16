@@ -32,6 +32,30 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <Link href="/dashboard/pedidos" className="btn-secondary" style={{ textDecoration: 'none' }}>
               &larr; Volver
             </Link>
+            
+            {order.status === 'draft' && (
+              <>
+                <form action={async () => {
+                  'use server';
+                  const { updateOrderStatusAction } = await import('../actions');
+                  await updateOrderStatusAction(order.id!, 'cancelled');
+                }}>
+                  <button type="submit" className="btn-secondary" style={{ color: 'var(--error)', borderColor: 'var(--error)' }}>
+                    Cancelar Pedido
+                  </button>
+                </form>
+                
+                <form action={async () => {
+                  'use server';
+                  const { updateOrderStatusAction } = await import('../actions');
+                  await updateOrderStatusAction(order.id!, 'requested');
+                }}>
+                  <button type="submit" className="btn-primary">
+                    🚀 Solicitar Pedido
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </div>
 

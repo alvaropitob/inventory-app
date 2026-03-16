@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { OrderService } from "@/lib/services/orders";
+import { OrderService, OrderStatus } from "@/lib/services/orders";
 
 export async function createPurchaseOrder(formData: FormData) {
   const supabase = await createClient();
@@ -61,5 +61,17 @@ export async function createPurchaseOrder(formData: FormData) {
     console.error("Create Order Error:", error);
     const message = encodeURIComponent(error instanceof Error ? error.message : "Error al procesar el pedido");
     redirect(`/dashboard/pedidos?error=${message}`);
+  }
+}
+
+export async function updateOrderStatusAction(id: string, status: OrderStatus) {
+  try {
+    await OrderService.updateOrderStatus(id, status);
+    revalidatePath("/dashboard/pedidos");
+    revalidatePath(`/dashboard/pedidos/${id}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Update Order Status Error:", error);
+    return { error: "Error al actualizar el estado del pedido" };
   }
 }
