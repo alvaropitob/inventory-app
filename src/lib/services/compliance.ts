@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { AuditService } from "./audit";
+import { CatalogService } from "./catalog";
+import { OrderService } from "./orders";
 
 export type LotStatus = 'accepted' | 'quarantine' | 'rejected' | 'expired';
 export type IncidentType = 'recall' | 'adverse_event' | 'quality_failure' | 'other';
@@ -140,7 +142,7 @@ export const ComplianceService = {
 
         if (receptionError) throw receptionError;
 
-        // 2. Procesar cada ítem: Crear lote (batch) y asociar a la recepción
+        // 2. Procesar cada ítem: Crear lote (batch), asociar a la recepción y actualizar catálogo
         for (const item of data.items) {
             // Crear el batch en inventory_batches
             const { data: batch, error: batchError } = await supabase
@@ -170,12 +172,44 @@ export const ComplianceService = {
                 });
 
             if (itemError) throw itemError;
+
+            // --- NUEVO: Actualizar cantidad recibida en el pedido ---
+            // Primero obtenemos el registro actual para saber cuánto se había recibido antes
+            const { data: orderItem } = await supabase
+                .from('purchase_order_items')
+                .select('quantity_received')
+                .eq('purchase_order_id', data.order_id)
+                .eq('item_id', item.catalog_item_id)
+                .single();
+            
+            const newTotalReceived = (orderItem?.quantity_received || 0) + item.quantity_received;
+
+            await supabase
+                .from('purchase_order_items')
+                .update({ quantity_received: newTotalReceived })
+                .eq('purchase_order_id', data.order_id)
+                .eq('item_id', item.catalog_item_id);
+
+            // --- NUEVO: Actualizar precio estimado en el catálogo ---
+            await CatalogService.updateEstimatedPrice(item.catalog_item_id, item.unit_price);
         }
 
-        // 3. Actualizar el estado del pedido a 'completed'
+        // 3. Determinar el nuevo estado del pedido
+        // Consultamos todos los ítems del pedido para ver si ya se completó todo
+        const order = await OrderService.getOrderById(data.order_id);
+        const isFullyReceived = order.items?.every(i => (i.quantity_received || 0) >= i.quantity_requested);
+        const hasReceivedSomething = order.items?.some(i => (i.quantity_received || 0) > 0);
+
+        let newStatus = 'requested';
+        if (isFullyReceived) {
+            newStatus = 'completed';
+        } else if (hasReceivedSomething) {
+            newStatus = 'partially_received';
+        }
+
         const { error: orderUpdateError } = await supabase
             .from('purchase_orders')
-            .update({ status: 'completed' })
+            .update({ status: newStatus })
             .eq('id', data.order_id);
 
         if (orderUpdateError) throw orderUpdateError;

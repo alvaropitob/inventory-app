@@ -151,5 +151,10 @@ export const CatalogService = {
   async deleteLocation(id: string) {
     const supabase = await createClient();
     return await supabase.from("locations").delete().eq("id", id);
+  },
+
+  async updateEstimatedPrice(id: string, price: number) {
+    const supabase = await createClient();
+    return await supabase.from("catalog_items").update({ estimated_unit_price: price }).eq("id", id);
   }
 };

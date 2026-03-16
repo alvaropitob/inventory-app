@@ -35,15 +35,20 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
     const [isApproved, setIsApproved] = useState(true);
     const [notes, setNotes] = useState("");
 
-    // Items states (lot and expiration per item)
-    const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string }>>(
+    // Items states (lot, expiration, qty, price per item)
+    const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string, qty: number, price: number }>>(
         order.items.reduce((acc, item) => ({
             ...acc,
-            [item.catalog_item_id]: { lot: "", exp: "" }
+            [item.catalog_item_id]: { 
+                lot: "", 
+                exp: "", 
+                qty: item.quantity_requested, 
+                price: item.estimated_unit_price 
+            }
         }), {})
     );
 
-    const handleItemChange = (itemId: string, field: 'lot' | 'exp', value: string) => {
+    const handleItemChange = (itemId: string, field: 'lot' | 'exp' | 'qty' | 'price', value: string | number) => {
         setItemData(prev => ({
             ...prev,
             [itemId]: { ...prev[itemId], [field]: value }
@@ -62,12 +67,15 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                 if (!data.lot || !data.exp) {
                     throw new Error(`Faltan datos de lote/vencimiento para ${item.catalog_item.technical_name}`);
                 }
+                if (data.qty <= 0) {
+                    throw new Error(`La cantidad recibida de ${item.catalog_item.technical_name} debe ser mayor a 0`);
+                }
                 return {
                     catalog_item_id: item.catalog_item_id,
                     lot_number: data.lot,
                     expiration_date: data.exp,
-                    quantity_received: item.quantity_requested, // Reception of full amount for now
-                    unit_price: item.estimated_unit_price
+                    quantity_received: Number(data.qty),
+                    unit_price: Number(data.price)
                 };
             });
 
@@ -129,7 +137,7 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                     steps: [
                         "Identifique el lote en la caja o envase.",
                         "Registre la fecha de vencimiento exacta.",
-                        "Verifique la integridad del empaque primario."
+                        "Verique la cantidad realmente recibida y el precio facturado."
                     ],
                     tips: ["Si el producto vence en menos de 6 meses, considere marcarlo para uso prioritario o notificar a supervisión."]
                 }} />
@@ -140,7 +148,9 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                     <thead style={{ background: 'var(--bg-app)' }}>
                         <tr>
                             <th style={{ padding: '1rem', textAlign: 'left' }}>Producto</th>
-                            <th style={{ padding: '1rem', textAlign: 'center' }}>Cant.</th>
+                            <th style={{ padding: '1rem', textAlign: 'center' }}>Solicitado</th>
+                            <th style={{ padding: '1rem', textAlign: 'center' }}>Recibido</th>
+                            <th style={{ padding: '1rem', textAlign: 'center' }}>Precio ($)</th>
                             <th style={{ padding: '1rem', textAlign: 'left' }}>Número de Lote</th>
                             <th style={{ padding: '1rem', textAlign: 'left' }}>Vencimiento</th>
                         </tr>
@@ -152,7 +162,29 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                                     <div style={{ fontWeight: '700' }}>{item.catalog_item.internal_code}</div>
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.catalog_item.technical_name}</div>
                                 </td>
-                                <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 'bold' }}>{item.quantity_requested}</td>
+                                <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 'bold', color: 'var(--text-muted)' }}>{item.quantity_requested}</td>
+                                <td style={{ padding: '1rem' }}>
+                                    <input 
+                                        type="number" 
+                                        min="0"
+                                        max={item.quantity_requested}
+                                        value={itemData[item.catalog_item_id].qty}
+                                        onChange={e => handleItemChange(item.catalog_item_id, 'qty', Number(e.target.value))}
+                                        style={{ width: '80px', textAlign: 'center' }}
+                                        required
+                                    />
+                                </td>
+                                <td style={{ padding: '1rem' }}>
+                                    <input 
+                                        type="number" 
+                                        step="0.01"
+                                        min="0"
+                                        value={itemData[item.catalog_item_id].price}
+                                        onChange={e => handleItemChange(item.catalog_item_id, 'price', Number(e.target.value))}
+                                        style={{ width: '100px', textAlign: 'right' }}
+                                        required
+                                    />
+                                </td>
                                 <td style={{ padding: '1rem' }}>
                                     <div className="form-group" style={{ marginBottom: 0 }}>
                                         <input 
