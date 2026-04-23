@@ -53,6 +53,14 @@ interface CatalogItem {
   is_active: boolean;
 }
 
+function StatusPill({ active }: { active: boolean }) {
+  return (
+    <span className={`pill-badge ${active ? 'pill-green' : 'pill-red'}`}>
+      {active ? 'ACTIVO' : 'INACTIVO'}
+    </span>
+  );
+}
+
 export default async function ConfiguracionPage({
   searchParams,
 }: {
@@ -67,13 +75,12 @@ export default async function ConfiguracionPage({
 
   const activeTab = tab || "secciones";
 
-  // Data fetching based on active tab
   const [
-    { data: rawSections }, 
-    { data: rawSuppliers }, 
-    { data: rawCategories }, 
-    { data: rawLocations }, 
-    { data: rawCatalogItems }
+    { data: rawSections },
+    { data: rawSuppliers },
+    { data: rawCategories },
+    { data: rawLocations },
+    { data: rawCatalogItems },
   ] = await Promise.all([
     CatalogService.getSections(),
     CatalogService.getSuppliers(),
@@ -88,100 +95,91 @@ export default async function ConfiguracionPage({
   const locations = rawLocations as Location[] | null;
   const catalogItems = rawCatalogItems as CatalogItem[] | null;
 
-  // Find item to edit if editId is present
   const editingItem = editId ? (
-    activeTab === "secciones" ? sections?.find(s => s.id === editId) :
-      activeTab === "proveedores" ? suppliers?.find(s => s.id === editId) :
-        activeTab === "categorias" ? categories?.find(c => c.id === editId) :
-          activeTab === "ubicaciones" ? locations?.find(l => l.id === editId) :
-            activeTab === "productos" ? catalogItems?.find(i => i.id === editId) :
-              null
+    activeTab === "secciones"   ? sections?.find(s => s.id === editId) :
+    activeTab === "proveedores" ? suppliers?.find(s => s.id === editId) :
+    activeTab === "categorias"  ? categories?.find(c => c.id === editId) :
+    activeTab === "ubicaciones" ? locations?.find(l => l.id === editId) :
+    activeTab === "productos"   ? catalogItems?.find(i => i.id === editId) :
+    null
   ) : null;
 
-  // Server Actions are now imported from ./actions.ts
+  const tabs = [
+    { key: 'categorias',  label: 'Categorias Maestras'           },
+    { key: 'secciones',   label: 'Categorías Inventario'         },
+    { key: 'proveedores', label: 'Proveedores'                   },
+    { key: 'productos',   label: 'Productos'                     },
+    { key: 'ubicaciones', label: 'Ubicaciones de Almacenamiento' },
+  ];
 
   return (
     <div className="dashboard-main">
-      <div className="welcome-section">
-        <h1>Configuración de Maestros</h1>
-        <p>Gestiona los pilares estructurales del laboratorio clínico.</p>
+      <div className="page-header">
+        <div>
+          <h1 className="page-header-title">Configuración de Maestros</h1>
+          <p className="page-header-subtitle">Gestiona los pilares estructurales del laboratorio clínico.</p>
+        </div>
       </div>
 
-      <div className="tabs-container" style={{
-        display: 'flex',
-        gap: '0.5rem',
-        marginBottom: '2rem',
-        borderBottom: '1px solid var(--border)',
-        paddingBottom: '0.5rem',
-        overflowX: 'auto',
-        whiteSpace: 'nowrap',
-        WebkitOverflowScrolling: 'touch'
-      }}>
-        <a href="?tab=categorias" className={`tab-link ${activeTab === 'categorias' ? 'active-tab' : ''}`}>Categorias Maestras</a>
-        <a href="?tab=secciones" className={`tab-link ${activeTab === 'secciones' ? 'active-tab' : ''}`}>Categorías Inventario</a>
-        <a href="?tab=proveedores" className={`tab-link ${activeTab === 'proveedores' ? 'active-tab' : ''}`}>Proveedores</a>
-        <a href="?tab=productos" className={`tab-link ${activeTab === 'productos' ? 'active-tab' : ''}`}>Productos</a>
-        <a href="?tab=ubicaciones" className={`tab-link ${activeTab === 'ubicaciones' ? 'active-tab' : ''}`}>Ubicaciones de Almacenamiento</a>
-      </div>
+      <nav className="tabs-nav">
+        {tabs.map(t => (
+          <a key={t.key} href={`?tab=${t.key}`} className={`tab-link${activeTab === t.key ? ' tab-link-active' : ''}`}>
+            {t.label}
+          </a>
+        ))}
+      </nav>
 
       <div className="config-content">
         {activeTab === "secciones" && (
-          <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-            <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2>{editingItem ? "Editar Categoría de Inventario" : "Categorías de Inventario"}</h2>
-              {editingItem && <a href="?tab=secciones" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
+          <div className="form-card">
+            <div className="card-section-header">
+              <h2 className="card-section-title">{editingItem ? "Editar Categoría de Inventario" : "Categorías de Inventario"}</h2>
+              {editingItem && <a href="?tab=secciones" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleSectionAction} className="responsive-grid" style={{ padding: '2rem', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1.5rem', alignItems: 'end' }}>
+            <form action={Actions.handleSectionAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
               <input type="hidden" name="id" value={(editingItem as Section)?.id || ""} />
               <div className="form-group">
-                <label>Nombre de Subcategoría</label>
-                <input name="name" defaultValue={(editingItem as Section)?.name || ""} required placeholder="Ej: Hematología" />
+                <label className="form-label">Nombre de Subcategoría</label>
+                <input className="form-input" name="name" defaultValue={(editingItem as Section)?.name || ""} required placeholder="Ej: Hematología" />
               </div>
               <div className="form-group">
-                <label>Categoría Padre</label>
-                  <select name="category_id" defaultValue={(editingItem as { category_id?: string })?.category_id || ""}>
+                <label className="form-label">Categoría Padre</label>
+                <select className="form-select" name="category_id" defaultValue={(editingItem as { category_id?: string })?.category_id || ""}>
                   <option value="">(Ninguna)</option>
-                  {categories?.map((c: { id: string, name: string }) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div className="form-group">
-                <label>Descripción</label>
-                <input name="description" defaultValue={(editingItem as Section)?.description || ""} placeholder="Breve descripción..." />
+                <label className="form-label">Descripción</label>
+                <input className="form-input" name="description" defaultValue={(editingItem as Section)?.description || ""} placeholder="Breve descripción..." />
               </div>
-              <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+              <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
             </form>
             <div className="table-responsive">
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="data-table">
                 <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '1rem' }}>Nombre</th>
-                    <th style={{ padding: '1rem' }}>Descripción</th>
-                    <th style={{ padding: '1rem' }}>Estado</th>
-                    <th style={{ padding: '1rem' }}>Acciones</th>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Categoría Padre</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sections?.map((s: Section) => (
-                    <tr key={s.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '1rem', fontWeight: 'bold' }}>{s.name}</td>
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>
-                          {(s as { categories?: { name: string } }).categories?.name || '---'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem' }}>{s.description}</td>
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{ padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.7rem', background: s.is_active ? '#dcfce7' : '#fee2e2', color: s.is_active ? '#10b981' : '#ef4444' }}>
-                          {s.is_active ? 'ACTIVO' : 'INACTIVO'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <a href={`?tab=secciones&editId=${s.id}`} style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', border: '1px solid var(--border)', borderRadius: '6px', textDecoration: 'none', color: 'var(--navy)' }}>Editar</a>
+                    <tr key={s.id}>
+                      <td className="cell-primary">{s.name}</td>
+                      <td><span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>{s.categories?.name || '---'}</span></td>
+                      <td className="cell-secondary">{s.description}</td>
+                      <td><StatusPill active={s.is_active} /></td>
+                      <td>
+                        <div className="action-group">
+                          <a href={`?tab=secciones&editId=${s.id}`} className="action-btn-edit">Editar</a>
                           <form action={Actions.toggleStatus.bind(null, s.id, !!s.is_active, 'section')}>
-                            <button type="submit" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: s.is_active ? 'var(--error)' : 'var(--success)', cursor: 'pointer' }}>
+                            <button type="submit" className={s.is_active ? 'action-btn-toggle-inactive' : 'action-btn-toggle-active'}>
                               {s.is_active ? 'Inactivar' : 'Activar'}
                             </button>
                           </form>
@@ -200,61 +198,57 @@ export default async function ConfiguracionPage({
         )}
 
         {activeTab === "proveedores" && (
-          <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-            <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2>{editingItem ? "Editar Proveedor" : "Registro de Proveedores"}</h2>
-              {editingItem && <a href="?tab=proveedores" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
+          <div className="form-card">
+            <div className="card-section-header">
+              <h2 className="card-section-title">{editingItem ? "Editar Proveedor" : "Registro de Proveedores"}</h2>
+              {editingItem && <a href="?tab=proveedores" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleSupplierAction} className="responsive-grid" style={{ padding: '2rem', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '1.5rem', alignItems: 'end' }}>
+            <form action={Actions.handleSupplierAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr auto' }}>
               <input type="hidden" name="id" value={(editingItem as Supplier)?.id || ""} />
               <div className="form-group">
-                <label>Nombre Proveedor</label>
-                <input name="name" defaultValue={(editingItem as Supplier)?.name || ""} required placeholder="Ej: Roche Diagnostics" />
+                <label className="form-label">Nombre Proveedor</label>
+                <input className="form-input" name="name" defaultValue={(editingItem as Supplier)?.name || ""} required placeholder="Ej: Roche Diagnostics" />
               </div>
               <div className="form-group">
-                <label>Contacto</label>
-                <input name="contact_name" defaultValue={(editingItem as Supplier)?.contact_name || ""} placeholder="Nombre del asesor" />
+                <label className="form-label">Contacto</label>
+                <input className="form-input" name="contact_name" defaultValue={(editingItem as Supplier)?.contact_name || ""} placeholder="Nombre del asesor" />
               </div>
               <div className="form-group">
-                <label>Email</label>
-                <input name="contact_email" type="email" defaultValue={(editingItem as Supplier)?.contact_email || ""} placeholder="email@proveedor.com" />
+                <label className="form-label">Email</label>
+                <input className="form-input" name="contact_email" type="email" defaultValue={(editingItem as Supplier)?.contact_email || ""} placeholder="email@proveedor.com" />
               </div>
               <div className="form-group">
-                <label>NIT / Tax ID</label>
-                <input name="tax_id" defaultValue={(editingItem as Supplier)?.tax_id || ""} placeholder="800.123.456-7" />
+                <label className="form-label">NIT / Tax ID</label>
+                <input className="form-input" name="tax_id" defaultValue={(editingItem as Supplier)?.tax_id || ""} placeholder="800.123.456-7" />
               </div>
-              <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
+              <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
             </form>
             <div className="table-responsive">
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="data-table">
                 <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '1rem' }}>Empresa</th>
-                    <th style={{ padding: '1rem' }}>Contacto</th>
-                    <th style={{ padding: '1rem' }}>Estado</th>
-                    <th style={{ padding: '1rem' }}>Acciones</th>
+                  <tr>
+                    <th>Empresa</th>
+                    <th>Contacto</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {suppliers?.map((sup: Supplier) => (
-                    <tr key={sup.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '1rem', fontWeight: 'bold' }}>{sup.name}</td>
-                      <td style={{ padding: '1rem' }}>
+                    <tr key={sup.id}>
+                      <td className="cell-primary">{sup.name}</td>
+                      <td>
                         <div>{sup.contact_name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{sup.contact_email}</div>
+                        <div className="cell-muted">{sup.contact_email}</div>
                       </td>
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{ padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.7rem', background: sup.is_active ? '#dcfce7' : '#fee2e2', color: sup.is_active ? '#10b981' : '#ef4444' }}>
-                          {sup.is_active ? 'ACTIVO' : 'INACTIVO'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <a href={`?tab=proveedores&editId=${sup.id}`} style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', border: '1px solid var(--border)', borderRadius: '6px', textDecoration: 'none', color: 'var(--navy)' }}>Editar</a>
+                      <td><StatusPill active={sup.is_active} /></td>
+                      <td>
+                        <div className="action-group">
+                          <a href={`?tab=proveedores&editId=${sup.id}`} className="action-btn-edit">Editar</a>
                           <form action={Actions.toggleStatus.bind(null, sup.id, !!sup.is_active, 'supplier')}>
-                            <button type="submit" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: sup.is_active ? 'var(--error)' : 'var(--success)', cursor: 'pointer' }}>
+                            <button type="submit" className={sup.is_active ? 'action-btn-toggle-inactive' : 'action-btn-toggle-active'}>
                               {sup.is_active ? 'Inactivar' : 'Activar'}
                             </button>
                           </form>
@@ -273,50 +267,46 @@ export default async function ConfiguracionPage({
         )}
 
         {activeTab === "categorias" && (
-          <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-            <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2>{editingItem ? "Editar Categoría Maestra" : "Categorías Maestras (Nivel Superior)"}</h2>
-              {editingItem && <a href="?tab=categorias" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
+          <div className="form-card">
+            <div className="card-section-header">
+              <h2 className="card-section-title">{editingItem ? "Editar Categoría Maestra" : "Categorías Maestras (Nivel Superior)"}</h2>
+              {editingItem && <a href="?tab=categorias" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleCategoryAction} className="responsive-grid" style={{ padding: '2rem', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '1.5rem', alignItems: 'end' }}>
+            <form action={Actions.handleCategoryAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
               <input type="hidden" name="id" value={(editingItem as Category)?.id || ""} />
               <div className="form-group">
-                <label>Nombre Categoría</label>
-                <input name="name" defaultValue={(editingItem as Category)?.name || ""} required placeholder="Ej: Reactivos" />
+                <label className="form-label">Nombre Categoría</label>
+                <input className="form-input" name="name" defaultValue={(editingItem as Category)?.name || ""} required placeholder="Ej: Reactivos" />
               </div>
               <div className="form-group">
-                <label>Descripción</label>
-                <input name="description" defaultValue={(editingItem as Category)?.description || ""} placeholder="Uso general de la categoría" />
+                <label className="form-label">Descripción</label>
+                <input className="form-input" name="description" defaultValue={(editingItem as Category)?.description || ""} placeholder="Uso general de la categoría" />
               </div>
-              <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold' }}>
+              <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
             </form>
             <div className="table-responsive">
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="data-table">
                 <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '1rem' }}>Nombre</th>
-                    <th style={{ padding: '1rem' }}>Descripción</th>
-                    <th style={{ padding: '1rem' }}>Estado</th>
-                    <th style={{ padding: '1rem' }}>Acciones</th>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {categories?.map((c: Category) => (
-                    <tr key={c.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '1rem', fontWeight: 'bold' }}>{c.name}</td>
-                      <td style={{ padding: '1rem' }}>{c.description}</td>
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{ padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.7rem', background: c.is_active ? '#dcfce7' : '#fee2e2', color: c.is_active ? '#10b981' : '#ef4444' }}>
-                          {c.is_active ? 'ACTIVO' : 'INACTIVO'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <a href={`?tab=categorias&editId=${c.id}`} style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', border: '1px solid var(--border)', borderRadius: '6px', textDecoration: 'none', color: 'var(--navy)' }}>Editar</a>
+                    <tr key={c.id}>
+                      <td className="cell-primary">{c.name}</td>
+                      <td className="cell-secondary">{c.description}</td>
+                      <td><StatusPill active={c.is_active} /></td>
+                      <td>
+                        <div className="action-group">
+                          <a href={`?tab=categorias&editId=${c.id}`} className="action-btn-edit">Editar</a>
                           <form action={Actions.toggleStatus.bind(null, c.id, !!c.is_active, 'category')}>
-                            <button type="submit" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: c.is_active ? 'var(--error)' : 'var(--success)', cursor: 'pointer' }}>
+                            <button type="submit" className={c.is_active ? 'action-btn-toggle-inactive' : 'action-btn-toggle-active'}>
                               {c.is_active ? 'Inactivar' : 'Activar'}
                             </button>
                           </form>
@@ -335,61 +325,57 @@ export default async function ConfiguracionPage({
         )}
 
         {activeTab === "ubicaciones" && (
-          <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-            <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2>{editingItem ? "Editar Ubicación" : "Ubicaciones de Almacenamiento"}</h2>
-              {editingItem && <a href="?tab=ubicaciones" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
+          <div className="form-card">
+            <div className="card-section-header">
+              <h2 className="card-section-title">{editingItem ? "Editar Ubicación" : "Ubicaciones de Almacenamiento"}</h2>
+              {editingItem && <a href="?tab=ubicaciones" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleLocationAction} className="responsive-grid" style={{ padding: '2rem', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1.5rem', alignItems: 'end' }}>
+            <form action={Actions.handleLocationAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
               <input type="hidden" name="id" value={(editingItem as Location)?.id || ""} />
               <div className="form-group">
-                <label>Nombre Ubicación</label>
-                <input name="name" defaultValue={(editingItem as Location)?.name || ""} required placeholder="Ej: Nevera 1 - Estante A" />
+                <label className="form-label">Nombre Ubicación</label>
+                <input className="form-input" name="name" defaultValue={(editingItem as Location)?.name || ""} required placeholder="Ej: Nevera 1 - Estante A" />
               </div>
               <div className="form-group">
-                <label>Subcategoría Asociada</label>
-                <select name="section_id" defaultValue={(editingItem as { section_id?: string })?.section_id || ""} required>
+                <label className="form-label">Subcategoría Asociada</label>
+                <select className="form-select" name="section_id" defaultValue={(editingItem as { section_id?: string })?.section_id || ""} required>
                   <option value="">Seleccionar...</option>
-                  {sections?.map((s: { id: string, name: string }) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
               <div className="form-group">
-                <label>Tipo de Almacenamiento</label>
-                <select name="location_type" defaultValue={(editingItem as Location)?.location_type || "refrigerated"}>
+                <label className="form-label">Tipo de Almacenamiento</label>
+                <select className="form-select" name="location_type" defaultValue={(editingItem as Location)?.location_type || "refrigerated"}>
                   <option value="refrigerated">Refrigerado (2-8°C)</option>
                   <option value="room_temp">Ambiente (15-25°C)</option>
                   <option value="frozen">Congelado (-20°C)</option>
                 </select>
               </div>
-              <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+              <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
             </form>
             <div className="table-responsive">
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="data-table">
                 <thead>
-                  <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '1rem' }}>Nombre</th>
-                    <th style={{ padding: '1rem' }}>Categoría de Inventario</th>
-                    <th style={{ padding: '1rem' }}>Estado</th>
-                    <th style={{ padding: '1rem' }}>Acciones</th>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Categoría de Inventario</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {locations?.map((l: Location) => (
-                    <tr key={l.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '1rem', fontWeight: 'bold' }}>{l.name}</td>
-                       <td style={{ padding: '1rem' }}>{(l as { sections?: { name: string } }).sections?.name}</td>
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{ padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.7rem', background: l.is_active ? '#dcfce7' : '#fee2e2', color: l.is_active ? '#10b981' : '#ef4444' }}>
-                          {l.is_active ? 'ACTIVO' : 'INACTIVO'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <a href={`?tab=ubicaciones&editId=${l.id}`} style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', border: '1px solid var(--border)', borderRadius: '6px', textDecoration: 'none', color: 'var(--navy)' }}>Editar</a>
+                    <tr key={l.id}>
+                      <td className="cell-primary">{l.name}</td>
+                      <td className="cell-secondary">{l.sections?.name}</td>
+                      <td><StatusPill active={l.is_active} /></td>
+                      <td>
+                        <div className="action-group">
+                          <a href={`?tab=ubicaciones&editId=${l.id}`} className="action-btn-edit">Editar</a>
                           <form action={Actions.toggleStatus.bind(null, l.id, !!l.is_active, 'location')}>
-                            <button type="submit" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', color: l.is_active ? 'var(--error)' : 'var(--success)', cursor: 'pointer' }}>
+                            <button type="submit" className={l.is_active ? 'action-btn-toggle-inactive' : 'action-btn-toggle-active'}>
                               {l.is_active ? 'Inactivar' : 'Activar'}
                             </button>
                           </form>
@@ -408,71 +394,56 @@ export default async function ConfiguracionPage({
         )}
 
         {activeTab === "productos" && (
-          <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-            <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2>{editingItem ? "Editar Producto" : "Mantenimiento de Productos"}</h2>
-              {editingItem && <a href="?tab=productos" style={{ fontSize: '0.875rem', color: 'var(--error)' }}>Cancelar Edición</a>}
+          <div className="form-card">
+            <div className="card-section-header">
+              <h2 className="card-section-title">{editingItem ? "Editar Producto" : "Mantenimiento de Productos"}</h2>
+              {editingItem && <a href="?tab=productos" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleCatalogAction} className="responsive-grid" style={{ padding: '1.5rem', background: 'var(--bg-app)', borderBottom: '1px solid var(--border)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
+            <form action={Actions.handleCatalogAction} className="config-form-panel" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
               <input type="hidden" name="id" value={(editingItem as CatalogItem)?.id || ""} />
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Código / Referencia *</label>
-                <input name="internal_code" defaultValue={(editingItem as { internal_code?: string })?.internal_code || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: REF-001" />
+                <label className="form-label">Código / Referencia *</label>
+                <input className="form-input" name="internal_code" defaultValue={(editingItem as CatalogItem)?.internal_code || ""} required placeholder="Ej: REF-001" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Nombre del Producto *</label>
-                <input name="technical_name" defaultValue={(editingItem as { technical_name?: string })?.technical_name || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Glucosa Oxidasa" />
+                <label className="form-label">Nombre del Producto *</label>
+                <input className="form-input" name="technical_name" defaultValue={(editingItem as CatalogItem)?.technical_name || ""} required placeholder="Ej: Glucosa Oxidasa" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Presentación Comercial</label>
-                <input name="commercial_name" defaultValue={(editingItem as { commercial_name?: string })?.commercial_name || ""} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Kit x 100 Det" />
-              </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Categoría / Sección *</label>
-                   <select name="section_id" defaultValue={(editingItem as { section_id?: string })?.section_id || ""} required style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                    <option value="">Seleccione...</option>
-                    {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Unidad de Compra</label>
-                <input name="purchase_unit" defaultValue={(editingItem as { purchase_unit?: string })?.purchase_unit || "Unidad"} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} placeholder="Ej: Frasco x 500ml" />
+                <label className="form-label">Presentación Comercial</label>
+                <input className="form-input" name="commercial_name" defaultValue={(editingItem as CatalogItem)?.commercial_name || ""} placeholder="Ej: Kit x 100 Det" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Stock Mínimo</label>
-                <input type="number" name="minimum_stock_threshold" defaultValue={(editingItem as { minimum_stock_threshold?: number })?.minimum_stock_threshold || 0} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                <label className="form-label">Categoría / Sección *</label>
+                <select className="form-select" name="section_id" defaultValue={(editingItem as CatalogItem)?.section_id || ""} required>
+                  <option value="">Seleccione...</option>
+                  {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>P. Estimado ($)</label>
-                <input type="number" step="0.01" name="estimated_unit_price" defaultValue={(editingItem as { estimated_unit_price?: number })?.estimated_unit_price || 0} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                <label className="form-label">Unidad de Compra</label>
+                <input className="form-input" name="purchase_unit" defaultValue={(editingItem as CatalogItem)?.purchase_unit || "Unidad"} placeholder="Ej: Frasco x 500ml" />
               </div>
-              <button type="submit" style={{ padding: '0.75rem 1.5rem', background: editingItem ? 'var(--warning)' : 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+              <div>
+                <label className="form-label">Stock Mínimo</label>
+                <input className="form-input" type="number" name="minimum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.minimum_stock_threshold || 0} />
+              </div>
+              <div>
+                <label className="form-label">P. Estimado ($)</label>
+                <input className="form-input" type="number" step="0.01" name="estimated_unit_price" defaultValue={(editingItem as CatalogItem)?.estimated_unit_price || 0} />
+              </div>
+              <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Registrar"}
               </button>
             </form>
-            <ProductMaintenanceList 
-              initialItems={catalogItems || []} 
+            <ProductMaintenanceList
+              initialItems={catalogItems || []}
               toggleStatusAction={Actions.toggleStatus}
               handleDeleteAction={Actions.handleDelete}
             />
           </div>
         )}
       </div>
-
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .tab-link {
-          text-decoration: none;
-          color: var(--navy-light);
-          font-weight: 700;
-          font-size: 0.9375rem;
-          padding: 0.5rem 1rem;
-          border-radius: 8px;
-          transition: all 0.2s;
-        }
-        .tab-link:hover { background: var(--bg-app); color: var(--primary); }
-        .active-tab { background: var(--primary-light); color: var(--primary); }
-      `}} />
     </div>
   );
 }

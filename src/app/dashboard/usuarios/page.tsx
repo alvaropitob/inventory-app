@@ -20,33 +20,29 @@ interface UserWithRoles {
   roles: UserRole | UserRole[];
 }
 
+function RoleBadge({ roleName }: { roleName?: string }) {
+  const config: Record<string, string> = {
+    admin:      'pill-red',
+    operator:   'pill-green',
+    supervisor: 'pill-amber',
+  };
+  const cls = config[roleName ?? ''] ?? 'pill-slate';
+  return <span className={`pill-badge ${cls}`}>{roleName?.toUpperCase()}</span>;
+}
+
 export default async function UsuariosPage() {
   const supabase = await createClient();
 
-  // Verify admin status via app_metadata (best practice)
   const user = await getCurrentUserProfile();
   if (!user || user.role !== "admin") {
     redirect("/dashboard");
   }
 
-  // Fetch all users with their primary roles
   const { data: users } = await supabase
     .from("users")
-    .select(`
-      id,
-      email,
-      full_name,
-      username,
-      created_at,
-      roles!inner (
-        id,
-        name,
-        description
-      )
-    `)
+    .select(`id, email, full_name, username, created_at, roles!inner(id, name, description)`)
     .order("full_name", { ascending: true });
 
-  // Fetch available roles for the select menu
   const { data: roles } = await supabase
     .from("roles")
     .select("*")
@@ -56,8 +52,7 @@ export default async function UsuariosPage() {
   async function updateRole(formData: FormData) {
     "use server";
     const supabase = await createClient();
-    
-    // Safety check: verify the person performing the action is still an admin
+
     const { data: { user: actor } } = await supabase.auth.getUser();
     if (!actor || actor.app_metadata?.role !== "admin") {
       throw new Error("No tienes permisos para realizar esta acción");
@@ -66,7 +61,6 @@ export default async function UsuariosPage() {
     const targetUserId = formData.get("userId") as string;
     const newRoleId = formData.get("roleId") as string;
 
-    // Update the primary role_id in the robust users table
     const { error: userUpdateError } = await supabase
       .from("users")
       .update({ role_id: newRoleId })
@@ -77,18 +71,17 @@ export default async function UsuariosPage() {
       return;
     }
 
-    // Update or Insert into user_roles (the trigger handles metadata sync)
     const { error: roleAssignmentError } = await supabase
       .from("user_roles")
-      .upsert({ 
-        user_id: targetUserId, 
-        role_id: newRoleId, 
+      .upsert({
+        user_id: targetUserId,
+        role_id: newRoleId,
         is_primary: true,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id, role_id' });
 
     if (roleAssignmentError) {
-       console.error("Error updating user_roles:", roleAssignmentError);
+      console.error("Error updating user_roles:", roleAssignmentError);
     }
 
     revalidatePath("/dashboard/usuarios");
@@ -96,70 +89,58 @@ export default async function UsuariosPage() {
 
   return (
     <div className="dashboard-main">
-      <div className="welcome-section">
-        <h1>Gestión de Personal Clínico</h1>
-        <p>Controla los accesos basados en roles especializados del laboratorio.</p>
+      <div className="page-header">
+        <div>
+          <h1 className="page-header-title">Gestión de Personal Clínico</h1>
+          <p className="page-header-subtitle">Controla los accesos basados en roles especializados del laboratorio.</p>
+        </div>
       </div>
 
-      <div className="stat-card" style={{ width: '100%', padding: '0', overflow: 'hidden', flexDirection: 'column', alignItems: 'stretch' }}>
+      <div className="table-card">
         <div className="table-responsive">
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ background: 'var(--bg-app)', borderBottom: '1px solid var(--border)' }}>
+          <table className="data-table">
+            <thead>
               <tr>
-                <th style={{ padding: '1.25rem', fontSize: '0.8125rem', fontWeight: '700', color: 'var(--navy-light)', textTransform: 'uppercase' }}>Profesional</th>
-                <th style={{ padding: '1.25rem', fontSize: '0.8125rem', fontWeight: '700', color: 'var(--navy-light)', textTransform: 'uppercase' }}>Rol Clínico</th>
-                <th style={{ padding: '1.25rem', fontSize: '0.8125rem', fontWeight: '700', color: 'var(--navy-light)', textTransform: 'uppercase' }}>Acciones</th>
+                <th>Profesional</th>
+                <th>Rol Clínico</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {users?.map((u: UserWithRoles) => (
-                <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 'bold' }}>
-                        {u.full_name?.charAt(0).toUpperCase()}
+              {users?.map((u: UserWithRoles) => {
+                const primaryRole = Array.isArray(u.roles) ? u.roles[0] : u.roles;
+                return (
+                  <tr key={u.id}>
+                    <td>
+                      <div className="user-info">
+                        <div className="user-avatar">
+                          {u.full_name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="user-name">{u.full_name}</div>
+                          <div className="user-email">{u.email}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div style={{ fontWeight: '700', color: 'var(--navy)', fontSize: '0.9375rem' }}>{u.full_name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{u.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ padding: '1.25rem' }}>
-                    <span style={{ 
-                      padding: '0.375rem 0.875rem', 
-                      borderRadius: '20px', 
-                      fontSize: '0.75rem', 
-                      fontWeight: '800',
-                      background: (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'admin' ? '#fee2e2' : 
-                                 (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'operator' ? '#dcfce7' : 
-                                 (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'supervisor' ? '#fef3c7' : '#f1f5f9',
-                      color: (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'admin' ? '#ef4444' : 
-                             (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'operator' ? '#10b981' : 
-                             (Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name === 'supervisor' ? '#d97706' : '#64748b',
-                      display: 'inline-block',
-                      textTransform: 'uppercase'
-                    }}>
-                      {(Array.isArray(u.roles) ? u.roles[0] : u.roles)?.name}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1.25rem' }}>
-                    <form action={updateRole} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <input type="hidden" name="userId" value={u.id} />
-                      <div className="form-group" style={{ marginBottom: 0 }}>
-                        <select name="roleId" defaultValue={(Array.isArray(u.roles) ? u.roles[0] : u.roles)?.id}>
-                          {roles?.map((r: { id: string, name: string }) => (
+                    </td>
+                    <td>
+                      <RoleBadge roleName={primaryRole?.name} />
+                    </td>
+                    <td>
+                      <form action={updateRole} className="action-group">
+                        <input type="hidden" name="userId" value={u.id} />
+                        <select name="roleId" defaultValue={primaryRole?.id} className="form-select" style={{ width: 'auto', padding: '0.5rem 2rem 0.5rem 0.75rem' }}>
+                          {roles?.map((r: { id: string; name: string }) => (
                             <option key={r.id} value={r.id}>{r.name.toUpperCase()}</option>
                           ))}
                         </select>
-                      </div>
-                      <button type="submit" className="btn-primary" style={{ padding: '0.625rem 1rem', fontSize: '0.75rem' }}>
-                        Actualizar
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
+                        <button type="submit" className="btn-primary" style={{ padding: '0.625rem 1rem', fontSize: '0.75rem' }}>
+                          Actualizar
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

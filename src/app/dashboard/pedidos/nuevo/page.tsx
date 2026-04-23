@@ -7,26 +7,27 @@ export default async function NewOrderPage() {
   const { data: suppliers } = await CatalogService.getSuppliers();
   const { data: items } = await CatalogService.getCatalogItems();
 
-  // Filter only active ones if needed, or format for client
   const activeSuppliers = suppliers?.filter(s => s.is_active) || [];
   const activeItems = items?.filter(i => i.is_active) || [];
 
   return (
     <div className="dashboard-main">
-      <div className="welcome-section">
-        <h1>Crear Nuevo Pedido</h1>
-        <p>Selecciona el proveedor y los productos que deseas solicitar.</p>
+      <div className="page-header">
+        <div>
+          <h1 className="page-header-title">Crear Nuevo Pedido</h1>
+          <p className="page-header-subtitle">Selecciona el proveedor y los productos que deseas solicitar.</p>
+        </div>
       </div>
 
-      <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch' }}>
-        <NewOrderForm 
-          suppliers={activeSuppliers.map(s => ({ id: s.id, name: s.name }))} 
-          items={activeItems.map(i => ({ 
-            id: i.id, 
-            technical_name: i.technical_name, 
-            commercial_name: i.commercial_name || "", 
-            internal_code: i.internal_code 
-          }))} 
+      <div className="form-card">
+        <NewOrderForm
+          suppliers={activeSuppliers.map(s => ({ id: s.id, name: s.name }))}
+          items={activeItems.map(i => ({
+            id: i.id,
+            technical_name: i.technical_name,
+            commercial_name: i.commercial_name || "",
+            internal_code: i.internal_code,
+          }))}
         />
       </div>
     </div>
