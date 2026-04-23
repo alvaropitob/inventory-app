@@ -26,12 +26,13 @@ export default async function Home() {
     }
 
     return redirect("/dashboard");
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : JSON.stringify(e);
     return (
       <div style={{ padding: "50px", textAlign: "center", fontFamily: "sans-serif", color: "orange" }}>
         <h1>Error de Conexión con Supabase</h1>
         <p>El servidor está vivo, pero no pudo hablar con Supabase.</p>
-        <pre style={{ background: "#eee", padding: "10px" }}>{e.message || JSON.stringify(e)}</pre>
+        <pre style={{ background: "#eee", padding: "10px" }}>{message}</pre>
       </div>
     );
   }
