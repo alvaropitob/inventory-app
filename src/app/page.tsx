@@ -17,23 +17,29 @@ export default async function Home() {
     );
   }
 
+  let shouldRedirectToDashboard = false;
+
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
 
-    if (error || !data?.user) {
-      return redirect("/login");
+    if (data?.user && !error) {
+      shouldRedirectToDashboard = true;
     }
-
-    return redirect("/dashboard");
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : JSON.stringify(e);
     return (
       <div style={{ padding: "50px", textAlign: "center", fontFamily: "sans-serif", color: "orange" }}>
         <h1>Error de Conexión con Supabase</h1>
-        <p>El servidor está vivo, pero no pudo hablar con Supabase.</p>
+        <p>No se pudo verificar la sesión. Revisa que el proyecto de Supabase esté ACTIVO.</p>
         <pre style={{ background: "#eee", padding: "10px" }}>{message}</pre>
       </div>
     );
+  }
+
+  if (shouldRedirectToDashboard) {
+    redirect("/dashboard");
+  } else {
+    redirect("/login");
   }
 }
