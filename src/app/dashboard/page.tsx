@@ -87,9 +87,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Main KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div className="stagger-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         {/* KPI 1: Total Items */}
-        <div style={{ background: 'white', borderRadius: '16px', padding: '1.5rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+        <div className="premium-card" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
             <h3 style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: '600' }}>Productos Únicos</h3>
             <div style={{ padding: '0.5rem', borderRadius: '8px', background: '#eff6ff', color: '#3b82f6' }}>
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* KPI 2: Active Orders */}
-        <div style={{ background: 'white', borderRadius: '16px', padding: '1.5rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+        <div className="premium-card" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
             <h3 style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: '600' }}>Pedidos en Curso</h3>
             <div style={{ padding: '0.5rem', borderRadius: '8px', background: '#fef3c7', color: '#d97706' }}>
@@ -113,7 +113,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* KPI 3: Lotes Aceptados */}
-        <div style={{ background: 'white', borderRadius: '16px', padding: '1.5rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+        <div className="premium-card" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
             <h3 style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: '600' }}>Lotes Aceptados</h3>
             <div style={{ padding: '0.5rem', borderRadius: '8px', background: '#dcfce7', color: '#166534' }}>
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* KPI 4: Alertas */}
-        <div style={{ background: 'white', borderRadius: '16px', padding: '1.5rem', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+        <div className="premium-card" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
             <h3 style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: '600' }}>Alertas Críticas</h3>
             <div style={{ padding: '0.5rem', borderRadius: '8px', background: '#fee2e2', color: '#dc2626' }}>
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Detail Sections */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="stagger-in" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem', alignItems: 'start' }}>
         
         {/* Left Column: Alerts & Orders */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

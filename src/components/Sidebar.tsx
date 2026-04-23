@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+
 
 interface SidebarProps {
   user: {
@@ -192,7 +194,15 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
         />
       )}
       
-      <aside className={`sidebar ${isExpanded ? "sidebar-expanded" : ""} ${isMobileOpen ? "sidebar-mobile-open" : ""}`}>
+      <motion.aside 
+        initial={false}
+        animate={{ 
+          width: isExpanded ? 280 : 80,
+          left: isMobileOpen ? 0 : (typeof window !== 'undefined' && window.innerWidth <= 768 ? -280 : 0)
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className={`sidebar ${isExpanded ? "sidebar-expanded" : ""} ${isMobileOpen ? "sidebar-mobile-open" : ""}`}
+      >
         <div className="sidebar-header">
           <button 
             className="sidebar-toggle desktop-only"
@@ -272,23 +282,31 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                   )}
                 </div>
                 
-                {hasSubItems && (isExpanded || isMobileOpen) && isOpen && (
-                  <div className="sub-nav">
-                    {item.subItems?.map(sub => (
-                      <Link 
-                        key={sub.href} 
-                        href={sub.href} 
-                        className={`sub-nav-item ${fullPath === sub.href ? "active-sub" : ""}`}
-                        onClick={() => {
-                          if (typeof window !== 'undefined' && window.innerWidth <= 768 && onClose) onClose();
-                        }}
-                      >
-                        <div className="sub-nav-dot" />
-                        <span className="nav-text">{sub.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
+                <AnimatePresence>
+                  {hasSubItems && (isExpanded || isMobileOpen) && isOpen && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="sub-nav"
+                    >
+                      {item.subItems?.map(sub => (
+                        <Link 
+                          key={sub.href} 
+                          href={sub.href} 
+                          className={`sub-nav-item ${fullPath === sub.href ? "active-sub" : ""}`}
+                          onClick={() => {
+                            if (typeof window !== 'undefined' && window.innerWidth <= 768 && onClose) onClose();
+                          }}
+                        >
+                          <div className="sub-nav-dot" />
+                          <span className="nav-text">{sub.name}</span>
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}
@@ -322,7 +340,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
             </button>
           </form>
         </div>
-      </aside>
+      </motion.aside>
       <style jsx>{`
         .sub-nav {
           padding-left: 2rem;

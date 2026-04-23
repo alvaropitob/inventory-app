@@ -13,8 +13,8 @@ export default function RegisterPage() {
               <path d="M12 28V12h4l4 8 4-8h4v16h-4V19l-4 7-4-7v9h-4z" fill="white" />
               <defs>
                 <linearGradient id="logo-grad-r" x1="0" y1="0" x2="40" y2="40">
-                  <stop stopColor="#0ea5e9" />
-                  <stop offset="1" stopColor="#0284c7" />
+                  <stop stopColor="#6366f1" />
+                  <stop offset="1" stopColor="#4f46e5" />
                 </linearGradient>
               </defs>
             </svg>
