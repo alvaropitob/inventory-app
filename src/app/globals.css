@@ -1091,8 +1091,3 @@ html, body {
   background-clip: text;
 }
 
-  color: var(--error);
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-}
