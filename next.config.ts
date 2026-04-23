@@ -14,13 +14,15 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: "alvaropito",
-  project: "inventory-app",
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  reactComponentAnnotation: { enabled: true },
-  tunnelRoute: "/monitoring",
-  disableLogger: true,
-  automaticVercelMonitors: true,
-});
+export default nextConfig;
+
+// export default withSentryConfig(nextConfig, {
+//   org: "alvaropito",
+//   project: "inventory-app",
+//   silent: !process.env.CI,
+//   widenClientFileUpload: true,
+//   reactComponentAnnotation: { enabled: true },
+//   tunnelRoute: "/monitoring",
+//   disableLogger: true,
+//   automaticVercelMonitors: true,
+// });
