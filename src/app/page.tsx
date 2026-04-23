@@ -1,10 +1,38 @@
-export default function Home() {
-  return (
-    <div style={{ padding: "50px", textAlign: "center", fontFamily: "sans-serif" }}>
-      <h1>Prueba de Supervivencia</h1>
-      <p>Si ves esto, el servidor de Vercel está vivo.</p>
-      <hr />
-      <p>ID de Despliegue: {new Date().toISOString()}</p>
-    </div>
-  );
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) {
+    return (
+      <div style={{ padding: "50px", textAlign: "center", fontFamily: "sans-serif", color: "red" }}>
+        <h1>Error de Configuración</h1>
+        <p>No se encontraron las variables de entorno en Vercel.</p>
+        <p>Asegúrate de haber añadido <b>NEXT_PUBLIC_SUPABASE_URL</b> y <b>NEXT_PUBLIC_SUPABASE_ANON_KEY</b> en los Settings de Vercel.</p>
+      </div>
+    );
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error || !data?.user) {
+      return redirect("/login");
+    }
+
+    return redirect("/dashboard");
+  } catch (e: any) {
+    return (
+      <div style={{ padding: "50px", textAlign: "center", fontFamily: "sans-serif", color: "orange" }}>
+        <h1>Error de Conexión con Supabase</h1>
+        <p>El servidor está vivo, pero no pudo hablar con Supabase.</p>
+        <pre style={{ background: "#eee", padding: "10px" }}>{e.message || JSON.stringify(e)}</pre>
+      </div>
+    );
+  }
 }
