@@ -1,24 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: { staggerChildren: 0.1 }
   }
-} as const;
+};
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
     transition: { type: "spring", stiffness: 100, damping: 12 }
   }
-} as const;
+};
 
 const IconProveedores = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

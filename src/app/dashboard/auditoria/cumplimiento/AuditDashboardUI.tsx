@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 
 interface Equipment {
   id: string;
@@ -20,7 +20,7 @@ interface Props {
 }
 
 export default function AuditDashboardUI({ data }: Props) {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -28,14 +28,14 @@ export default function AuditDashboardUI({ data }: Props) {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: { type: "spring", stiffness: 100, damping: 12 }
     }
-  } as const;
+  };
 
   return (
     <div className="dashboard-main">
