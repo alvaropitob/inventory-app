@@ -70,6 +70,8 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
         { name: "Verificación de Calidad", href: "/dashboard/inventario/calidad" },
         { name: "Entrada de productos", href: "/dashboard/inventario?view=entradas" },
         { name: "Salida de productos", href: "/dashboard/inventario?view=salidas" },
+        { name: "Traslados Internos", href: "/dashboard/inventario?view=traslados" },
+        { name: "Bajas y Disposición Final", href: "/dashboard/inventario?view=bajas" },
       ]
     },
     {
@@ -83,6 +85,23 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
         </svg>
       ),
       show: true,
+    },
+    {
+      name: "Proveedores",
+      href: "/dashboard/proveedores",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+      show: true,
+      subItems: [
+        { name: "Directorio de Proveedores", href: "/dashboard/proveedores" },
+        { name: "Evaluación de Desempeño", href: "/dashboard/proveedores/evaluacion" },
+      ]
     },
     {
       name: "Recepción Técnica",

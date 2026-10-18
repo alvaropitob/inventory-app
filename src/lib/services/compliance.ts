@@ -23,6 +23,8 @@ export interface EnvironmentalLog {
     location_id: string;
     temperature: number;
     humidity?: number;
+    reading_type?: string;
+    is_out_of_range?: boolean;
     created_at: string;
     user_id: string;
     notes?: string;

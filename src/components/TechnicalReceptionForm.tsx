@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitTechnicalReception } from "@/app/dashboard/recepcion/actions";
 import ContextualHelp from "./ContextualHelp";
+import { parseGS1Barcode } from "@/lib/utils/gs1";
 
 interface OrderItem {
     catalog_item_id: string;
@@ -153,6 +154,7 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                             <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'center' }}>Precio ($)</th>
                             <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Número de Lote</th>
                             <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Vencimiento</th>
+                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left', minWidth: '180px' }}>Escanear GS1-128</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -204,6 +206,26 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                                         onChange={e => handleItemChange(item.catalog_item_id, 'exp', e.target.value)}
                                         className="table-input"
                                         required
+                                    />
+                                </td>
+                                <td style={{ padding: '1rem' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Escanee código aquí..."
+                                        className="table-input"
+                                        style={{ fontSize: '0.75rem', backgroundColor: '#f8fafc' }}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val && val.length > 5) {
+                                                const parsed = parseGS1Barcode(val);
+                                                if (parsed.lotNumber) {
+                                                    handleItemChange(item.catalog_item_id, 'lot', parsed.lotNumber);
+                                                }
+                                                if (parsed.expirationDate) {
+                                                    handleItemChange(item.catalog_item_id, 'exp', parsed.expirationDate);
+                                                }
+                                            }
+                                        }}
                                     />
                                 </td>
                             </tr>

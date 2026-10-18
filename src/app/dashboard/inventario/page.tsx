@@ -9,6 +9,7 @@ import RealtimeStockTable from "./RealtimeStockTable";
 import ContextualHelp from "@/components/ContextualHelp";
 import * as Actions from "./actions";
 import CollapsibleSection from "@/components/CollapsibleSection";
+import ClinicalOutputForm from "@/components/ClinicalOutputForm";
 
 export const dynamic = "force-dynamic";
 
@@ -158,6 +159,8 @@ export default async function InventarioPage({
           { key: 'entradas',    label: 'Entrada de Productos' },
           { key: 'stock',       label: 'Stock Actual' },
           { key: 'salidas',     label: 'Salida de Productos' },
+          { key: 'traslados',   label: 'Traslados Internos' },
+          { key: 'bajas',       label: 'Bajas y Disposición Final' },
           { key: 'movimientos', label: 'Kardex (Historial)' },
         ].map(tab => (
           <a
@@ -445,72 +448,216 @@ export default async function InventarioPage({
           </div>
         )}
 
-        {/* ====== SALIDAS ====== */}
+        {/* ====== SALIDAS (FEFO ESTRICTO + ESCÁNER GS1-128) ====== */}
         {currentView === 'salidas' && (
           <CollapsibleSection
-            title="Registrar Salida / Consumo"
-            subtitle="Descuente stock del inventario para uso operativo o ajustes."
+            title="Registrar Salida / Consumo Clínico"
+            subtitle="Despacho con algoritmo estricto FEFO (First Expired, First Out), escáner GS1-128 y control de estabilidad post-apertura."
             icon={<span>📤</span>}
           >
+            <div className="form-card" style={{ padding: '1.5rem' }}>
+              <ClinicalOutputForm batches={allBatches || []} action={Actions.handleConsumeAction} />
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {/* ====== TRASLADOS INTERNOS ====== */}
+        {currentView === 'traslados' && (
+          <CollapsibleSection
+            title="Traslado Interno entre Ubicaciones y Sedes"
+            subtitle="Reubicación de reactivos e insumos entre bodegas, neveras y áreas analíticas con trazabilidad completa."
+            icon={<span>🔄</span>}
+          >
             <div className="form-card">
-              <form action={Actions.handleConsumeAction} className="form-card-body">
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 600px)', gap: '1.5rem', justifyContent: 'center' }}>
-                  <div className="form-section">
-                    <div className="form-fields">
-                      <div>
-                        <label className="form-label">Producto / Lote a Consumir *</label>
-                        <select name="batch_id" required className="form-select">
-                          <option value="">Seleccione Lote (Sugiere el más próximo a vencer)...</option>
-                          {allBatches
-                            ?.filter((b: Batch) => b.current_stock > 0 && b.clinical_status === 'accepted')
-                            .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime())
-                            .map((b: Batch, idx) => (
-                              <option key={b.id} value={b.id}>
-                                {idx === 0 ? "👉 SUGERIDO (FEFO): " : ""}{b.item?.technical_name} (Lote: {b.batch_number}) - Vence: {new Date(b.expiration_date).toLocaleDateString()} - Disp: {b.current_stock}
-                              </option>
-                            ))}
-                          <optgroup label="⚠️ Otros Lotes (No Aceptados / Cuarentena)">
-                            {allBatches
-                              ?.filter((b: Batch) => b.current_stock > 0 && b.clinical_status !== 'accepted')
-                              .map((b: Batch) => (
-                                <option key={b.id} value={b.id} disabled>
-                                  BLOQUEADO: {b.item?.technical_name} (Lote: {b.batch_number}) - Estado: {b.clinical_status}
-                                </option>
-                              ))}
-                          </optgroup>
-                        </select>
-                      </div>
+              <div className="form-card-header">
+                <div>
+                  <h2 className="form-card-title">Formulario de Reubicación / Traslado</h2>
+                  <p className="form-card-subtitle">
+                    Seleccione el lote origen y la ubicación de destino. El sistema registrará el movimiento en el Kardex y actualizará el stock disponible en cada ubicación.
+                  </p>
+                </div>
+              </div>
 
-                      <div className="form-grid-2">
-                        <div>
-                          <label className="form-label">Cantidad a Descontar *</label>
-                          <input type="number" name="quantity" defaultValue="1" min="1" required className="form-input" />
-                        </div>
-                        <div>
-                          <label className="form-label">Motivo / Justificación *</label>
-                          <select name="reason" required className="form-select">
-                            <option value="Consumo operativo">Consumo Operativo</option>
-                            <option value="Descarte por vencimiento">Descarte por Vencimiento</option>
-                            <option value="Ajuste por pérdida">Ajuste por Pérdida/Daño</option>
-                            <option value="Calibración/Control">Uso en Calibración/Control</option>
-                          </select>
-                        </div>
-                      </div>
+              <form action={Actions.handleTransferAction} className="form-body">
+                <div className="form-grid">
+                  <div className="form-field-full">
+                    <label className="form-label">Lote e Insumo a Trasladar *</label>
+                    <select name="batch_id" required className="form-select">
+                      <option value="">-- Seleccione lote origen con stock disponible --</option>
+                      {(allBatches || [])
+                        .filter((b: Batch) => b.current_stock > 0)
+                        .map((b: Batch) => (
+                          <option key={b.id} value={b.id}>
+                            {b.item?.technical_name || b.catalog_items?.technical_name} | Lote: {b.batch_number} | Stock: {b.current_stock} | Ubicación Actual: [{b.locations?.name || "Sin Asignar"}]
+                          </option>
+                        ))}
+                    </select>
+                  </div>
 
-                      <div>
-                        <label className="form-label">Analizador / Equipo Destino (Opcional - ISO 15189)</label>
-                        <input
-                          name="equipment"
-                          placeholder="Ej: Cobas c311, Sysmex XN-1000..."
-                          className="form-input"
-                        />
-                      </div>
-                    </div>
+                  <div className="form-field-half">
+                    <label className="form-label">Ubicación / Nevera de Destino *</label>
+                    <select name="destination_location_id" required className="form-select">
+                      <option value="">-- Seleccione nueva ubicación o sede --</option>
+                      {(locations || [])
+                        .filter((loc: { is_active?: boolean }) => loc.is_active !== false)
+                        .map((loc: { id: string; name: string; location_type?: string }) => (
+                          <option key={loc.id} value={loc.id}>
+                            📍 {loc.name} {loc.location_type ? `(${loc.location_type})` : ""}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  <div className="form-field-half">
+                    <label className="form-label">Cantidad a Trasladar *</label>
+                    <input
+                      type="number"
+                      name="quantity"
+                      min="1"
+                      required
+                      placeholder="Ej: 5"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-field-full">
+                    <label className="form-label">Motivo o Justificación del Traslado</label>
+                    <input
+                      type="text"
+                      name="reason"
+                      placeholder="Ej: Reabastecimiento de Nevera Hematología / Traslado a Sede Norte / Mantenimiento de equipo de frío..."
+                      className="form-input"
+                    />
                   </div>
                 </div>
 
-                <div className="form-actions-center">
-                  <button type="submit" className="btn-danger">Registrar Salida</button>
+                <div className="form-actions-center" style={{ marginTop: '1.5rem' }}>
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '0.75rem 2rem',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--navy)',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.925rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      boxShadow: 'var(--shadow-md)',
+                    }}
+                  >
+                    🔄 Confirmar Traslado de Inventario
+                  </button>
+                </div>
+              </form>
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {/* ====== BAJAS Y DISPOSICIÓN FINAL ====== */}
+        {currentView === 'bajas' && (
+          <CollapsibleSection
+            title="Acta de Baja y Disposición Final de Residuos"
+            subtitle="Descarte formal de reactivos vencidos, mermas, contaminación o material no conforme (Normativa Ambiental e INVIMA)."
+            icon={<span>🗑️</span>}
+          >
+            <div className="form-card">
+              <div className="form-card-header">
+                <div>
+                  <h2 className="form-card-title">Registro Oficial de Baja Técnica</h2>
+                  <p className="form-card-subtitle">
+                    Descarga definitiva del inventario con trazabilidad auditable para inspectores de salud y gestión ambiental.
+                  </p>
+                </div>
+              </div>
+
+              <form action={Actions.handleDiscardAction} className="form-body">
+                <div className="form-grid">
+                  <div className="form-field-full">
+                    <label className="form-label">Seleccionar Lote / Insumo para Baja *</label>
+                    <select name="batch_id" required className="form-select">
+                      <option value="">-- Seleccione el lote a dar de baja --</option>
+                      {(allBatches || [])
+                        .filter((b: Batch) => b.current_stock > 0)
+                        .map((b: Batch) => {
+                          const isExpired = new Date(b.expiration_date) < new Date();
+                          return (
+                            <option key={b.id} value={b.id}>
+                              {b.item?.technical_name || b.catalog_items?.technical_name} | Lote: {b.batch_number} | Stock: {b.current_stock} | Vence: {new Date(b.expiration_date).toLocaleDateString()} {isExpired ? "⚠️ [VENCIDO]" : ""}
+                            </option>
+                          );
+                        })}
+                    </select>
+                  </div>
+
+                  <div className="form-field-half">
+                    <label className="form-label">Cantidad a Dar de Baja *</label>
+                    <input
+                      type="number"
+                      name="quantity"
+                      min="1"
+                      required
+                      placeholder="Ej: 5"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-field-half">
+                    <label className="form-label">Método de Disposición Final *</label>
+                    <select name="disposal_method" required className="form-select">
+                      <option value="Inactivación química y entrega a gestor de residuos peligrosos">
+                        🧪 Inactivación química + Gestor ambiental autorizado
+                      </option>
+                      <option value="Autoclave y descarte biológico">
+                        🔥 Esterilización en Autoclave (Biológico)
+                      </option>
+                      <option value="Incineración externa certificada">
+                        🏭 Incineración externa certificada
+                      </option>
+                      <option value="Devolución al proveedor / Recall técnico">
+                        📦 Devolución / Retiro de Mercado por Proveedor (Recall)
+                      </option>
+                      <option value="Derrame accidental / Rotura de frasco">
+                        ⚠️ Neutralización de derrame / Frasco quebrado
+                      </option>
+                    </select>
+                  </div>
+
+                  <div className="form-field-full">
+                    <label className="form-label">Motivo Detallado y Justificación Técnica *</label>
+                    <textarea
+                      name="reason"
+                      required
+                      rows={3}
+                      placeholder="Explique la causa de la baja (ej: Lote vencido sin rotación, frasco contaminado con turbidez, control de calidad fallido...)"
+                      className="form-textarea"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-actions-center" style={{ marginTop: '1.5rem' }}>
+                  <button
+                    type="submit"
+                    style={{
+                      padding: '0.75rem 1.75rem',
+                      borderRadius: '8px',
+                      backgroundColor: '#dc2626',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.925rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      boxShadow: 'var(--shadow-md)',
+                    }}
+                  >
+                    🗑️ Procesar Baja y Disposición Final
+                  </button>
                 </div>
               </form>
             </div>

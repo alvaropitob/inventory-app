@@ -1,0 +1,449 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { parseGS1Barcode } from "@/lib/utils/gs1";
+
+interface CatalogItem {
+  id: string;
+  internal_code: string;
+  technical_name: string;
+  commercial_name?: string | null;
+  purchase_unit?: string | null;
+  stability_post_opening?: number | null; // horas
+}
+
+interface Batch {
+  id: string;
+  item_id: string;
+  batch_number: string;
+  expiration_date: string;
+  adjusted_expiration_date?: string | null;
+  opening_date?: string | null;
+  current_stock: number;
+  clinical_status?: string;
+  item?: CatalogItem | null;
+  catalog_items?: CatalogItem | null;
+  locations?: { name: string } | null;
+}
+
+interface Props {
+  batches: Batch[];
+  action: (formData: FormData) => Promise<void>;
+}
+
+export default function ClinicalOutputForm({ batches, action }: Props) {
+  const [barcodeInput, setBarcodeInput] = useState("");
+  const [selectedItemId, setSelectedItemId] = useState<string>("");
+  const [selectedBatchId, setSelectedBatchId] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
+  const [reason, setReason] = useState<string>("Consumo operativo analítico");
+  const [equipment, setEquipment] = useState<string>("");
+  const [justification, setJustification] = useState<string>("");
+  const [markAsOpened, setMarkAsOpened] = useState<boolean>(false);
+  const [scanMessage, setScanMessage] = useState<string | null>(null);
+
+  // Filtrar solo lotes activos y aceptados con stock disponible
+  const availableBatches = useMemo(() => {
+    return batches.filter(
+      (b) => b.current_stock > 0 && (b.clinical_status === "accepted" || !b.clinical_status)
+    );
+  }, [batches]);
+
+  // Lista única de productos que tienen stock
+  const availableProducts = useMemo(() => {
+    const map = new Map<string, CatalogItem>();
+    availableBatches.forEach((b) => {
+      const item = b.item || b.catalog_items;
+      if (item && !map.has(item.id)) {
+        map.set(item.id, item);
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.technical_name.localeCompare(b.technical_name));
+  }, [availableBatches]);
+
+  // Lotes del producto seleccionado ordenados por FEFO estricto (fecha más próxima primero)
+  const productBatches = useMemo(() => {
+    if (!selectedItemId) return [];
+    return availableBatches
+      .filter((b) => b.item_id === selectedItemId)
+      .sort((a, b) => {
+        const dateA = new Date(a.adjusted_expiration_date || a.expiration_date).getTime();
+        const dateB = new Date(b.adjusted_expiration_date || b.expiration_date).getTime();
+        return dateA - dateB;
+      });
+  }, [availableBatches, selectedItemId]);
+
+  // El lote sugerido por FEFO es siempre el primero de la lista ordenada
+  const fefoSuggestedBatch = productBatches.length > 0 ? productBatches[0] : null;
+
+  // Lote actualmente seleccionado
+  const currentBatch = useMemo(() => {
+    return availableBatches.find((b) => b.id === selectedBatchId) || null;
+  }, [availableBatches, selectedBatchId]);
+
+  // Detección de desviación FEFO: el usuario eligió un lote que vence después del primero sugerido
+  const isFefoDeviated = useMemo(() => {
+    if (!fefoSuggestedBatch || !currentBatch) return false;
+    return currentBatch.id !== fefoSuggestedBatch.id;
+  }, [fefoSuggestedBatch, currentBatch]);
+
+  // Manejar escáner de código de barras GS1-128
+  const handleBarcodeScan = (code: string) => {
+    if (!code || code.trim() === "") return;
+    const parsed = parseGS1Barcode(code);
+    setScanMessage(null);
+
+    // Intentar buscar por SKU o código interno
+    let matchedBatch: Batch | undefined;
+
+    if (parsed.lotNumber) {
+      matchedBatch = availableBatches.find(
+        (b) => b.batch_number.toLowerCase() === parsed.lotNumber?.toLowerCase()
+      );
+    }
+
+    if (!matchedBatch && parsed.gtin) {
+      const matchedProduct = availableProducts.find(
+        (p) => p.internal_code === parsed.gtin || p.id === parsed.gtin
+      );
+      if (matchedProduct) {
+        setSelectedItemId(matchedProduct.id);
+        const batchesOfProduct = availableBatches
+          .filter((b) => b.item_id === matchedProduct.id)
+          .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
+        if (batchesOfProduct.length > 0) {
+          setSelectedBatchId(batchesOfProduct[0].id);
+          setScanMessage(`✅ Producto identificado: ${matchedProduct.technical_name}. Seleccionado lote FEFO.`);
+          return;
+        }
+      }
+    }
+
+    if (matchedBatch) {
+      setSelectedItemId(matchedBatch.item_id);
+      setSelectedBatchId(matchedBatch.id);
+      setScanMessage(
+        `✅ Lote identificado por código de barras: ${matchedBatch.batch_number} (${matchedBatch.item?.technical_name || "Reactivo"})`
+      );
+    } else {
+      setScanMessage(`⚠️ Código escaneado (${code}): No se encontró un lote activo coincidente con stock.`);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+      {/* BARRA DE ESCÁNER GS1-128 */}
+      <div
+        style={{
+          padding: "1rem 1.25rem",
+          backgroundColor: "#f8fafc",
+          borderRadius: "var(--radius)",
+          border: "1px solid var(--border)",
+          marginBottom: "1.5rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.5rem",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span style={{ fontSize: "1.25rem" }}>📷</span>
+          <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--navy)" }}>
+            Lector de Código de Barras GS1-128 / Búsqueda Rápida
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <input
+            type="text"
+            value={barcodeInput}
+            onChange={(e) => setBarcodeInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleBarcodeScan(barcodeInput);
+              }
+            }}
+            placeholder="Escanee con pistola o escriba código GS1: ej. (01)...(17)...(10)LOT..."
+            style={{
+              flex: 1,
+              padding: "0.6rem 0.85rem",
+              borderRadius: "8px",
+              border: "1px solid var(--border)",
+              fontSize: "0.875rem",
+              backgroundColor: "#ffffff",
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => handleBarcodeScan(barcodeInput)}
+            style={{
+              padding: "0.6rem 1rem",
+              borderRadius: "8px",
+              backgroundColor: "var(--navy)",
+              color: "#ffffff",
+              border: "none",
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Detectar
+          </button>
+        </div>
+        {scanMessage && (
+          <div style={{ fontSize: "0.8rem", color: scanMessage.startsWith("✅") ? "#047857" : "#b45309", marginTop: "2px" }}>
+            {scanMessage}
+          </div>
+        )}
+      </div>
+
+      {/* FORMULARIO DE SALIDA / CONSUMO */}
+      <form action={action} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+        {/* Hidden inputs para invariantes de servidor */}
+        <input type="hidden" name="fefo_deviation" value={isFefoDeviated ? "true" : "false"} />
+        <input type="hidden" name="mark_as_opened" value={markAsOpened ? "true" : "false"} />
+
+        {/* PASO 1: SELECCIONAR REACTIVO */}
+        <div>
+          <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+            1. Seleccionar Reactivo / Dispositivo *
+          </label>
+          <select
+            value={selectedItemId}
+            onChange={(e) => {
+              const itemId = e.target.value;
+              setSelectedItemId(itemId);
+              const batchesOfProduct = availableBatches
+                .filter((b) => b.item_id === itemId)
+                .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
+              if (batchesOfProduct.length > 0) {
+                setSelectedBatchId(batchesOfProduct[0].id);
+              } else {
+                setSelectedBatchId("");
+              }
+            }}
+            required
+            style={{
+              width: "100%",
+              padding: "0.65rem 0.85rem",
+              borderRadius: "8px",
+              border: "1px solid var(--border)",
+              fontSize: "0.9rem",
+              backgroundColor: "#ffffff",
+            }}
+          >
+            <option value="">-- Seleccione un reactivo del catálogo --</option>
+            {availableProducts.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.technical_name} [{p.internal_code}] {p.commercial_name ? `(${p.commercial_name})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* PASO 2: SELECCIONAR LOTE (ORDENADO FEFO) */}
+        {selectedItemId && (
+          <div>
+            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+              2. Selección de Lote Analítico (Algoritmo FEFO) *
+            </label>
+            <select
+              name="batch_id"
+              value={selectedBatchId}
+              onChange={(e) => setSelectedBatchId(e.target.value)}
+              required
+              style={{
+                width: "100%",
+                padding: "0.65rem 0.85rem",
+                borderRadius: "8px",
+                border: isFefoDeviated ? "2px solid #f59e0b" : "1px solid var(--border)",
+                fontSize: "0.9rem",
+                backgroundColor: "#ffffff",
+              }}
+            >
+              {productBatches.map((b, idx) => {
+                const expDate = new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString();
+                const isFirst = idx === 0;
+                return (
+                  <option key={b.id} value={b.id}>
+                    {isFirst ? "⭐ [SUGERIDO FEFO] " : ""}Lote: {b.batch_number} | Vence: {expDate} | Disp: {b.current_stock} unidades {b.locations ? `(${b.locations.name})` : ""}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+        )}
+
+        {/* ALERTA DE DESVIACIÓN FEFO */}
+        {isFefoDeviated && fefoSuggestedBatch && (
+          <div
+            style={{
+              padding: "1rem 1.25rem",
+              borderRadius: "10px",
+              backgroundColor: "#fef3c7",
+              border: "1px solid #fcd34d",
+              color: "#92400e",
+              fontSize: "0.875rem",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, marginBottom: "0.35rem" }}>
+              <span>⚠️</span>
+              <span>Advertencia de Desviación FEFO (ISO 15189)</span>
+            </div>
+            <p style={{ lineHeight: "1.5" }}>
+              Está seleccionando el lote <b>{currentBatch?.batch_number}</b> (Vence: {new Date(currentBatch?.expiration_date || "").toLocaleDateString()}), pero existe el lote <b>{fefoSuggestedBatch.batch_number}</b> que vence primero ({new Date(fefoSuggestedBatch.expiration_date).toLocaleDateString()}).
+            </p>
+            <p style={{ marginTop: "0.35rem", fontSize: "0.825rem", fontWeight: 600 }}>
+              Para continuar, debe justificar clínicamente esta selección:
+            </p>
+
+            <textarea
+              name="justification_reason"
+              required
+              rows={2}
+              value={justification}
+              onChange={(e) => setJustification(e.target.value)}
+              placeholder="Ej: Calibración específica de corrida analítica / Control de calidad exige este lote específico / Solicitud médica..."
+              style={{
+                width: "100%",
+                marginTop: "0.5rem",
+                padding: "0.6rem 0.85rem",
+                borderRadius: "8px",
+                border: "1px solid #f59e0b",
+                fontSize: "0.85rem",
+                backgroundColor: "#ffffff",
+                color: "#1e293b",
+              }}
+            />
+          </div>
+        )}
+
+        {/* PASO 3: CANTIDAD Y MOTIVO */}
+        {selectedBatchId && (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+                  Cantidad a Descontar *
+                </label>
+                <input
+                  type="number"
+                  name="quantity"
+                  min="1"
+                  max={currentBatch?.current_stock || 9999}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "0.65rem 0.85rem",
+                    borderRadius: "8px",
+                    border: "1px solid var(--border)",
+                    fontSize: "0.9rem",
+                  }}
+                />
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                  Disponible: {currentBatch?.current_stock || 0} unidades
+                </span>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+                  Motivo de Salida *
+                </label>
+                <select
+                  name="reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "0.65rem 0.85rem",
+                    borderRadius: "8px",
+                    border: "1px solid var(--border)",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  <option value="Consumo operativo analítico">Consumo Operativo Analítico</option>
+                  <option value="Montaje de controles y calibradores">Montaje de Controles / Calibradores</option>
+                  <option value="Pruebas de verificación o correlación">Pruebas de Verificación / Correlación</option>
+                  <option value="Ajuste por consumo en turno de guardia">Turno de Guardia / Urgencias</option>
+                </select>
+              </div>
+            </div>
+
+            {/* CONTROL DE APERTURA / ESTABILIDAD POST-APERTURA */}
+            {currentBatch && !currentBatch.opening_date && (
+              <div
+                style={{
+                  padding: "0.85rem 1rem",
+                  borderRadius: "8px",
+                  backgroundColor: "#eff6ff",
+                  border: "1px solid #bfdbfe",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  id="chk-open"
+                  checked={markAsOpened}
+                  onChange={(e) => setMarkAsOpened(e.target.checked)}
+                  style={{ width: "18px", height: "18px", cursor: "pointer" }}
+                />
+                <label htmlFor="chk-open" style={{ fontSize: "0.85rem", color: "#1e3a8a", cursor: "pointer" }}>
+                  🧪 <b>Marcar como abierto/destapado hoy</b>: Iniciar seguimiento de estabilidad post-apertura en el sistema.
+                </label>
+              </div>
+            )}
+
+            {/* EQUIPO O ANALIZADOR DESTINO */}
+            <div>
+              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+                Equipo o Analizador Destino (Trazabilidad ISO 15189)
+              </label>
+              <input
+                type="text"
+                name="equipment"
+                value={equipment}
+                onChange={(e) => setEquipment(e.target.value)}
+                placeholder="Ej: Cobas c311, Sysmex XN-1000, Mindray BC-5380, Stat Fax..."
+                style={{
+                  width: "100%",
+                  padding: "0.65rem 0.85rem",
+                  borderRadius: "8px",
+                  border: "1px solid var(--border)",
+                  fontSize: "0.9rem",
+                }}
+              />
+            </div>
+
+            {/* BOTÓN DE ACCIÓN */}
+            <div style={{ marginTop: "1rem", textAlign: "center" }}>
+              <button
+                type="submit"
+                disabled={isFefoDeviated && (!justification || justification.trim() === "")}
+                style={{
+                  padding: "0.75rem 2rem",
+                  borderRadius: "8px",
+                  backgroundColor: isFefoDeviated ? "#d97706" : "var(--primary)",
+                  color: "#ffffff",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  cursor: isFefoDeviated && (!justification || justification.trim() === "") ? "not-allowed" : "pointer",
+                  boxShadow: "var(--shadow-md)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                📤 Confirmar Salida de Inventario
+              </button>
+            </div>
+          </>
+        )}
+      </form>
+    </div>
+  );
+}

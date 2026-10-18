@@ -62,6 +62,13 @@ export default async function DashboardPage() {
   const criticalExpiry = expirationAlerts.filter(e => e.priority === 'high').length;
   const totalAlerts = criticalStockCount + criticalExpiry;
 
+  const totalInventoryValue = (items || []).reduce((acc, item) => {
+    const itemBatches = (batches || []).filter(b => b.item_id === item.id);
+    const totalStock = itemBatches.reduce((sum, b) => sum + (b.current_stock || 0), 0);
+    const price = Number(item.estimated_unit_price || 0);
+    return acc + (totalStock * price);
+  }, 0);
+
   return (
     <div className="dashboard-main">
 
@@ -94,6 +101,22 @@ export default async function DashboardPage() {
       <div className="kpi-grid stagger-in">
         <div className="kpi-card">
           <div className="kpi-card-header">
+            <h3 className="kpi-card-label">Valor del Inventario</h3>
+            <div className="kpi-icon kpi-icon-blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+          </div>
+          <div className="kpi-value" style={{ fontSize: '1.45rem' }}>
+            ${totalInventoryValue.toLocaleString('es-CO')}
+          </div>
+          <p className="kpi-meta kpi-meta-success">Capital activo en stock</p>
+        </div>
+
+        <div className="kpi-card">
+          <div className="kpi-card-header">
             <h3 className="kpi-card-label">Productos Únicos</h3>
             <div className="kpi-icon kpi-icon-blue">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -102,7 +125,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <div className="kpi-value">{items?.length || 0}</div>
-          <p className="kpi-meta kpi-meta-success">En catálogo maestro</p>
+          <p className="kpi-meta kpi-meta-muted">En catálogo maestro</p>
         </div>
 
         <div className="kpi-card">
@@ -148,8 +171,12 @@ export default async function DashboardPage() {
               </svg>
             </div>
           </div>
-          <div className={`kpi-value ${totalAlerts > 0 ? 'kpi-value-danger' : ''}`}>{totalAlerts}</div>
-          <p className="kpi-meta kpi-meta-danger">Stock / Vencimientos</p>
+          <div className="kpi-value" style={{ color: totalAlerts > 0 ? 'var(--error)' : 'inherit' }}>
+            {totalAlerts}
+          </div>
+          <p className="kpi-meta" style={{ color: totalAlerts > 0 ? 'var(--error)' : 'var(--text-muted)' }}>
+            {criticalStockCount} stock bajo, {criticalExpiry} vencidos
+          </p>
         </div>
       </div>
 

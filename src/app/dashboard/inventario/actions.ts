@@ -106,7 +106,12 @@ export async function handleConsumeAction(formData: FormData) {
   const batchId = formData.get("batch_id") as string;
   const quantity = Number(formData.get("quantity"));
   const reason = formData.get("reason") as string;
-  
+  const equipment = formData.get("equipment") as string;
+  const fefoDeviation = formData.get("fefo_deviation") === "true";
+  const justificationReason = formData.get("justification_reason") as string;
+  const markAsOpened = formData.get("mark_as_opened") === "true";
+  const reconstituted = formData.get("reconstituted") === "true";
+
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -114,14 +119,20 @@ export async function handleConsumeAction(formData: FormData) {
     if (!user) throw new Error("No autenticado");
     if (!batchId || quantity <= 0) throw new Error("Datos inválidos");
 
-    const equipment = formData.get("equipment") as string;
-    
+    if (fefoDeviation && (!justificationReason || justificationReason.trim() === "")) {
+      throw new Error("Norma ISO 15189: Debe ingresar una justificación técnica obligatoria para desviarse del lote sugerido por FEFO.");
+    }
+
     const { error: consumeError } = await StockService.consumeStock({
       batch_id: batchId,
       quantity,
       consumed_by: user.id,
       reason,
-      equipment
+      equipment,
+      mark_as_opened: markAsOpened,
+      reconstituted,
+      fefo_deviation: fefoDeviation,
+      justification_reason: justificationReason?.trim() || undefined,
     });
 
     if (consumeError) {
@@ -143,3 +154,90 @@ export async function handleConsumeAction(formData: FormData) {
   revalidatePath("/dashboard/inventario");
   redirect("/dashboard/inventario?view=movimientos");
 }
+
+export async function handleDiscardAction(formData: FormData) {
+  const batchId = formData.get("batch_id") as string;
+  const quantity = Number(formData.get("quantity"));
+  const reason = formData.get("reason") as string;
+  const disposalMethod = formData.get("disposal_method") as string;
+
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("No autenticado");
+    if (!batchId || quantity <= 0) throw new Error("Lote o cantidad no válida");
+    if (!reason || reason.trim() === "") throw new Error("Debe ingresar la justificación técnica de la baja");
+
+    const { error: discardError } = await StockService.discardStock({
+      batch_id: batchId,
+      quantity,
+      discarded_by: user.id,
+      reason,
+      disposal_method: disposalMethod,
+    });
+
+    if (discardError) {
+      console.error("Discard error:", discardError);
+      const errorMsg = encodeURIComponent(
+        typeof discardError === "object" && discardError !== null && "message" in discardError
+          ? String((discardError as { message: string }).message)
+          : "Error al registrar la baja técnica"
+      );
+      redirect(`/dashboard/inventario?view=bajas&error=${errorMsg}`);
+    }
+  } catch (error) {
+    if (error instanceof Error && (error as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw error;
+    console.error("Fatal Discard Error:", error);
+    const errorMsg = encodeURIComponent(error instanceof Error ? error.message : "Error inesperado");
+    redirect(`/dashboard/inventario?view=bajas&error=${errorMsg}`);
+  }
+
+  revalidatePath("/dashboard/inventario");
+  redirect("/dashboard/inventario?view=movimientos&success=discard");
+}
+
+export async function handleTransferAction(formData: FormData) {
+  const batchId = formData.get("batch_id") as string;
+  const destinationLocationId = formData.get("destination_location_id") as string;
+  const quantity = Number(formData.get("quantity"));
+  const reason = formData.get("reason") as string;
+
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("No autenticado");
+    if (!batchId || !destinationLocationId || quantity <= 0) {
+      throw new Error("Lote, ubicación destino o cantidad no válidos");
+    }
+
+    const { error: transferError } = await StockService.transferStock({
+      batch_id: batchId,
+      destination_location_id: destinationLocationId,
+      quantity,
+      transferred_by: user.id,
+      reason: reason?.trim() || "Traslado interno de inventario",
+    });
+
+    if (transferError) {
+      console.error("Transfer error:", transferError);
+      const errorMsg = encodeURIComponent(
+        typeof transferError === "object" && transferError !== null && "message" in transferError
+          ? String((transferError as { message: string }).message)
+          : "Error al realizar el traslado"
+      );
+      redirect(`/dashboard/inventario?view=traslados&error=${errorMsg}`);
+    }
+  } catch (error) {
+    if (error instanceof Error && (error as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw error;
+    console.error("Fatal Transfer Error:", error);
+    const errorMsg = encodeURIComponent(error instanceof Error ? error.message : "Error inesperado");
+    redirect(`/dashboard/inventario?view=traslados&error=${errorMsg}`);
+  }
+
+  revalidatePath("/dashboard/inventario");
+  redirect("/dashboard/inventario?view=movimientos&success=transfer");
+}
+
+
