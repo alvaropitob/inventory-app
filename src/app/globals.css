@@ -1526,6 +1526,48 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .page-header-actions > * { flex: 1 1 100%; }
 }
 
+/* Consistent icon weight and optical sizing across the dashboard. */
+.nav-icon svg,
+.kpi-icon svg,
+.stat-icon svg,
+.empty-state-icon svg,
+.checklist-card-icon svg,
+.context-help svg {
+  display: block;
+  flex: 0 0 auto;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nav-icon svg { width: 20px; height: 20px; }
+.kpi-icon svg, .stat-icon svg { width: 21px; height: 21px; }
+.empty-state-icon svg { width: 22px; height: 22px; }
+.checklist-card-icon svg { width: 24px; height: 24px; }
+.context-help svg { width: 18px; height: 18px; }
+button > svg, a > svg {
+  flex: 0 0 auto;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Refined type hierarchy: readable labels and quieter secondary headings. */
+.page-header-title { font-size: 1.55rem; line-height: 1.25; letter-spacing: -0.03em; }
+.page-header-subtitle { font-size: 0.875rem; line-height: 1.55; }
+.kpi-value { font-size: 1.65rem; line-height: 1.15; }
+.kpi-card-label { font-size: 0.78rem; line-height: 1.4; }
+.data-card-title { font-size: 0.94rem; line-height: 1.35; }
+.inline-table th { font-size: 0.66rem; letter-spacing: 0.045em; }
+.inline-table td { font-size: 0.86rem; }
+.btn, .btn-primary, .btn-secondary { font-size: 0.85rem; font-weight: 600; letter-spacing: 0; }
+input, select, textarea { font-size: 0.9rem; }
+
+@media (max-width: 768px) {
+  .page-header-title { font-size: 1.35rem; }
+  .kpi-value { font-size: 1.5rem; }
+  .page-header-subtitle { font-size: 0.84rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
@@ -2914,5 +2956,21 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .data-card { box-shadow: none; border: 1px solid #e2e8f0; }
   .checklist-card { break-inside: avoid; border: 1px solid #eee; box-shadow: none; margin-bottom: 2rem; }
   .checklist-footer { border: 1px solid #eee; background: none; }
+}
+
+/* Final typography overrides, after legacy component rules. */
+.page-header-title { font-size: 1.55rem; line-height: 1.25; letter-spacing: -0.03em; }
+.page-header-subtitle { font-size: 0.875rem; line-height: 1.55; }
+.kpi-value { font-size: 1.65rem; line-height: 1.15; }
+.kpi-card-label { font-size: 0.78rem; line-height: 1.4; }
+.data-card-title { font-size: 0.94rem; line-height: 1.35; }
+.inline-table th { font-size: 0.66rem; letter-spacing: 0.045em; }
+.inline-table td { font-size: 0.86rem; }
+.btn, .btn-primary, .btn-secondary { font-size: 0.85rem; font-weight: 600; letter-spacing: 0; }
+input, select, textarea { font-size: 0.9rem; }
+@media (max-width: 768px) {
+  .page-header-title { font-size: 1.35rem; }
+  .kpi-value { font-size: 1.5rem; }
+  .page-header-subtitle { font-size: 0.84rem; }
 }
 
