@@ -1,9 +1,71 @@
-import { login, signInWithGoogle } from "./actions";
-import Link from "next/link";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setLoading(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setErrorMsg(error.message === "Invalid login credentials"
+          ? "Credenciales incorrectas. Verifica tu correo y contraseña."
+          : error.message);
+        setLoading(false);
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error inesperado al iniciar sesión";
+      setErrorMsg(message);
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setErrorMsg(null);
+    try {
+      const supabase = createClient();
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://inventory-app-ten-omega.vercel.app";
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${origin}/auth/callback`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      if (error) {
+        setErrorMsg(error.message);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error con Google Login";
+      setErrorMsg(message);
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-card">
@@ -24,19 +86,51 @@ export default function LoginPage() {
           <p>Inicia sesión en el portal clínico para continuar</p>
         </div>
 
-        <form className="auth-form" action={login}>
+        {errorMsg && (
+          <div style={{
+            background: "#fee2e2",
+            border: "1px solid #ef4444",
+            color: "#991b1b",
+            padding: "0.75rem 1rem",
+            borderRadius: "8px",
+            fontSize: "0.875rem",
+            marginBottom: "1rem"
+          }}>
+            {errorMsg}
+          </div>
+        )}
+
+        <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Correo electrónico</label>
-            <input id="email" name="email" type="email" required placeholder="tu@correo.com" />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@correo.com"
+              disabled={loading}
+            />
           </div>
           
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
-            <input id="password" name="password" type="password" required placeholder="••••••••" />
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              disabled={loading}
+            />
           </div>
 
-          <button className="auth-button" type="submit">
-            Iniciar sesión
+          <button className="auth-button" type="submit" disabled={loading}>
+            {loading ? "Iniciando sesión..." : "Iniciar sesión"}
           </button>
         </form>
 
@@ -46,8 +140,8 @@ export default function LoginPage() {
           <div style={{ flex: 1, height: "1px", background: "var(--border)" }}></div>
         </div>
 
-        <form className="auth-form" action={signInWithGoogle} style={{ marginTop: 0 }}>
-          <button className="google-button" type="submit">
+        <div className="auth-form" style={{ marginTop: 0 }}>
+          <button onClick={handleGoogleLogin} className="google-button" type="button" disabled={loading}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ marginRight: '8px' }}>
               <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
               <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
@@ -56,7 +150,7 @@ export default function LoginPage() {
             </svg>
             Google
           </button>
-        </form>
+        </div>
 
         <div className="auth-footer">
           <p>
