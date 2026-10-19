@@ -21,7 +21,7 @@ interface SidebarProps {
 
 
 export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const fullPath = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");

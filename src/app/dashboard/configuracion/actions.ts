@@ -3,8 +3,10 @@
 import { CatalogService } from "@/lib/services/catalog";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireRole } from "@/lib/supabase/authorization";
 
 export async function handleSectionAction(formData: FormData) {
+  await requireRole(["admin"]);
   const name = formData.get("name") as string;
   const desc = formData.get("description") as string;
   const category_id = formData.get("category_id") as string;
@@ -21,6 +23,7 @@ export async function handleSectionAction(formData: FormData) {
 }
 
 export async function handleSupplierAction(formData: FormData) {
+  await requireRole(["admin"]);
   const data = {
     id: (formData.get("id") as string) || undefined,
     name: formData.get("name") as string,
@@ -34,6 +37,7 @@ export async function handleSupplierAction(formData: FormData) {
 }
 
 export async function handleCategoryAction(formData: FormData) {
+  await requireRole(["admin"]);
   const id = formData.get("id") as string;
   const name = formData.get("name") as string;
   const desc = formData.get("description") as string;
@@ -43,6 +47,7 @@ export async function handleCategoryAction(formData: FormData) {
 }
 
 export async function handleLocationAction(formData: FormData) {
+  await requireRole(["admin"]);
   const data = {
     id: (formData.get("id") as string) || undefined,
     name: formData.get("name") as string,
@@ -56,6 +61,7 @@ export async function handleLocationAction(formData: FormData) {
 }
 
 export async function handleCatalogAction(formData: FormData) {
+  await requireRole(["admin", "supervisor"]);
   const id = formData.get("id") as string;
   const sectionId = formData.get("section_id") as string;
   
@@ -84,6 +90,7 @@ export async function handleCatalogAction(formData: FormData) {
 }
 
 export async function toggleStatus(id: string, currentStatus: boolean, type: 'section' | 'supplier' | 'category' | 'location' | 'product') {
+  await requireRole(type === "product" ? ["admin", "supervisor"] : ["admin"]);
   const newStatus = !currentStatus;
   if (type === 'section') await CatalogService.toggleSection(id, newStatus);
   else if (type === 'supplier') await CatalogService.toggleSupplier(id, newStatus);
@@ -95,6 +102,7 @@ export async function toggleStatus(id: string, currentStatus: boolean, type: 'se
 }
 
 export async function handleDelete(id: string, type: 'section' | 'supplier' | 'category' | 'location' | 'product') {
+  await requireRole(["admin"]);
   if (type === 'section') await CatalogService.deleteSection(id);
   else if (type === 'supplier') await CatalogService.deleteSupplier(id);
   else if (type === 'category') await CatalogService.deleteCategory(id);

@@ -5,8 +5,10 @@ import { StockService } from "@/lib/services/stock";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireRole } from "@/lib/supabase/authorization";
 
 export async function handleCatalogAction(formData: FormData) {
+  await requireRole(["admin", "supervisor"]);
   const id = formData.get("id") as string;
   const sectionId = formData.get("section_id") as string;
   
@@ -41,6 +43,7 @@ export async function handleCatalogAction(formData: FormData) {
     const expirationDate = formData.get("expiration_date") as string;
     const locationId = formData.get("location_id") as string;
 
+    if (quantity && (!Number.isSafeInteger(quantity) || quantity < 1)) throw new Error("La cantidad de ingreso debe ser un entero positivo");
     if (item && quantity > 0 && batchNumber && expirationDate && locationId) {
       // If editing, check if we are just re-submitting the same batch info
       let shouldReceive = true;
@@ -93,11 +96,13 @@ export async function handleCatalogAction(formData: FormData) {
 }
 
 export async function handleDelete(id: string) {
+  await requireRole(["admin"]);
   await CatalogService.deleteCatalogItem(id);
   revalidatePath("/dashboard/inventario");
 }
 
 export async function toggleStatus(id: string, currentStatus: boolean) {
+  await requireRole(["admin", "supervisor"]);
   await CatalogService.toggleCatalogItem(id, !currentStatus);
   revalidatePath("/dashboard/inventario");
 }
@@ -113,10 +118,7 @@ export async function handleConsumeAction(formData: FormData) {
   const reconstituted = formData.get("reconstituted") === "true";
 
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) throw new Error("No autenticado");
+    const { user } = await requireRole(["admin", "operator"]);
     if (!batchId || quantity <= 0) throw new Error("Datos inválidos");
 
     if (fefoDeviation && (!justificationReason || justificationReason.trim() === "")) {
@@ -162,10 +164,7 @@ export async function handleDiscardAction(formData: FormData) {
   const disposalMethod = formData.get("disposal_method") as string;
 
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) throw new Error("No autenticado");
+    const { user } = await requireRole(["admin", "supervisor"]);
     if (!batchId || quantity <= 0) throw new Error("Lote o cantidad no válida");
     if (!reason || reason.trim() === "") throw new Error("Debe ingresar la justificación técnica de la baja");
 
@@ -204,11 +203,8 @@ export async function handleTransferAction(formData: FormData) {
   const reason = formData.get("reason") as string;
 
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) throw new Error("No autenticado");
-    if (!batchId || !destinationLocationId || quantity <= 0) {
+    const { user } = await requireRole(["admin", "operator"]);
+    if (!batchId || !destinationLocationId || !Number.isSafeInteger(quantity) || quantity <= 0) {
       throw new Error("Lote, ubicación destino o cantidad no válidos");
     }
 

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentUserProfile } from "@/lib/services/user";
+import { requireRole } from "@/lib/supabase/authorization";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,7 @@ export default async function UsuariosPage() {
 
   async function updateRole(formData: FormData) {
     "use server";
-    const supabase = await createClient();
+    const { supabase } = await requireRole(["admin"]);
 
     const { data: { user: actor } } = await supabase.auth.getUser();
     if (!actor || actor.app_metadata?.role !== "admin") {

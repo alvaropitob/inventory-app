@@ -1,9 +1,9 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/supabase/authorization";
 
 export async function getAuditLogs() {
-  const supabase = await createClient();
+  const { supabase } = await requireRole(["admin", "supervisor", "auditor"]);
 
   const { data, error } = await supabase
     .from('audit_logs')

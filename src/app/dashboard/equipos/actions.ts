@@ -2,8 +2,10 @@
 
 import { EquipmentService, Equipment, MaintenanceRecord } from "@/lib/services/equipment";
 import { revalidatePath } from "next/cache";
+import { requireRole } from "@/lib/supabase/authorization";
 
 export async function handleEquipmentAction(formData: FormData) {
+  await requireRole(["admin", "supervisor"]);
   const id = formData.get("id") as string;
   
   const data: Partial<Equipment> = {
@@ -26,13 +28,14 @@ export async function handleEquipmentAction(formData: FormData) {
 }
 
 export async function handleMaintenanceAction(formData: FormData) {
+  const { user } = await requireRole(["admin", "supervisor", "operator"]);
   const equipmentId = formData.get("equipment_id") as string;
   
   const data: Partial<MaintenanceRecord> = {
     equipment_id: equipmentId,
     type: formData.get("type") as MaintenanceRecord['type'],
     execution_date: formData.get("execution_date") as string,
-    performed_by: formData.get("performed_by") as string,
+    performed_by: user.id,
     description: formData.get("description") as string,
     result: formData.get("result") as string,
     next_due_date: formData.get("next_due_date") as string,

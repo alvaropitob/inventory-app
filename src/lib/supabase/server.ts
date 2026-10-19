@@ -1,4 +1,4 @@
-import { createServerClient, createBrowserClient } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config";
 
@@ -28,11 +28,10 @@ export async function createClient() {
         },
       }
     );
-  } catch {
-    return createBrowserClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
+  } catch (error) {
+    // Server components cannot persist refreshed cookies; middleware handles that.
+    // Do not silently switch to a browser client in a server context.
+    throw error;
   }
 }
 

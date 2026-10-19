@@ -2,15 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { ComplianceService } from "@/lib/services/compliance";
+import { requireRole } from "@/lib/supabase/authorization";
 
 export async function submitQualityVerification(formData: FormData) {
+    await requireRole(["admin", "supervisor"]);
     const batch_id = formData.get("batch_id") as string;
     const result = formData.get("result") as 'pass' | 'fail';
     const control_lot = formData.get("control_lot") as string;
     const observations = formData.get("observations") as string;
     const verification_seal = formData.get("verification_seal") as string;
 
-    if (!batch_id || !result) {
+    if (!batch_id || !["pass", "fail"].includes(result)) {
         throw new Error("Datos obligatorios faltantes");
     }
 
@@ -28,5 +30,6 @@ export async function submitQualityVerification(formData: FormData) {
         revalidatePath("/dashboard");
     } catch (error: unknown) {
         console.error("Error submitting quality verification:", error);
+        throw error;
     }
 }

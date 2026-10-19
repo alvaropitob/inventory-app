@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { requireRole } from "@/lib/supabase/authorization";
 
 export async function GET() {
+  try {
+    await requireRole(["admin"]);
+  } catch {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
   const headersList = await headers();
   const host = headersList.get("host");
   const forwardedHost = headersList.get("x-forwarded-host");

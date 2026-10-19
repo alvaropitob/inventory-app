@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ComplianceService, IncidentType } from "@/lib/services/compliance";
+import { requireRole } from "@/lib/supabase/authorization";
 
 export async function submitSafetyIncident(formData: FormData) {
+    await requireRole(["admin", "operator", "supervisor"]);
     const batch_id = formData.get("batch_id") as string;
     const incident_type = formData.get("incident_type") as IncidentType;
     const description = formData.get("description") as string;

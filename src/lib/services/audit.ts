@@ -1,5 +1,3 @@
-import { createClient } from "@/lib/supabase/client";
-
 export type AuditAction = 'INSERT' | 'UPDATE' | 'DELETE' | 'SECURITY_VIOLATION' | 'AUTH_SUCCESS' | 'AUTH_FAILURE';
 
 export interface AuditLogParams {
@@ -18,32 +16,9 @@ export class AuditService {
    * This is critical for ISO 15189 traceability.
    */
   static async logAction(params: AuditLogParams) {
-    const supabase = createClient();
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { error } = await supabase
-        .from('audit_logs')
-        .insert({
-          table_name: params.table_name,
-          record_id: params.record_id,
-          action: params.action,
-          old_data: params.old_data,
-          new_data: params.new_data,
-          user_id: params.user_id || user?.id,
-          // Metadata is captured by Postgres defaults or can be supplemented here
-          user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : 'Server-side',
-        });
-
-      if (error) {
-        console.error("Audit Logging Error:", error);
-        // We don't throw here to avoid blocking the main business logic
-        // but in a real production system, we might want a fallback
-      }
-    } catch (e) {
-      console.error("Audit Service Exception:", e);
-    }
+    // Audit rows are written by SECURITY DEFINER database triggers in the same
+    // transaction as the business change. Direct client inserts are denied by RLS.
+    void params;
   }
 
   /**

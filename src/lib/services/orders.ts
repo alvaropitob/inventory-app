@@ -86,33 +86,21 @@ export const OrderService = {
       order.order_number = `PO-${datePart}-${randomPart}`;
     }
 
-    const { data: newOrder, error: orderError } = await supabase
-      .from("purchase_orders")
-      .insert([order])
-      .select()
-      .single();
-
-    if (orderError) throw orderError;
-
-    if (items && items.length > 0) {
-      const itemsToInsert = items.map(item => ({
-        ...item,
-        purchase_order_id: newOrder.id
-      }));
-
-      const { error: itemsError } = await supabase
-        .from("purchase_order_items")
-        .insert(itemsToInsert);
-        
-      if (itemsError) {
-        // Rollback strategy is manual since we lack transaction control from REST directly,
-        // but it's safe enough for now.
-        await supabase.from("purchase_orders").delete().eq("id", newOrder.id);
-        throw itemsError;
-      }
-    }
-
-    return newOrder;
+    const { data: orderId, error } = await supabase.rpc("fn_create_purchase_order_with_items", {
+      p_order_number: order.order_number,
+      p_supplier_id: order.supplier_id,
+      p_created_by: order.created_by,
+      p_expected_delivery_date: order.expected_delivery_date ?? null,
+      p_notes: order.notes ?? null,
+      p_total_estimated_value: order.total_estimated_value ?? 0,
+      p_items: items.map(item => ({
+        item_id: item.item_id,
+        quantity_requested: item.quantity_requested,
+        estimated_unit_price: item.estimated_unit_price ?? 0,
+      })),
+    });
+    if (error) throw error;
+    return { id: orderId };
   },
 
   async updateOrderStatus(id: string, status: OrderStatus) {

@@ -2,16 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { OrderService, OrderStatus } from "@/lib/services/orders";
+import { requireRole } from "@/lib/supabase/authorization";
 
 export async function createPurchaseOrder(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "No autorizado" };
-  }
+  const { user } = await requireRole(["admin", "supervisor"]);
 
   const supplier_id = formData.get("supplier_id") as string;
   if (!supplier_id) {
@@ -37,6 +32,9 @@ export async function createPurchaseOrder(formData: FormData) {
     return { error: "El pedido debe contener al menos un producto" };
   }
 
+  if (!Array.isArray(items) || items.length > 500 || items.some((item: { item_id?: unknown; price?: unknown; quantity?: unknown }) =>
+    typeof item.item_id !== "string" || !item.item_id || !Number.isSafeInteger(Number(item.quantity)) || Number(item.quantity) <= 0 ||
+    !Number.isFinite(Number(item.price)) || Number(item.price) < 0)) return { error: "Productos o cantidades inválidos" };
   const totalValue = items.reduce((sum: number, item: { price: number, quantity: number }) => sum + (Number(item.quantity) * Number(item.price)), 0);
 
   const orderItems = items.map((i: { item_id: string, quantity: number, price: number }) => ({
@@ -66,6 +64,10 @@ export async function createPurchaseOrder(formData: FormData) {
 
 export async function updateOrderStatusAction(id: string, status: OrderStatus) {
   try {
+    await requireRole(["admin", "supervisor"]);
+    if (!/^[0-9a-f-]{36}$/i.test(id) || !["draft", "requested", "partially_received", "completed", "cancelled"].includes(status)) {
+      return { error: "Pedido o estado inválido" };
+    }
     await OrderService.updateOrderStatus(id, status);
     revalidatePath("/dashboard/pedidos");
     revalidatePath(`/dashboard/pedidos/${id}`);

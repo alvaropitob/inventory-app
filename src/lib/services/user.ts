@@ -18,18 +18,6 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   
   const { data: { user } } = await supabase.auth.getUser();
   
-  // LOCAL DEVELOPMENT BYPASS
-  if (!user && process.env.NODE_ENV === 'development') {
-    return {
-      id: '00000000-0000-0000-0000-000000000000',
-      email: 'alvaro_local@dev.com',
-      fullName: 'Administrador Local',
-      username: 'admin_local',
-      role: 'admin',
-      avatarUrl: null,
-    };
-  }
-
   if (!user) return null;
 
   // Fetch from the robust 'users' table joined with 'roles' via 'role_id'
@@ -56,7 +44,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
       email: user.email || "",
       fullName: user.user_metadata?.full_name || user.user_metadata?.name || "Usuario",
       username: user.email || "",
-      role: (user.app_metadata?.role as string) || "operator",
+      role: "operator",
       avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
     };
   }

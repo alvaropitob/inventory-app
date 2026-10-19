@@ -34,6 +34,7 @@ export class StockService {
       .select('id')
       .eq('item_id', data.item_id)
       .eq('batch_number', data.batch_number)
+      .eq('location_id', data.location_id)
       .maybeSingle();
 
     let batchId: string;
@@ -68,7 +69,8 @@ export class StockService {
           current_stock: 0, // IMPORTANT: initialized to 0, trigger handles increment
           received_by: data.received_by,
           notes: data.notes,
-          status: 'accepted'
+          status: 'quarantine',
+          acceptance_test_status: 'pending'
         })
         .select()
         .single();
@@ -125,6 +127,9 @@ export class StockService {
 
     if (batchError) return { data: null, error: batchError };
     
+    if (!Number.isSafeInteger(data.quantity) || data.quantity <= 0) {
+      return { data: null, error: { message: "La cantidad debe ser un entero positivo." } };
+    }
     if (batch.current_stock < data.quantity) {
       return { data: null, error: { message: `Stock insuficiente. Lote: ${batch.batch_number} tiene solo ${batch.current_stock} unidades disponibles.` }};
     }
@@ -159,10 +164,11 @@ export class StockService {
     }
 
     if (Object.keys(batchUpdates).length > 0) {
-      await supabase
+      const { error: batchUpdateError } = await supabase
         .from('inventory_batches')
         .update(batchUpdates)
         .eq('id', data.batch_id);
+      if (batchUpdateError) return { data: null, error: batchUpdateError };
     }
 
     // Audit Log
