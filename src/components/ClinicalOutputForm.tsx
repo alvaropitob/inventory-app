@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { parseGS1Barcode } from "@/lib/utils/gs1";
+import { AlertTriangle, ArrowUpFromLine, CheckCircle2, FlaskConical, ScanLine } from "lucide-react";
 
 interface CatalogItem {
   id: string;
@@ -113,7 +114,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
           .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
         if (batchesOfProduct.length > 0) {
           setSelectedBatchId(batchesOfProduct[0].id);
-          setScanMessage(`✅ Producto identificado: ${matchedProduct.technical_name}. Seleccionado lote FEFO.`);
+          setScanMessage(`OK: Producto identificado: ${matchedProduct.technical_name}. Seleccionado lote FEFO.`);
           return;
         }
       }
@@ -123,10 +124,10 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
       setSelectedItemId(matchedBatch.item_id);
       setSelectedBatchId(matchedBatch.id);
       setScanMessage(
-        `✅ Lote identificado por código de barras: ${matchedBatch.batch_number} (${matchedBatch.item?.technical_name || "Reactivo"})`
+        `OK: Lote identificado por código de barras: ${matchedBatch.batch_number} (${matchedBatch.item?.technical_name || "Reactivo"})`
       );
     } else {
-      setScanMessage(`⚠️ Código escaneado (${code}): No se encontró un lote activo coincidente con stock.`);
+      setScanMessage(`Aviso: Código escaneado (${code}): No se encontró un lote activo coincidente con stock.`);
     }
   };
 
@@ -146,7 +147,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <span style={{ fontSize: "1.25rem" }}>📷</span>
+          <ScanLine className="ui-icon" aria-hidden="true" />
           <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--navy)" }}>
             Lector de Código de Barras GS1-128 / Búsqueda Rápida
           </span>
@@ -190,8 +191,9 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
           </button>
         </div>
         {scanMessage && (
-          <div style={{ fontSize: "0.8rem", color: scanMessage.startsWith("✅") ? "#047857" : "#b45309", marginTop: "2px" }}>
-            {scanMessage}
+          <div style={{ fontSize: "0.8rem", color: scanMessage.startsWith("OK:") ? "#047857" : "#b45309", marginTop: "2px", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            {scanMessage.startsWith("OK:") ? <CheckCircle2 className="ui-icon" aria-hidden="true" /> : <AlertTriangle className="ui-icon" aria-hidden="true" />}
+            {scanMessage.replace(/^(OK:|Aviso:)\s*/, "")}
           </div>
         )}
       </div>
@@ -286,7 +288,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, marginBottom: "0.35rem" }}>
-              <span>⚠️</span>
+              <AlertTriangle className="ui-icon" aria-hidden="true" />
               <span>Advertencia de Desviación FEFO (ISO 15189)</span>
             </div>
             <p style={{ lineHeight: "1.5" }}>
@@ -392,7 +394,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
                   style={{ width: "18px", height: "18px", cursor: "pointer" }}
                 />
                 <label htmlFor="chk-open" style={{ fontSize: "0.85rem", color: "#1e3a8a", cursor: "pointer" }}>
-                  🧪 <b>Marcar como abierto/destapado hoy</b>: Iniciar seguimiento de estabilidad post-apertura en el sistema.
+                  <FlaskConical className="ui-icon" aria-hidden="true" /> <b>Marcar como abierto/destapado hoy</b>: Iniciar seguimiento de estabilidad post-apertura en el sistema.
                 </label>
               </div>
             )}
@@ -438,7 +440,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
                   gap: "0.5rem",
                 }}
               >
-                📤 Confirmar Salida de Inventario
+                <ArrowUpFromLine className="ui-icon" aria-hidden="true" /> Confirmar Salida de Inventario
               </button>
             </div>
           </>

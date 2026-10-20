@@ -1,5 +1,6 @@
 import { OrderService } from "@/lib/services/orders";
 import Link from "next/link";
+import { ArrowDownToLine, Send } from "lucide-react";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -58,7 +59,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   await updateOrderStatusAction(order.id!, 'requested');
                 }}>
                   <button type="submit" className="btn-primary">
-                    🚀 Solicitar Pedido
+                    <Send className="ui-icon" aria-hidden="true" /> Solicitar Pedido
                   </button>
                 </form>
               </>
@@ -70,7 +71,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 className="btn-primary"
                 style={{ textDecoration: 'none', background: '#0891b2' }}
               >
-                📥 Iniciar Recepción
+                <ArrowDownToLine className="ui-icon" aria-hidden="true" /> Iniciar Recepción
               </Link>
             )}
           </div>

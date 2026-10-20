@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { CatalogService } from "@/lib/services/catalog";
 import * as Actions from "./actions";
+import { AlertTriangle, CheckCircle2, Mail, MapPin, Star } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +72,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
               boxShadow: "var(--shadow-sm)",
             }}
           >
-            ⭐ Ver Evaluaciones
+            <Star className="ui-icon" aria-hidden="true" /> Ver Evaluaciones
           </Link>
           <a
             href="#formulario-proveedor"
@@ -110,7 +111,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
             gap: "0.5rem",
           }}
         >
-          ⚠️ {decodeURIComponent(error)}
+          <AlertTriangle className="ui-icon" aria-hidden="true" /> {decodeURIComponent(error)}
         </div>
       )}
       {success && (
@@ -128,7 +129,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
             gap: "0.5rem",
           }}
         >
-          ✅ Operación realizada exitosamente.
+          <CheckCircle2 className="ui-icon" aria-hidden="true" /> Operación realizada exitosamente.
         </div>
       )}
 
@@ -209,7 +210,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                       <div>{s.name}</div>
                       {s.address && (
                         <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 400, marginTop: "2px" }}>
-                          📍 {s.address}
+                          <MapPin className="ui-icon" aria-hidden="true" /> {s.address}
                         </div>
                       )}
                     </td>
@@ -220,7 +221,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                       <div>{s.contact_name || "—"}</div>
                       {s.contact_email && (
                         <div style={{ fontSize: "0.75rem", color: "var(--primary-dark)" }}>
-                          ✉️ {s.contact_email}
+                          <Mail className="ui-icon" aria-hidden="true" /> {s.contact_email}
                         </div>
                       )}
                     </td>

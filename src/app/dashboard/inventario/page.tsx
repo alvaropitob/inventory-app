@@ -10,6 +10,7 @@ import ContextualHelp from "@/components/ContextualHelp";
 import * as Actions from "./actions";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ClinicalOutputForm from "@/components/ClinicalOutputForm";
+import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, ClipboardList, FileText, Package, Trash2, X } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -207,11 +208,11 @@ export default async function InventarioPage({
       <div className="config-content">
         {error && (
           <div className="alert-error">
-            <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+            <AlertTriangle className="ui-icon" aria-hidden="true" />
             <div>
               <strong>Error al guardar:</strong> {decodeURIComponent(error)}
             </div>
-            <a href="?view=entradas" className="alert-error-close">✕</a>
+            <a href="?view=entradas" className="alert-error-close" aria-label="Cerrar alerta"><X className="ui-icon" aria-hidden="true" /></a>
           </div>
         )}
 
@@ -221,7 +222,7 @@ export default async function InventarioPage({
             <CollapsibleSection
               title="Nuevo Registro en Catálogo"
               subtitle="Defina los productos maestros que ingresarán al inventario."
-              icon={<span>📦</span>}
+              icon={<Package className="ui-icon" aria-hidden="true" />}
             >
               <div className="form-card">
                 <div className="form-card-header">
@@ -245,7 +246,7 @@ export default async function InventarioPage({
                     <div className={editingItem ? 'form-section-readonly' : 'form-section'}>
                       <div className="form-section-header">
                         <h3 className="form-section-title">
-                          {editingItem ? "📄 Ficha Técnica (Maestro)" : "Información Básica"}
+                          {editingItem ? <><FileText className="ui-icon" aria-hidden="true" /> Ficha Técnica (Maestro)</> : "Información Básica"}
                         </h3>
                         {editingItem && <span className="readonly-badge">Solo Lectura</span>}
                       </div>
@@ -318,7 +319,7 @@ export default async function InventarioPage({
                     {/* Purchase / Stock Entry */}
                     <div className="form-section">
                       <div className="form-section-header">
-                        <h3 className="form-section-title">📥 Registro de Compra / Entrada</h3>
+                        <h3 className="form-section-title"><ArrowDownToLine className="ui-icon" aria-hidden="true" /> Registro de Compra / Entrada</h3>
                         <ContextualHelp
                           content={{
                             title: "Ingreso de Stock",
@@ -394,7 +395,7 @@ export default async function InventarioPage({
             <CollapsibleSection
               title="Catálogo Vigente"
               subtitle="Consulta y gestión de productos maestros."
-              icon={<span>📋</span>}
+              icon={<ClipboardList className="ui-icon" aria-hidden="true" />}
             >
               <div className="data-card">
                 <div className="data-card-body">
@@ -484,7 +485,7 @@ export default async function InventarioPage({
           <CollapsibleSection
             title="Registrar Salida / Consumo Clínico"
             subtitle="Despacho con algoritmo estricto FEFO (First Expired, First Out), escáner GS1-128 y control de estabilidad post-apertura."
-            icon={<span>📤</span>}
+            icon={<ArrowUpFromLine className="ui-icon" aria-hidden="true" />}
           >
             <div className="form-card" style={{ padding: '1.5rem' }}>
               <ClinicalOutputForm batches={allBatches || []} action={Actions.handleConsumeAction} />
@@ -497,7 +498,7 @@ export default async function InventarioPage({
           <CollapsibleSection
             title="Traslado Interno entre Ubicaciones y Sedes"
             subtitle="Reubicación de reactivos e insumos entre bodegas, neveras y áreas analíticas con trazabilidad completa."
-            icon={<span>🔄</span>}
+            icon={<ArrowLeftRight className="ui-icon" aria-hidden="true" />}
           >
             <div className="form-card">
               <div className="form-card-header">
@@ -533,7 +534,7 @@ export default async function InventarioPage({
                         .filter((loc: { is_active?: boolean }) => loc.is_active !== false)
                         .map((loc: { id: string; name: string; location_type?: string }) => (
                           <option key={loc.id} value={loc.id}>
-                            📍 {loc.name} {loc.location_type ? `(${loc.location_type})` : ""}
+                            {loc.name} {loc.location_type ? `(${loc.location_type})` : ""}
                           </option>
                         ))}
                     </select>
@@ -580,7 +581,7 @@ export default async function InventarioPage({
                       boxShadow: 'var(--shadow-md)',
                     }}
                   >
-                    🔄 Confirmar Traslado de Inventario
+                    <ArrowLeftRight className="ui-icon" aria-hidden="true" /> Confirmar Traslado de Inventario
                   </button>
                 </div>
               </form>
@@ -593,7 +594,7 @@ export default async function InventarioPage({
           <CollapsibleSection
             title="Acta de Baja y Disposición Final de Residuos"
             subtitle="Descarte formal de reactivos vencidos, mermas, contaminación o material no conforme (Normativa Ambiental e INVIMA)."
-            icon={<span>🗑️</span>}
+            icon={<Trash2 className="ui-icon" aria-hidden="true" />}
           >
             <div className="form-card">
               <div className="form-card-header">
@@ -617,7 +618,7 @@ export default async function InventarioPage({
                           const isExpired = new Date(b.expiration_date) < new Date();
                           return (
                             <option key={b.id} value={b.id}>
-                              {b.item?.technical_name || b.catalog_items?.technical_name} | Lote: {b.batch_number} | Stock: {b.current_stock} | Vence: {new Date(b.expiration_date).toLocaleDateString()} {isExpired ? "⚠️ [VENCIDO]" : ""}
+                              {b.item?.technical_name || b.catalog_items?.technical_name} | Lote: {b.batch_number} | Stock: {b.current_stock} | Vence: {new Date(b.expiration_date).toLocaleDateString()} {isExpired ? "[VENCIDO]" : ""}
                             </option>
                           );
                         })}
@@ -640,19 +641,19 @@ export default async function InventarioPage({
                     <label className="form-label">Método de Disposición Final *</label>
                     <select name="disposal_method" required className="form-select">
                       <option value="Inactivación química y entrega a gestor de residuos peligrosos">
-                        🧪 Inactivación química + Gestor ambiental autorizado
+                        Inactivación química + Gestor ambiental autorizado
                       </option>
                       <option value="Autoclave y descarte biológico">
-                        🔥 Esterilización en Autoclave (Biológico)
+                        Esterilización en Autoclave (Biológico)
                       </option>
                       <option value="Incineración externa certificada">
-                        🏭 Incineración externa certificada
+                        Incineración externa certificada
                       </option>
                       <option value="Devolución al proveedor / Recall técnico">
-                        📦 Devolución / Retiro de Mercado por Proveedor (Recall)
+                        Devolución / Retiro de Mercado por Proveedor (Recall)
                       </option>
                       <option value="Derrame accidental / Rotura de frasco">
-                        ⚠️ Neutralización de derrame / Frasco quebrado
+                        Neutralización de derrame / Frasco quebrado
                       </option>
                     </select>
                   </div>
@@ -687,7 +688,7 @@ export default async function InventarioPage({
                       boxShadow: 'var(--shadow-md)',
                     }}
                   >
-                    🗑️ Procesar Baja y Disposición Final
+                      <Trash2 className="ui-icon" aria-hidden="true" /> Procesar Baja y Disposición Final
                   </button>
                 </div>
               </form>
@@ -767,7 +768,7 @@ export default async function InventarioPage({
                           <span className="cell-muted" style={{ fontStyle: 'italic' }}>{m.reason}</span>
                           {m.equipment_name && (
                             <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 700 }}>
-                              🔬 Equipo: {m.equipment_name}
+                              Equipo: {m.equipment_name}
                             </span>
                           )}
                         </div>

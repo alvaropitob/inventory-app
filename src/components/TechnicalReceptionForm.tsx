@@ -106,9 +106,9 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                 <div className="form-group">
                     <label>Estado del Empaque</label>
                     <select value={packagingStatus} onChange={e => setPackagingStatus(e.target.value)}>
-                        <option value="Intacto">✅ Intacto / Buen Estado</option>
-                        <option value="Dañado">❌ Dañado / Alterado</option>
-                        <option value="Dudoso">⚠️ Dudoso</option>
+                        <option value="Intacto">Intacto / Buen Estado</option>
+                        <option value="Dañado">Dañado / Alterado</option>
+                        <option value="Dudoso">Dudoso</option>
                     </select>
                 </div>
                 <div className="form-group">
@@ -136,11 +136,12 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                     title: "Inspección de Lotes",
                     description: "Debe verificar físicamente que el lote y la fecha de vencimiento coincidan con el producto entregado.",
                     steps: [
-                        "Identifique el lote en la caja o envase.",
-                        "Registre la fecha de vencimiento exacta.",
-                        "Verique la cantidad realmente recibida y el precio facturado."
+                        "Confirme que el producto recibido corresponda a la orden de compra.",
+                        "Compare la cantidad recibida y el precio con el documento del proveedor.",
+                        "Registre el número de lote y la fecha de vencimiento tal como aparecen en el envase.",
+                        "Use el escaneo GS1-128 cuando el empaque tenga un código legible."
                     ],
-                    tips: ["Si el producto vence en menos de 6 meses, considere marcarlo para uso prioritario o notificar a supervisión."]
+                    tips: ["Si hay diferencias, daño, temperatura inadecuada o documentación incompleta, deje constancia y no libere el lote sin revisión."]
                 }} />
             </h3>
             

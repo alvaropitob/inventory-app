@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
+import { BadgeCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +33,7 @@ export default async function AuditoriaPage() {
             <h2 className="card-section-title">Registro de Actividades</h2>
             <p className="card-section-subtitle">Últimos 100 movimientos registrados en el sistema.</p>
           </div>
-          <span className="badge-verified">✓ Integridad Verificada</span>
+          <span className="badge-verified"><BadgeCheck className="ui-icon" aria-hidden="true" /> Integridad Verificada</span>
         </div>
 
         <div className="table-responsive">

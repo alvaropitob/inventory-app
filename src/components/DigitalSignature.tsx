@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BadgeCheck, LockKeyhole } from "lucide-react";
 
 interface DigitalSignatureProps {
   onConfirm: (seal: string) => void;
@@ -24,7 +25,7 @@ export default function DigitalSignature({ onConfirm, userName }: DigitalSignatu
   return (
     <div className="card" style={{ padding: '1rem', background: '#f8fafc', border: '1px dashed var(--primary-light)', marginTop: '1rem' }}>
       <h4 style={{ fontSize: '0.85rem', color: 'var(--navy)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        🔐 Confirmación de Identidad (ISO 15189)
+        <LockKeyhole className="ui-icon" aria-hidden="true" /> Confirmación de Identidad (ISO 15189)
       </h4>
       <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
         Esta acción será vinculada permanentemente a su usuario: <strong>{userName}</strong>
@@ -50,7 +51,7 @@ export default function DigitalSignature({ onConfirm, userName }: DigitalSignatu
         </div>
       ) : (
         <div style={{ padding: '0.75rem', background: '#dcfce7', color: '#166534', borderRadius: '4px', fontSize: '0.85rem', fontWeight: '700', textAlign: 'center' }}>
-          ✓ Documento Firmado Digitalmente
+          <BadgeCheck className="ui-icon" aria-hidden="true" /> Documento Firmado Digitalmente
         </div>
       )}
     </div>

@@ -3,6 +3,18 @@ import { getCurrentUserProfile } from "@/lib/services/user";
 import { ComplianceService } from "@/lib/services/compliance";
 import { StockService } from "@/lib/services/stock";
 import { CatalogService } from "@/lib/services/catalog";
+import {
+  CalendarDays,
+  ClipboardList,
+  DollarSign,
+  FileText,
+  PackageX,
+  ShieldAlert,
+  Thermometer,
+  Building2,
+  BookmarkCheck,
+  AlertTriangle,
+} from "lucide-react";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import PrintReportButton from "@/components/PrintReportButton";
 
@@ -220,14 +232,14 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   }));
 
   const navItems = [
-    { key: "resumen", label: "📊 Resumen Normativo", icon: "📊" },
-    { key: "valorizacion", label: "💰 Valorización y Costos", icon: "💰" },
-    { key: "kardex", label: "📜 Kardex Oficial de Movimientos", icon: "📜" },
-    { key: "suficiencia", label: "🏥 Suficiencia y Habilitación (Res. 3100)", icon: "🏥" },
-    { key: "vencimientos", label: "🚦 Semáforo de Vencimientos", icon: "🚦" },
-    { key: "mermas", label: "📉 Bajas y Disposición Final", icon: "📉" },
-    { key: "reactivovigilancia", label: "🛡️ Reactivovigilancia (INVIMA)", icon: "🛡️" },
-    { key: "ambiental", label: "🌡️ Bitácora Red de Frío", icon: "🌡️" },
+    { key: "resumen", label: "Resumen Normativo", icon: ClipboardList },
+    { key: "valorizacion", label: "Valorización y Costos", icon: DollarSign },
+    { key: "kardex", label: "Kardex Oficial de Movimientos", icon: FileText },
+    { key: "suficiencia", label: "Suficiencia y Habilitación (Res. 3100)", icon: Building2 },
+    { key: "vencimientos", label: "Semáforo de Vencimientos", icon: CalendarDays },
+    { key: "mermas", label: "Bajas y Disposición Final", icon: PackageX },
+    { key: "reactivovigilancia", label: "Reactivovigilancia (INVIMA)", icon: ShieldAlert },
+    { key: "ambiental", label: "Bitácora Red de Frío", icon: Thermometer },
   ];
 
   return (
@@ -251,25 +263,21 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             Tipos de Reporte
           </h2>
           <nav style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-            {navItems.map((item) => (
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = type === item.key;
+              return (
               <a
                 key={item.key}
                 href={`?type=${item.key}`}
-                style={{
-                  display: "block",
-                  padding: "0.65rem 0.85rem",
-                  borderRadius: "8px",
-                  fontSize: "0.875rem",
-                  fontWeight: type === item.key ? 700 : 500,
-                  backgroundColor: type === item.key ? "var(--primary-light)" : "transparent",
-                  color: type === item.key ? "var(--primary-dark)" : "var(--text-main)",
-                  textDecoration: "none",
-                  transition: "all 0.15s",
-                }}
+                className={`report-nav-item${isActive ? " report-nav-item-active" : ""}`}
+                aria-current={isActive ? "page" : undefined}
               >
-                {item.label}
+                <Icon size={16} strokeWidth={1.8} aria-hidden="true" />
+                <span>{item.label}</span>
               </a>
-            ))}
+              );
+            })}
           </nav>
         </div>
 
@@ -317,7 +325,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
               </div>
 
               <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontSize: "0.875rem", lineHeight: "1.6" }}>
-                <h4 style={{ fontWeight: 700, marginBottom: "0.35rem" }}>📌 Guía de Preparación para Visitas de Auditoría:</h4>
+                <h4 style={{ fontWeight: 700, marginBottom: "0.35rem", display: "flex", alignItems: "center", gap: "0.4rem" }}><BookmarkCheck className="ui-icon" aria-hidden="true" /> Guía de Preparación para Visitas de Auditoría:</h4>
                 <ul style={{ paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                   <li>Para <b>Habilitación (Resolución 3100)</b>: descargue el reporte de <i>Suficiencia de Insumos</i> y la <i>Bitácora de Red de Frío</i> del último mes.</li>
                   <li>Para <b>Inspección INVIMA</b>: presente el reporte oficial de <i>Reactivovigilancia</i> junto con las actas de <i>Bajas y Disposición Final</i>.</li>
@@ -647,7 +655,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                               color: log.is_out_of_range ? "#991b1b" : "#15803d",
                             }}
                           >
-                            {log.is_out_of_range ? "⚠️ FUERA DE RANGO" : "En Rango"}
+                            {log.is_out_of_range ? <><AlertTriangle className="ui-icon" aria-hidden="true" /> FUERA DE RANGO</> : "En Rango"}
                           </span>
                         </td>
                       </tr>

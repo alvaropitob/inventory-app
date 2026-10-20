@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Lightbulb } from "lucide-react";
 
 interface HelpContent {
   title: string;
@@ -107,7 +108,7 @@ export default function ContextualHelp({ content }: { content: string | HelpCont
               borderBottom: '1px solid rgba(0,0,0,0.05)',
               fontFamily: 'Inter, system-ui, sans-serif'
             }}>
-              <span>💡</span> {normalizedContent.title}
+              <Lightbulb className="ui-icon" aria-hidden="true" /> {normalizedContent.title}
             </h4>
             
             <p style={{ 

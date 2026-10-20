@@ -1,6 +1,7 @@
 import { OrderService } from "@/lib/services/orders";
 import Link from "next/link";
 import ContextualHelp from "@/components/ContextualHelp";
+import { AlertTriangle } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +22,17 @@ export default async function RecepcionPage() {
               <h1 className="page-header-title">Recepción Técnica y Trazabilidad</h1>
               <p className="page-header-subtitle">Inspecciona y registra los reactivos que llegan al laboratorio.</p>
             </div>
-            <ContextualHelp
-              content="La recepción técnica es el primer filtro de calidad. Debes inspeccionar la integridad de los empaques, la cadena de frío y la documentación del proveedor antes de ingresar cualquier producto al stock."
-            />
+            <ContextualHelp content={{
+              title: "Recepción técnica y trazabilidad",
+              description: "Registra cada entrega vinculada a su orden antes de incorporar los productos al inventario.",
+              steps: [
+                "Abre una orden solicitada o parcialmente recibida.",
+                "Compara productos, cantidades y documentos del proveedor.",
+                "Registra lote, vencimiento, estado del empaque y condiciones de transporte.",
+                "Aprueba, rechaza o deja en cuarentena según la inspección."
+              ],
+              tips: ["En una recepción parcial, registra solo lo que llegó y conserva pendiente el saldo de la orden."]
+            }} />
           </div>
         </div>
 
@@ -94,7 +103,7 @@ export default async function RecepcionPage() {
       <div className="dashboard-main">
         <div className="page-header" style={{ borderBottom: '2px solid var(--error)' }}>
           <div>
-            <h1 className="page-header-title" style={{ color: 'var(--error)' }}>⚠️ Error al cargar recepciones</h1>
+            <h1 className="page-header-title" style={{ color: 'var(--error)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertTriangle className="ui-icon" aria-hidden="true" /> Error al cargar recepciones</h1>
             <p className="page-header-subtitle">Hubo un problema al conectar con el servicio de órdenes.</p>
           </div>
         </div>

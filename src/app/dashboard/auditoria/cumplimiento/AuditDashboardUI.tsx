@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
+import { Activity, AlertTriangle, ShieldCheck, Zap } from 'lucide-react';
 
 interface Equipment {
   id: string;
@@ -55,7 +56,7 @@ export default function AuditDashboardUI({ data }: Props) {
         className="stats-grid audit-stats-grid"
       >
         <motion.div variants={itemVariants} className="stat-card kpi-accent-primary">
-          <div className="stat-icon stat-icon-primary">⚙️</div>
+          <div className="stat-icon stat-icon-primary"><Activity className="ui-icon" aria-hidden="true" /></div>
           <div className="stat-info">
             <h3>{data.totalEquipments - data.equipmentsInMaintenance} / {data.totalEquipments}</h3>
             <p>Equipos Operativos</p>
@@ -63,7 +64,7 @@ export default function AuditDashboardUI({ data }: Props) {
         </motion.div>
 
         <motion.div variants={itemVariants} className="stat-card kpi-accent-warning">
-          <div className="stat-icon stat-icon-warning">⚠️</div>
+          <div className="stat-icon stat-icon-warning"><AlertTriangle className="ui-icon" aria-hidden="true" /></div>
           <div className="stat-info">
             <h3>{data.pendingQuality}</h3>
             <p>Alertas de Calidad</p>
@@ -71,7 +72,7 @@ export default function AuditDashboardUI({ data }: Props) {
         </motion.div>
 
         <motion.div variants={itemVariants} className="stat-card kpi-accent-success">
-          <div className="stat-icon stat-icon-success">🛡️</div>
+          <div className="stat-icon stat-icon-success"><ShieldCheck className="ui-icon" aria-hidden="true" /></div>
           <div className="stat-info">
             <h3>{data.complianceIndex}%</h3>
             <p>Índice de Cumplimiento</p>
@@ -88,7 +89,7 @@ export default function AuditDashboardUI({ data }: Props) {
         >
           <div className="audit-panel-header">
             <h2 className="audit-panel-title">
-              <span style={{ color: 'var(--error)' }}>⚡</span> Alertas de Mantenimiento
+              <Zap className="ui-icon" style={{ color: 'var(--error)' }} aria-hidden="true" /> Alertas de Mantenimiento
             </h2>
             <Link href="/dashboard/equipos" className="audit-panel-link">Ver todos →</Link>
           </div>

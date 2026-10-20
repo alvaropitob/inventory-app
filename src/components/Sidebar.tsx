@@ -19,9 +19,22 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+function getGoogleAvatarUrl(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    const isGoogleImageHost = url.hostname === "googleusercontent.com" || url.hostname.endsWith(".googleusercontent.com");
+    return url.protocol === "https:" && isGoogleImageHost ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 
 export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
+  const avatarUrl = getGoogleAvatarUrl(user.avatarUrl);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const fullPath = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
@@ -327,7 +340,6 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                             if (typeof window !== 'undefined' && window.innerWidth <= 768 && onClose) onClose();
                           }}
                         >
-                          <div className="sub-nav-dot" />
                           <span className="nav-text">{sub.name}</span>
                         </Link>
                       ))}
@@ -341,8 +353,16 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
 
         <div className="sidebar-footer">
           <div className="user-profile-mini">
-            {user.avatarUrl ? (
-              <Image src={user.avatarUrl} alt={user.fullName} className="avatar-img" width={32} height={32} />
+            {avatarUrl && !avatarLoadFailed ? (
+              <Image
+                src={avatarUrl}
+                alt={`Foto de ${user.fullName}`}
+                className="avatar-img"
+                width={32}
+                height={32}
+                unoptimized
+                onError={() => setAvatarLoadFailed(true)}
+              />
             ) : (
               <div className="avatar">
                 {user.fullName.charAt(0).toUpperCase()}
@@ -393,13 +413,6 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
         .sub-nav-item:hover {
           background: var(--bg-app);
           color: var(--primary);
-        }
-        .sub-nav-dot {
-          width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          background: currentColor;
-          opacity: 0.5;
         }
       `}</style>
     </>

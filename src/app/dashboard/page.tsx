@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { CatalogService } from "@/lib/services/catalog";
 import { StockService } from "@/lib/services/stock";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { OrderService } from "@/lib/services/orders";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import Link from "next/link";
@@ -103,7 +104,7 @@ export default async function DashboardPage() {
         aria-live="polite"
       >
         <div className="dashboard-alert-indicator" aria-hidden="true">
-          {totalAlerts > 0 ? "!" : "✓"}
+          {totalAlerts > 0 ? <AlertTriangle className="ui-icon" aria-hidden="true" /> : <CheckCircle2 className="ui-icon" aria-hidden="true" />}
         </div>
         <div className="dashboard-alert-copy">
           <strong>{totalAlerts > 0 ? `${totalAlerts} alertas requieren revisión` : "Inventario dentro de parámetros"}</strong>
