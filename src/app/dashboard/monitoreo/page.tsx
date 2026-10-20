@@ -97,7 +97,7 @@ export default async function MonitoreoPage() {
                 {logs.map((log) => (
                   <tr key={log.id}>
                     <td>
-                      <div className="kardex-date">{new Date(log.created_at).toLocaleDateString()}</div>
+                      <div className="kardex-date">{new Date(log.created_at).toLocaleDateString('es-CO')}</div>
                       <div className="kardex-time">{new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </td>
                     <td className="cell-primary">{log.locations?.name}</td>
@@ -116,8 +116,9 @@ export default async function MonitoreoPage() {
                 ))}
                 {logs.length === 0 && (
                   <tr>
-                    <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      No hay registros ambientales aún.
+                    <td colSpan={5} className="workflow-empty-state">
+                      <strong>Sin lecturas registradas</strong>
+                      <span>Los registros ambientales aparecerán aquí.</span>
                     </td>
                   </tr>
                 )}

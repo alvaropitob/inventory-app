@@ -24,15 +24,19 @@ export default async function PedidosPage({
   const { status } = await searchParams;
   const currentStatus = (status as OrderStatus) || "";
 
-  const orders = await OrderService.getOrders(
-    currentStatus ? { status: currentStatus } : undefined
-  );
+  const allOrders = await OrderService.getOrders();
+  const orders = currentStatus ? allOrders.filter(order => order.status === currentStatus) : allOrders;
+  const requestedOrders = allOrders.filter(order => order.status === 'requested');
+  const partialOrders = allOrders.filter(order => order.status === 'partially_received');
+  const completedOrders = allOrders.filter(order => order.status === 'completed');
 
   const filters = [
     { label: 'Todos',        href: '/dashboard/pedidos',                    active: !currentStatus },
     { label: 'Borradores',   href: '/dashboard/pedidos?status=draft',       active: currentStatus === 'draft' },
     { label: 'Solicitados',  href: '/dashboard/pedidos?status=requested',   active: currentStatus === 'requested' },
+    { label: 'Recepción parcial', href: '/dashboard/pedidos?status=partially_received', active: currentStatus === 'partially_received' },
     { label: 'Completados',  href: '/dashboard/pedidos?status=completed',   active: currentStatus === 'completed' },
+    { label: 'Cancelados',   href: '/dashboard/pedidos?status=cancelled',   active: currentStatus === 'cancelled' },
   ];
 
   return (
@@ -47,7 +51,7 @@ export default async function PedidosPage({
             filename="Pedidos_Compra"
             data={orders.map(o => ({
               'Número de Pedido': o.order_number,
-              'Fecha': o.created_at ? new Date(o.created_at).toLocaleDateString() : '',
+              'Fecha': o.created_at ? new Date(o.created_at).toLocaleDateString('es-CO') : '',
               'Proveedor': o.supplier?.name || 'Desconocido',
               'Estado': o.status,
               'Total Estimado': o.total_estimated_value ? `$${o.total_estimated_value}` : '$0.00',
@@ -62,6 +66,21 @@ export default async function PedidosPage({
           </Link>
         </div>
       </div>
+
+      <section className="workflow-metrics" aria-label="Resumen de pedidos">
+        <article className="workflow-metric">
+          <span>Total de pedidos</span><strong>{allOrders.length}</strong><small>En todos los estados</small>
+        </article>
+        <article className="workflow-metric workflow-metric-warning">
+          <span>Solicitados</span><strong>{requestedOrders.length}</strong><small>Pendientes de recepción</small>
+        </article>
+        <article className="workflow-metric workflow-metric-info">
+          <span>Recepción parcial</span><strong>{partialOrders.length}</strong><small>Pedidos con unidades pendientes</small>
+        </article>
+        <article className="workflow-metric workflow-metric-success">
+          <span>Completados</span><strong>{completedOrders.length}</strong><small>Recepción finalizada</small>
+        </article>
+      </section>
 
       <nav className="filter-tabs">
         {filters.map(f => (
@@ -91,7 +110,7 @@ export default async function PedidosPage({
                     <div className="cell-primary">{order.order_number}</div>
                     <div className="cell-muted">Creado por: {order.creator?.full_name?.split(' ')[0]}</div>
                   </td>
-                  <td>{order.created_at && new Date(order.created_at).toLocaleDateString()}</td>
+                  <td>{order.created_at && new Date(order.created_at).toLocaleDateString('es-CO')}</td>
                   <td className="cell-secondary">{order.supplier?.name}</td>
                   <td><OrderStatusBadge status={order.status} /></td>
                   <td className="cell-right cell-value">${order.total_estimated_value?.toFixed(2) || '0.00'}</td>

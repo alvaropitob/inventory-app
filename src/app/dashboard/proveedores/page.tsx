@@ -42,18 +42,18 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
   const inactiveCount = suppliers.length - activeCount;
 
   return (
-    <div className="dashboard-main" style={{ padding: "1.5rem 2rem", maxWidth: "1600px", margin: "0 auto" }}>
+    <div className="dashboard-main providers-page">
       {/* HEADER */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.75rem", flexWrap: "wrap", gap: "1rem" }}>
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.25rem" }}>
+          <h1 className="page-header-title">
             Directorio de Proveedores
           </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.925rem" }}>
+          <p className="page-header-subtitle">
             Gestión y homologación de aliados comerciales y distribuidores de reactivos clínicos.
           </p>
         </div>
-        <div style={{ display: "flex", gap: "0.75rem" }}>
+        <div className="page-header-actions">
           <Link
             href="/dashboard/proveedores/evaluacion"
             style={{
@@ -133,29 +133,32 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
       )}
 
       {/* KPIS */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "2rem" }}>
-        <div style={{ backgroundColor: "var(--white)", padding: "1.25rem", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}>
-          <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>Total Proveedores</p>
-          <p style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--navy)", marginTop: "0.35rem" }}>{suppliers.length}</p>
+      <div className="workflow-metrics providers-metrics" aria-label="Resumen de proveedores">
+        <div className="workflow-metric">
+          <span>Total de proveedores</span>
+          <strong>{suppliers.length}</strong>
+          <small>Registrados en el directorio</small>
         </div>
-        <div style={{ backgroundColor: "var(--white)", padding: "1.25rem", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}>
-          <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>Activos / Calificados</p>
-          <p style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--success)", marginTop: "0.35rem" }}>{activeCount}</p>
+        <div className="workflow-metric workflow-metric-success">
+          <span>Proveedores activos</span>
+          <strong>{activeCount}</strong>
+          <small>Disponibles para pedidos</small>
         </div>
-        <div style={{ backgroundColor: "var(--white)", padding: "1.25rem", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}>
-          <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>Inactivos</p>
-          <p style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--text-subtle)", marginTop: "0.35rem" }}>{inactiveCount}</p>
+        <div className="workflow-metric workflow-metric-neutral">
+          <span>Inactivos</span>
+          <strong>{inactiveCount}</strong>
+          <small>Fuera de selección para pedidos</small>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "2rem", alignItems: "start" }}>
+      <div className="providers-layout">
         {/* LISTADO Y BÚSQUEDA */}
         <div style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
           <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
             <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--navy)" }}>
               Lista de Proveedores Registrados ({filteredSuppliers.length})
             </h2>
-            <form method="get" style={{ display: "flex", gap: "0.5rem" }}>
+            <form method="get" className="providers-search">
               <input
                 type="text"
                 name="search"
@@ -294,14 +297,8 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
 
         {/* FORMULARIO LATERAL (CREAR / EDITAR) */}
         <div
+          className="providers-form-card"
           id="formulario-proveedor"
-          style={{
-            backgroundColor: "var(--white)",
-            borderRadius: "var(--radius)",
-            border: "1px solid var(--border)",
-            padding: "1.5rem",
-            boxShadow: "var(--shadow-sm)",
-          }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.75rem" }}>
             <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--navy)" }}>
@@ -375,7 +372,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div className="provider-contact-grid">
               <div>
                 <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--navy)", marginBottom: "0.35rem" }}>
                   Teléfono

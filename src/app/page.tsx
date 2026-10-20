@@ -10,10 +10,12 @@ export default async function Home() {
 
   if (!url || !key) {
     return (
-      <div style={{ padding: "50px", textAlign: "center", fontFamily: "sans-serif", color: "red" }}>
-        <h1>Error de Configuración</h1>
-        <p>No se encontraron las variables de entorno en Vercel.</p>
-        <p>Asegúrate de haber añadido <b>NEXT_PUBLIC_SUPABASE_URL</b> y <b>NEXT_PUBLIC_SUPABASE_ANON_KEY</b> en los Settings de Vercel.</p>
+      <div className="system-message-page system-message-error">
+        <section className="system-message-card">
+        <h1>Error de configuración</h1>
+        <p>No se encontraron las variables de entorno necesarias para conectar con Supabase.</p>
+        <p>Configura <b>NEXT_PUBLIC_SUPABASE_URL</b> y <b>NEXT_PUBLIC_SUPABASE_ANON_KEY</b> en el entorno de ejecución.</p>
+        </section>
       </div>
     );
   }
@@ -30,10 +32,12 @@ export default async function Home() {
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : JSON.stringify(e);
     return (
-      <div style={{ padding: "50px", textAlign: "center", fontFamily: "sans-serif", color: "orange" }}>
-        <h1>Error de Conexión con Supabase</h1>
+      <div className="system-message-page system-message-warning">
+        <section className="system-message-card">
+        <h1>Error de conexión</h1>
         <p>No se pudo verificar la sesión. Revisa que el proyecto de Supabase esté ACTIVO.</p>
-        <pre style={{ background: "#eee", padding: "10px" }}>{message}</pre>
+        <pre>{message}</pre>
+        </section>
       </div>
     );
   }

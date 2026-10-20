@@ -10,6 +10,8 @@ export default async function RecepcionPage() {
     const pendingOrders = (allOrders || []).filter(
       o => o.status === 'requested' || o.status === 'partially_received'
     );
+    const requestedCount = pendingOrders.filter(order => order.status === 'requested').length;
+    const partialCount = pendingOrders.filter(order => order.status === 'partially_received').length;
 
     return (
       <div className="dashboard-main">
@@ -25,49 +27,64 @@ export default async function RecepcionPage() {
           </div>
         </div>
 
-        <div className="table-card">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>No. Pedido</th>
-                <th>Proveedor</th>
-                <th>Fecha Esperada</th>
-                <th style={{ textAlign: 'center' }}>Estado</th>
-                <th className="cell-right">Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pendingOrders.length > 0 ? (
-                pendingOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="cell-primary">{order.order_number}</td>
-                    <td>{order.supplier?.name || "Sin proveedor asignado"}</td>
-                    <td>{order.expected_delivery_date ? new Date(order.expected_delivery_date).toLocaleDateString() : 'No definida'}</td>
-                    <td style={{ textAlign: 'center' }}>
-                      <span className={`pill-badge ${order.status === 'requested' ? 'pill-blue' : 'pill-amber'}`}>
-                        {order.status === 'requested' ? 'Solicitado' : 'Rec. Parcial'}
-                      </span>
-                    </td>
-                    <td className="cell-right">
-                      <Link
-                        href={`/dashboard/recepcion/${order.id}`}
-                        className="btn-primary"
-                        style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', textDecoration: 'none' }}
-                      >
-                        Iniciar Inspección
-                      </Link>
-                    </td>
+        <section className="workflow-metrics reception-metrics" aria-label="Resumen de recepción">
+          <article className="workflow-metric workflow-metric-info">
+            <span>Órdenes pendientes</span><strong>{pendingOrders.length}</strong><small>Requieren recepción técnica</small>
+          </article>
+          <article className="workflow-metric workflow-metric-warning">
+            <span>Solicitadas</span><strong>{requestedCount}</strong><small>Sin iniciar recepción</small>
+          </article>
+          <article className="workflow-metric">
+            <span>Recepción parcial</span><strong>{partialCount}</strong><small>Con cantidades por completar</small>
+          </article>
+        </section>
+
+        <div className="table-card reception-table-card">
+          <div className="table-responsive">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>No. Pedido</th>
+                    <th>Proveedor</th>
+                    <th>Fecha Esperada</th>
+                    <th style={{ textAlign: 'center' }}>Estado</th>
+                    <th className="cell-right">Acción</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    No hay pedidos pendientes de recepción técnica.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {pendingOrders.length > 0 ? (
+                    pendingOrders.map((order) => (
+                      <tr key={order.id}>
+                        <td className="cell-primary">{order.order_number}</td>
+                        <td>{order.supplier?.name || "Sin proveedor asignado"}</td>
+                        <td>{order.expected_delivery_date ? new Date(order.expected_delivery_date).toLocaleDateString('es-CO') : 'No definida'}</td>
+                        <td style={{ textAlign: 'center' }}>
+                          <span className={`pill-badge ${order.status === 'requested' ? 'pill-blue' : 'pill-amber'}`}>
+                            {order.status === 'requested' ? 'Solicitado' : 'Rec. Parcial'}
+                          </span>
+                        </td>
+                        <td className="cell-right">
+                          <Link
+                            href={`/dashboard/recepcion/${order.id}`}
+                            className="btn-primary"
+                            style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', textDecoration: 'none' }}
+                          >
+                            Iniciar Inspección
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="workflow-empty-state">
+                        <strong>Sin recepciones pendientes</strong>
+                        <span>No hay pedidos que requieran inspección técnica.</span>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );

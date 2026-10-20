@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
 export default function RegisterPage() {
@@ -91,19 +92,16 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-container">
-      <div className="auth-card" style={{ maxWidth: '450px' }}>
+      <div className="auth-card register-card">
         <div className="auth-header">
           <div className="auth-logo">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-              <rect width="40" height="40" rx="10" fill="url(#logo-grad-r)" />
-              <path d="M12 28V12h4l4 8 4-8h4v16h-4V19l-4 7-4-7v9h-4z" fill="white" />
-              <defs>
-                <linearGradient id="logo-grad-r" x1="0" y1="0" x2="40" y2="40">
-                  <stop stopColor="#6366f1" />
-                  <stop offset="1" stopColor="#4f46e5" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <Image
+              src="/medicore-clinical-logo.svg"
+              alt="Logotipo MediCore"
+              width={84}
+              height={84}
+              priority
+            />
           </div>
           <h1>Crear Cuenta</h1>
           <p>Únete a la plataforma de gestión clínica</p>
@@ -166,7 +164,7 @@ export default function RegisterPage() {
             />
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="register-password-grid">
             <div className="form-group">
               <label htmlFor="password">Contraseña</label>
               <input

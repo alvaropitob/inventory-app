@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -71,19 +72,16 @@ export default function LoginPage() {
       <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-              <rect width="40" height="40" rx="10" fill="url(#logo-grad)" />
-              <path d="M12 28V12h4l4 8 4-8h4v16h-4V19l-4 7-4-7v9h-4z" fill="white" />
-              <defs>
-                <linearGradient id="logo-grad" x1="0" y1="0" x2="40" y2="40">
-                  <stop stopColor="#6366f1" />
-                  <stop offset="1" stopColor="#4f46e5" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <Image
+              src="/medicore-clinical-logo.svg"
+              alt="Logotipo MediCore"
+              width={84}
+              height={84}
+              priority
+            />
           </div>
           <h1>Bienvenido</h1>
-          <p>Inicia sesión en el portal clínico para continuar</p>
+          <p>Inicia sesión en MediCore para continuar</p>
         </div>
 
         {errorMsg && (

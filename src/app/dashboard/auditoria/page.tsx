@@ -49,7 +49,7 @@ export default async function AuditoriaPage() {
             <tbody>
               {logs?.map((log) => (
                 <tr key={log.id}>
-                  <td>{new Date(log.created_at).toLocaleString()}</td>
+                  <td>{new Date(log.created_at).toLocaleString('es-CO')}</td>
                   <td>
                     <strong>{log.user?.full_name || log.user?.username || 'Sistema'}</strong>
                   </td>

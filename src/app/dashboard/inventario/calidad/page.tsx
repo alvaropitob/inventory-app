@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { ComplianceService } from "@/lib/services/compliance";
 import VerificationForm from "./VerificationForm";
@@ -21,9 +22,14 @@ export default async function CalidadPage() {
           <h1 className="page-header-title">Verificación de Calidad</h1>
           <p className="page-header-subtitle">Liberación técnica de insumos en cuarentena para uso clínico.</p>
         </div>
+        <div className="page-header-actions">
+          <Link href="/dashboard/inventario?view=stock" className="btn-secondary quality-stock-link">
+            Ver stock actual
+          </Link>
+        </div>
       </div>
 
-      <div className="table-card">
+      <div className="table-card quality-table-card">
         <div className="card-section-header">
           <h2 className="card-section-title">Lotes Pendientes de Verificación</h2>
           <span className="badge-pending">{pendingBatches.length} pendientes</span>
@@ -42,7 +48,7 @@ export default async function CalidadPage() {
             <tbody>
               {pendingBatches.map((batch) => (
                 <tr key={batch.id}>
-                  <td>{new Date(batch.created_at).toLocaleDateString()}</td>
+                  <td>{new Date(batch.created_at).toLocaleDateString("es-CO")}</td>
                   <td>
                     <div className="cell-primary">{batch.item?.technical_name}</div>
                     <div className="cell-muted">{batch.item?.internal_code}</div>
@@ -68,9 +74,9 @@ export default async function CalidadPage() {
               ))}
               {pendingBatches.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>✨</div>
-                    No hay lotes en cuarentena pendientes de verificación.
+                  <td colSpan={4} className="quality-empty-state">
+                    <strong>Cola de verificación vacía</strong>
+                    <span>No hay lotes en cuarentena pendientes de verificación.</span>
                   </td>
                 </tr>
               )}

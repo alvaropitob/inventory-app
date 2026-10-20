@@ -231,22 +231,22 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   ];
 
   return (
-    <div className="dashboard-main" style={{ padding: "1.5rem 2rem", maxWidth: "1600px", margin: "0 auto" }}>
+    <div className="dashboard-main reports-page">
       {/* HEADER DE REPORTE */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.75rem", flexWrap: "wrap", gap: "1rem" }}>
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.25rem" }}>
+          <h1 className="page-header-title">
             Centro de Reportes y Auditoría
           </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.925rem" }}>
+          <p className="page-header-subtitle">
             Informes oficiales para cumplimiento de Resolución 3100 de 2019, ISO 15189 y trazabilidad INVIMA.
           </p>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: "1.75rem", alignItems: "start" }}>
+      <div className="reports-layout" style={{ display: "grid", gap: "1rem", alignItems: "start" }}>
         {/* NAVEGACIÓN LATERAL DE REPORTES */}
-        <div style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", padding: "1.25rem", boxShadow: "var(--shadow-sm)" }}>
+        <div className="reports-nav-card" style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", padding: "1.25rem", boxShadow: "var(--shadow-sm)" }}>
           <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.75rem" }}>
             Tipos de Reporte
           </h2>
@@ -274,7 +274,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
         </div>
 
         {/* CONTENIDO DEL REPORTE SELECCIONADO */}
-        <div style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
+        <div className="reports-content-card" style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
           
           {/* TAB 1: RESUMEN NORMATIVO */}
           {type === "resumen" && (

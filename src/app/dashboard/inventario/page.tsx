@@ -112,7 +112,6 @@ export default async function InventarioPage({
     { data: allMovements }
   ] = await Promise.all([
     CatalogService.getCatalogItems(),
-    CatalogService.getCategories(),
     CatalogService.getSections(),
     CatalogService.getSuppliers(),
     CatalogService.getLocations(),
@@ -134,6 +133,15 @@ export default async function InventarioPage({
   }
 
   const currentView = view || "entradas";
+  const activeBatches = (allBatches || []).filter((batch: Batch) => batch.current_stock > 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysUntilExpiry = (batch: Batch) =>
+    Math.ceil((new Date(`${batch.expiration_date}T00:00:00`).getTime() - today.getTime()) / 86_400_000);
+  const criticalExpiryCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) <= 15).length;
+  const warningExpiryCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) > 15 && daysUntilExpiry(batch) <= 45).length;
+  const validBatchCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) > 45).length;
+  const quarantineBatchCount = activeBatches.filter((batch: Batch) => batch.clinical_status === 'quarantine').length;
 
   const productIdsWithStock = new Set(allBatches?.map((b: Batch) => b.item_id) || []);
   const catalogWithEntries = catalogItems?.filter((item: CatalogItem) => productIdsWithStock.has(item.id)) || [];
@@ -149,9 +157,32 @@ export default async function InventarioPage({
   return (
     <div className="dashboard-main">
       <div className="welcome-section">
-        <h1>Gestión de Inventario</h1>
+        <h1 className="page-header-title">Gestión de Inventario</h1>
         <p>Control de entradas, salidas y existencias del laboratorio.</p>
       </div>
+
+      <section className="inventory-metrics" aria-label="Resumen de lotes activos">
+        <article className="inventory-metric inventory-metric-critical">
+          <span className="inventory-metric-label">Vencimiento crítico</span>
+          <strong>{criticalExpiryCount} lotes</strong>
+          <span className="inventory-metric-note">Vencidos o vencen en 15 días</span>
+        </article>
+        <article className="inventory-metric inventory-metric-warning">
+          <span className="inventory-metric-label">Alerta FEFO</span>
+          <strong>{warningExpiryCount} lotes</strong>
+          <span className="inventory-metric-note">Vencen entre 16 y 45 días</span>
+        </article>
+        <article className="inventory-metric inventory-metric-success">
+          <span className="inventory-metric-label">Lotes vigentes</span>
+          <strong>{validBatchCount} lotes</strong>
+          <span className="inventory-metric-note">Más de 45 días de vigencia</span>
+        </article>
+        <article className="inventory-metric inventory-metric-neutral">
+          <span className="inventory-metric-label">En cuarentena</span>
+          <strong>{quarantineBatchCount} lotes</strong>
+          <span className="inventory-metric-note">Pendientes de liberación técnica</span>
+        </article>
+      </section>
 
       {/* Tab Navigation */}
       <nav className="tabs-nav">

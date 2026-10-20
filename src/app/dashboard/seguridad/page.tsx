@@ -48,7 +48,7 @@ export default async function SeguridadPage() {
             <tbody>
               {incidents.map((incident) => (
                 <tr key={incident.id} style={{ background: incident.incident_type === 'recall' ? '#fff1f2' : 'transparent' }}>
-                  <td>{new Date(incident.reported_at).toLocaleDateString()}</td>
+                  <td>{new Date(incident.reported_at).toLocaleDateString('es-CO')}</td>
                   <td><IncidentTypeBadge type={incident.incident_type} /></td>
                   <td>
                     <div className="cell-primary">{incident.batch?.item?.technical_name}</div>
@@ -60,9 +60,9 @@ export default async function SeguridadPage() {
               ))}
               {incidents.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🛡️</div>
-                    No se han registrado incidentes de seguridad.
+                  <td colSpan={5} className="workflow-empty-state">
+                    <strong>Sin incidentes registrados</strong>
+                    <span>No se han registrado incidentes de seguridad.</span>
                   </td>
                 </tr>
               )}

@@ -12,7 +12,7 @@ export default async function EquipmentPage() {
 
   return (
     <div className="dashboard-main">
-      <div className="page-header" style={{ marginBottom: '2rem' }}>
+      <div className="page-header">
         <div>
           <h1 className="page-header-title">Gestión de Equipos y Analizadores</h1>
           <p className="page-header-subtitle">Hoja de vida técnica y control de mantenimiento (ISO 15189)</p>

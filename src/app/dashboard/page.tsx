@@ -97,8 +97,29 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      <section
+        className={`dashboard-alert ${totalAlerts > 0 ? "dashboard-alert-critical" : "dashboard-alert-ok"}`}
+        role={totalAlerts > 0 ? "alert" : "status"}
+        aria-live="polite"
+      >
+        <div className="dashboard-alert-indicator" aria-hidden="true">
+          {totalAlerts > 0 ? "!" : "✓"}
+        </div>
+        <div className="dashboard-alert-copy">
+          <strong>{totalAlerts > 0 ? `${totalAlerts} alertas requieren revisión` : "Inventario dentro de parámetros"}</strong>
+          <span>
+            {totalAlerts > 0
+              ? `${criticalStockCount} productos bajo el mínimo y ${criticalExpiry} lotes vencidos.`
+              : "No se detectan productos bajo el mínimo ni lotes vencidos."}
+          </span>
+        </div>
+        <Link href="/dashboard/inventario" className="dashboard-alert-link">
+          Revisar inventario <span aria-hidden="true">→</span>
+        </Link>
+      </section>
+
       {/* KPI Cards */}
-      <div className="kpi-grid stagger-in">
+      <div className="kpi-grid dashboard-kpi-grid stagger-in">
         <div className="kpi-card">
           <div className="kpi-card-header">
             <h3 className="kpi-card-label">Valor del Inventario</h3>

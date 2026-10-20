@@ -48,15 +48,16 @@ export default async function EvaluacionProveedoresPage() {
               <tbody>
                 {evaluations.map((ev) => (
                   <tr key={ev.id}>
-                    <td>{new Date(ev.evaluation_date).toLocaleDateString()}</td>
+                    <td>{new Date(ev.evaluation_date).toLocaleDateString("es-CO")}</td>
                     <td className="cell-primary">{ev.supplier?.name}</td>
                     <td className="cell-center"><ScoreBadge score={ev.total_score} /></td>
                   </tr>
                 ))}
                 {evaluations.length === 0 && (
                   <tr>
-                    <td colSpan={3} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      No hay evaluaciones registradas.
+                    <td colSpan={3} className="workflow-empty-state">
+                      <strong>Sin evaluaciones registradas</strong>
+                      <span>Las evaluaciones guardadas aparecerán en esta lista.</span>
                     </td>
                   </tr>
                 )}
@@ -80,7 +81,7 @@ export default async function EvaluacionProveedoresPage() {
               </select>
             </div>
 
-            <div className="form-grid-2" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+            <div className="form-grid-2 supplier-eval-scores">
               <div>
                 <label className="form-label">Calidad (1-5)</label>
                 <input className="form-input" type="number" name="criteria_quality" min="1" max="5" defaultValue="5" required style={{ textAlign: 'center' }} />

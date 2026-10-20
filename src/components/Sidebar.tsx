@@ -216,8 +216,8 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
       <motion.aside 
         initial={false}
         animate={{ 
-          width: isExpanded ? 280 : 80,
-          left: isMobileOpen ? 0 : (typeof window !== 'undefined' && window.innerWidth <= 768 ? -280 : 0)
+          width: isExpanded ? 248 : 72,
+          left: isMobileOpen ? 0 : (typeof window !== 'undefined' && window.innerWidth <= 768 ? -300 : 0)
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={`sidebar ${isExpanded ? "sidebar-expanded" : ""} ${isMobileOpen ? "sidebar-mobile-open" : ""}`}
@@ -248,7 +248,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
             </svg>
           </button>
           
-          <span className="sidebar-logo-text">Portal Clínico</span>
+          <Link href="/dashboard" className="sidebar-logo-text" aria-label="MediCore, inicio"><span className="sidebar-brand-mark">MC</span><span className="sidebar-brand-copy">MediCore <small>Inventario clínico</small></span></Link>
         </div>
 
         <nav className="sidebar-nav">
@@ -262,9 +262,10 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                 <div style={{ position: 'relative' }}>
                   <Link
                     href={item.href}
-                    className={`nav-item ${isActive ? "active" : ""}`}
+                    className={`nav-item ${hasSubItems ? "nav-item-parent" : ""} ${isActive ? "active" : ""}`}
+                    aria-current={isActive ? "page" : undefined}
                     onClick={() => {
-                      if (typeof window !== 'undefined' && window.innerWidth <= 768 && !hasSubItems && onClose) onClose();
+                      if (typeof window !== 'undefined' && window.innerWidth <= 768 && onClose) onClose();
                     }}
                   >
                     <div className="nav-icon">{item.icon}</div>
@@ -273,7 +274,12 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                   
                   {hasSubItems && (isExpanded || isMobileOpen) && (
                     <button
+                      type="button"
                       onClick={(e) => toggleMenu(item.name, e)}
+                      className="sidebar-submenu-toggle"
+                      aria-label={`${isOpen ? "Contraer" : "Expandir"} ${item.name}`}
+                      aria-expanded={isOpen}
+                      aria-controls={`sidebar-submenu-${item.href.replace(/[/?=]/g, "-")}`}
                       style={{
                         position: 'absolute',
                         right: '8px',
@@ -303,7 +309,8 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                 
                 <AnimatePresence>
                   {hasSubItems && (isExpanded || isMobileOpen) && isOpen && (
-                    <motion.div 
+                      <motion.div
+                      id={`sidebar-submenu-${item.href.replace(/[/?=]/g, "-")}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
@@ -315,6 +322,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                           key={sub.href} 
                           href={sub.href} 
                           className={`sub-nav-item ${fullPath === sub.href ? "active-sub" : ""}`}
+                          aria-current={fullPath === sub.href ? "page" : undefined}
                           onClick={() => {
                             if (typeof window !== 'undefined' && window.innerWidth <= 768 && onClose) onClose();
                           }}

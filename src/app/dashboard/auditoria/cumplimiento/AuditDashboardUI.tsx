@@ -52,8 +52,7 @@ export default function AuditDashboardUI({ data }: Props) {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="stats-grid"
-        style={{ marginBottom: '3rem' }}
+        className="stats-grid audit-stats-grid"
       >
         <motion.div variants={itemVariants} className="stat-card kpi-accent-primary">
           <div className="stat-icon stat-icon-primary">⚙️</div>
@@ -136,7 +135,7 @@ export default function AuditDashboardUI({ data }: Props) {
           </div>
           <h2 className="sentinel-title">Estatus Audit-Ready</h2>
           <p className="sentinel-desc">
-            Su laboratorio cumple con el 96.4% de los puntos de control para Habilitación.
+            Su laboratorio cumple con el {data.complianceIndex}% de los puntos de control para Habilitación.
           </p>
           <Link href="/dashboard/auditoria/checklist" className="btn-primary btn-block">
             Ver Checklist de Cumplimiento
