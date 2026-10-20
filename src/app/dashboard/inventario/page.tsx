@@ -10,7 +10,7 @@ import ContextualHelp from "@/components/ContextualHelp";
 import * as Actions from "./actions";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ClinicalOutputForm from "@/components/ClinicalOutputForm";
-import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, ClipboardList, FileText, Package, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Boxes, ClipboardList, FileText, History, Package, PackagePlus, Trash2, X } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -186,20 +186,22 @@ export default async function InventarioPage({
       </section>
 
       {/* Tab Navigation */}
-      <nav className="tabs-nav">
+      <nav className="tabs-nav inventory-tabs-nav" aria-label="Secciones de inventario">
         {[
-          { key: 'entradas',    label: 'Entrada de Productos' },
-          { key: 'stock',       label: 'Stock Actual' },
-          { key: 'salidas',     label: 'Salida de Productos' },
-          { key: 'traslados',   label: 'Traslados Internos' },
-          { key: 'bajas',       label: 'Bajas y Disposición Final' },
-          { key: 'movimientos', label: 'Kardex (Historial)' },
+          { key: 'entradas', label: 'Entradas', icon: <PackagePlus className="ui-icon" aria-hidden="true" /> },
+          { key: 'stock', label: 'Stock', icon: <Boxes className="ui-icon" aria-hidden="true" /> },
+          { key: 'salidas', label: 'Salidas', icon: <ArrowUpFromLine className="ui-icon" aria-hidden="true" /> },
+          { key: 'traslados', label: 'Traslados', icon: <ArrowLeftRight className="ui-icon" aria-hidden="true" /> },
+          { key: 'bajas', label: 'Bajas', icon: <Trash2 className="ui-icon" aria-hidden="true" /> },
+          { key: 'movimientos', label: 'Kardex', icon: <History className="ui-icon" aria-hidden="true" /> },
         ].map(tab => (
           <a
             key={tab.key}
             href={`?view=${tab.key}`}
             className={`tab-link ${currentView === tab.key ? 'tab-link-active' : ''}`}
+            aria-current={currentView === tab.key ? 'page' : undefined}
           >
+            {tab.icon}
             {tab.label}
           </a>
         ))}

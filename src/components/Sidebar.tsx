@@ -112,8 +112,8 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
       ),
       show: true,
       subItems: [
-        { name: "Directorio de Proveedores", href: "/dashboard/proveedores" },
-        { name: "Evaluación de Desempeño", href: "/dashboard/proveedores/evaluacion" },
+        { name: "Directorio", href: "/dashboard/proveedores" },
+        { name: "Evaluación", href: "/dashboard/proveedores/evaluacion" },
       ]
     },
     {
@@ -328,7 +328,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className="sub-nav"
+                      className={`sub-nav ${item.name === "Proveedores" ? "sub-nav-providers" : ""}`}
                     >
                       {item.subItems?.map(sub => (
                         <Link 

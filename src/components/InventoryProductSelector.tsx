@@ -31,7 +31,7 @@ export default function InventoryProductSelector({
     <div style={{ padding: '1.5rem', background: 'var(--primary-light)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
       <label style={{ fontSize: '0.875rem', fontWeight: '700', color: 'var(--primary)' }}>Buscar Producto Existente:</label>
       <select 
-        style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'white' }}
+        style={{ flex: 1, padding: '0.375rem 0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'white' }}
         onChange={handleChange}
         value={currentId || ""}
       >

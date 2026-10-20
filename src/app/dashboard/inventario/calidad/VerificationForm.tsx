@@ -25,7 +25,7 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
             content="Según ISO 15189, la liberación técnica requiere que los controles de calidad estén dentro de los rangos establecidos. 'Pasar' moverá el lote de Cuarentena a Aceptado." 
           />
         </label>
-        <select name="result" required style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
+        <select name="result" required style={{ width: '100%', padding: '0.375rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
           <option value="pass">Aprobado (Liberar para uso)</option>
           <option value="fail">Fallido (Rechazar lote)</option>
         </select>

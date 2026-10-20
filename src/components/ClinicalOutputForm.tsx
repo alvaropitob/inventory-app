@@ -255,7 +255,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
               required
               style={{
                 width: "100%",
-                padding: "0.65rem 0.85rem",
+                padding: "0.375rem 0.75rem",
                 borderRadius: "8px",
                 border: isFefoDeviated ? "2px solid #f59e0b" : "1px solid var(--border)",
                 fontSize: "0.9rem",
@@ -337,7 +337,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
                   required
                   style={{
                     width: "100%",
-                    padding: "0.65rem 0.85rem",
+                    padding: "0.375rem 0.75rem",
                     borderRadius: "8px",
                     border: "1px solid var(--border)",
                     fontSize: "0.9rem",

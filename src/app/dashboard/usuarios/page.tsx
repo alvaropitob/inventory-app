@@ -129,7 +129,7 @@ export default async function UsuariosPage() {
                     <td>
                       <form action={updateRole} className="action-group">
                         <input type="hidden" name="userId" value={u.id} />
-                        <select name="roleId" defaultValue={primaryRole?.id} className="form-select" style={{ width: 'auto', padding: '0.5rem 2rem 0.5rem 0.75rem' }}>
+                        <select name="roleId" defaultValue={primaryRole?.id} className="form-select" style={{ width: 'auto' }}>
                           {roles?.map((r: { id: string; name: string }) => (
                             <option key={r.id} value={r.id}>{r.name.toUpperCase()}</option>
                           ))}
