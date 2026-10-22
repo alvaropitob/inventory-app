@@ -1,6 +1,7 @@
 import { OrderService } from "@/lib/services/orders";
 import TechnicalReceptionForm from "@/components/TechnicalReceptionForm";
 import { notFound } from "next/navigation";
+import { CatalogService } from "@/lib/services/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,10 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
   const { id } = await params;
 
   try {
-    const order = await OrderService.getOrderById(id);
+    const [order, locationsResponse] = await Promise.all([
+      OrderService.getOrderById(id),
+      CatalogService.getLocations(),
+    ]);
 
     if (!order) {
       notFound();
@@ -28,8 +32,10 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
           internal_code: item.catalog_item?.internal_code || "N/A",
           technical_name: item.catalog_item?.technical_name || "Desconocido",
           commercial_name: item.catalog_item?.commercial_name || "",
+          section_id: item.catalog_item?.section_id || null,
         },
         quantity_requested: item.quantity_requested,
+        quantity_received: item.quantity_received || 0,
         estimated_unit_price: item.estimated_unit_price || 0,
       })),
     };
@@ -44,7 +50,7 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
         </div>
 
         <div className="form-card">
-          <TechnicalReceptionForm order={formattedOrder} />
+          <TechnicalReceptionForm order={formattedOrder} locations={locationsResponse.data || []} />
         </div>
       </div>
     );

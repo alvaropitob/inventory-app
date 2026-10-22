@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 describe('Initial Setup Verification', () => {
   it('should pass a basic sanity check', () => {

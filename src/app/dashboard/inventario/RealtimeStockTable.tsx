@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
 
 interface Batch {
   id: string;
   item_id: string;
   batch_number: string;
   expiration_date: string;
+  adjusted_expiration_date?: string | null;
   current_stock: number;
-  item?: { technical_name: string; commercial_name: string; internal_code: string; minimum_stock_threshold?: number } | null;
-  location?: { name: string } | null;
+  item?: { technical_name: string; commercial_name: string; internal_code: string; minimum_stock_threshold?: number; maximum_stock_threshold?: number | null; section_id?: string; sections?: { name: string } | null } | null;
+  location?: { name: string; section_id?: string | null } | null;
   clinical_status?: string;
 }
 
@@ -19,13 +21,15 @@ interface GroupedItem {
   commercial_name: string;
   internal_code: string;
   minimum_stock_threshold?: number;
+  maximum_stock_threshold?: number | null;
   id: string;
   totalStock: number;
   itemBatches: Batch[];
 }
 
-export default function RealtimeStockTable({ initialBatches }: { initialBatches: Batch[] }) {
+export default function RealtimeStockTable({ initialBatches, sections = [] }: { initialBatches: Batch[]; sections?: { id: string; name: string }[] }) {
   const [batches, setBatches] = useState(initialBatches);
+  const [selectedSection, setSelectedSection] = useState("all");
   const supabase = createClient();
 
   useEffect(() => {
@@ -57,7 +61,10 @@ export default function RealtimeStockTable({ initialBatches }: { initialBatches:
   }, [supabase]);
 
   // Grouping logic (simplified)
-  const groupedStock = batches.reduce((acc: Record<string, GroupedItem>, batch) => {
+  const visibleBatches = selectedSection === "all" ? batches : batches.filter(batch =>
+    (batch.location?.section_id || batch.item?.section_id) === selectedSection
+  );
+  const groupedStock = visibleBatches.reduce((acc: Record<string, GroupedItem>, batch) => {
     const itemId = batch.item_id;
     if (!acc[itemId]) {
       acc[itemId] = {
@@ -66,11 +73,12 @@ export default function RealtimeStockTable({ initialBatches }: { initialBatches:
         internal_code: batch.item?.internal_code || '',
         minimum_stock_threshold: batch.item?.minimum_stock_threshold,
         id: itemId,
+        maximum_stock_threshold: batch.item?.maximum_stock_threshold,
         totalStock: 0,
         itemBatches: []
       };
     }
-    acc[itemId].totalStock += batch.current_stock;
+    if (batch.clinical_status === "accepted" && batch.current_stock > 0 && (batch.adjusted_expiration_date || batch.expiration_date) >= getDateKeyInBusinessTimeZone(new Date())) acc[itemId].totalStock += batch.current_stock;
     acc[itemId].itemBatches.push(batch);
     return acc;
   }, {});
@@ -81,6 +89,10 @@ export default function RealtimeStockTable({ initialBatches }: { initialBatches:
 
   return (
     <div className="table-responsive">
+      <nav className="tabs-nav" aria-label="Filtrar stock por área" style={{ marginBottom: '1rem' }}>
+        <button type="button" className={`tab-link ${selectedSection === "all" ? "tab-link-active" : ""}`} onClick={() => setSelectedSection("all")}>Todas las áreas</button>
+        {sections.map(section => <button type="button" key={section.id} className={`tab-link ${selectedSection === section.id ? "tab-link-active" : ""}`} onClick={() => setSelectedSection(section.id)}>{section.name}</button>)}
+      </nav>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
@@ -95,6 +107,7 @@ export default function RealtimeStockTable({ initialBatches }: { initialBatches:
           {sortedStock.map((item: GroupedItem) => {
             const isLowStock = item.totalStock <= (item.minimum_stock_threshold || 10);
             const isOutOfStock = item.totalStock === 0;
+            const isOverStock = item.maximum_stock_threshold != null && item.totalStock > item.maximum_stock_threshold;
             
             return (
               <tr key={item.id} style={{ borderBottom: '1px solid var(--border)', background: isOutOfStock ? '#fff1f2' : 'transparent' }}>
@@ -107,7 +120,7 @@ export default function RealtimeStockTable({ initialBatches }: { initialBatches:
                   <span style={{ 
                     fontSize: '1.25rem', 
                     fontWeight: '800', 
-                    color: isOutOfStock ? 'var(--error)' : isLowStock ? 'var(--warning)' : 'var(--success)' 
+                    color: isOutOfStock || isOverStock ? 'var(--error)' : isLowStock ? 'var(--warning)' : 'var(--success)'
                   }}>
                     {item.totalStock}
                   </span>
@@ -116,13 +129,15 @@ export default function RealtimeStockTable({ initialBatches }: { initialBatches:
                   {item.itemBatches.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => (
                     <div key={b.id} style={{ marginBottom: '0.4rem', padding: '0.4rem', background: 'rgba(0,0,0,0.02)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
                       <span>{b.batch_number}: <strong>{b.current_stock}</strong></span>
-                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Vence: {new Date(b.expiration_date).toLocaleDateString()}</span>
+                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{b.location?.name || "Sin ubicación"} · Vence: {new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString()}</span>
                     </div>
                   ))}
                 </td>
                 <td style={{ padding: '1rem', textAlign: 'center' }}>
                     {isOutOfStock ? (
                       <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fee2e2', color: '#991b1b' }}>AGOTADO</span>
+                    ) : isOverStock ? (
+                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fee2e2', color: '#991b1b' }}>SOBRE MÁXIMO</span>
                     ) : isLowStock ? (
                       <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fef3c7', color: '#92400e' }}>BAJO</span>
                     ) : (

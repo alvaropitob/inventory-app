@@ -4,19 +4,19 @@ import { CatalogService } from "@/lib/services/catalog";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/supabase/authorization";
+import { validateCatalogProduct } from "@/lib/validation/catalog";
 
 export async function handleSectionAction(formData: FormData) {
   await requireRole(["admin"]);
   const name = formData.get("name") as string;
   const desc = formData.get("description") as string;
-  const category_id = formData.get("category_id") as string;
   const id = formData.get("id") as string;
   
   await CatalogService.upsertSection({ 
     id: id || undefined, 
     name, 
     description: desc,
-    category_id: category_id || null
+    category_id: null
   });
   revalidatePath("/dashboard/configuracion");
   if (id) redirect(`/dashboard/configuracion?tab=secciones`);
@@ -64,6 +64,33 @@ export async function handleCatalogAction(formData: FormData) {
   await requireRole(["admin", "supervisor"]);
   const id = formData.get("id") as string;
   const sectionId = formData.get("section_id") as string;
+  const productType = String(formData.get("product_type") || "");
+  const productTypes = ["medicamento", "dispositivo_medico", "reactivo", "insumo"];
+  if (!productTypes.includes(productType)) throw new Error("Selecciona un tipo de producto válido.");
+
+  const readText = (field: string) => String(formData.get(field) || "").trim();
+  const validationError = validateCatalogProduct(Object.fromEntries([
+    "product_type", "internal_code", "technical_name", "purchase_unit", "commercial_presentation",
+    "active_ingredient", "dosage_form", "concentration", "sanitary_registration", "brand",
+    "shelf_life", "series", "product_description", "risk_classification", "supplier_id",
+  ].map(field => [field, readText(field)])));
+  if (validationError) throw new Error(validationError);
+  const riskClassification = readText("risk_classification");
+  const riskClassifications = ["I", "II", "IIA", "IIB", "III", "not_applicable"] as const;
+  if (["dispositivo_medico", "reactivo", "insumo"].includes(productType) &&
+      !riskClassifications.includes(riskClassification as typeof riskClassifications[number])) {
+    throw new Error("Selecciona una clasificación de riesgo válida.");
+  }
+  if (riskClassification && !riskClassifications.includes(riskClassification as typeof riskClassifications[number])) {
+    throw new Error("La clasificación de riesgo no es válida.");
+  }
+  const minimumStock = Number(formData.get("minimum_stock_threshold")) || 0;
+  const rawMaximumStock = String(formData.get("maximum_stock_threshold") ?? "").trim();
+  const maximumStock = rawMaximumStock ? Number(rawMaximumStock) : null;
+  if (!Number.isSafeInteger(minimumStock) || minimumStock < 0 ||
+      (maximumStock !== null && (!Number.isSafeInteger(maximumStock) || maximumStock < minimumStock))) {
+    redirect(`/dashboard/configuracion?tab=productos&error=${encodeURIComponent("El stock mínimo debe ser entero no negativo y el máximo debe ser mayor o igual al mínimo.")}`);
+  }
   
   let category_id = null;
   if (sectionId) {
@@ -77,10 +104,23 @@ export async function handleCatalogAction(formData: FormData) {
     internal_code: formData.get("internal_code") as string,
     technical_name: formData.get("technical_name") as string,
     commercial_name: (formData.get("commercial_name") as string) || null,
+    supplier_id: readText("supplier_id") && readText("supplier_id") !== "not_applicable" ? readText("supplier_id") : null,
     category_id: category_id,
     section_id: sectionId || null,
     purchase_unit: (formData.get("purchase_unit") as string) || "N/A",
-    minimum_stock_threshold: Number(formData.get("minimum_stock_threshold")) || 0,
+    product_type: productType as "medicamento" | "dispositivo_medico" | "reactivo" | "insumo",
+    series: readText("series") || null,
+    brand: readText("brand") || null,
+    product_description: readText("product_description") || null,
+    active_ingredient: readText("active_ingredient") || null,
+    dosage_form: readText("dosage_form") || null,
+    concentration: readText("concentration") || null,
+    commercial_presentation: readText("commercial_presentation") || null,
+    sanitary_registration: readText("sanitary_registration") || null,
+    risk_classification: (riskClassification || null) as typeof riskClassifications[number] | null,
+    shelf_life: readText("shelf_life") || null,
+    minimum_stock_threshold: minimumStock,
+    maximum_stock_threshold: maximumStock,
     estimated_unit_price: Number(formData.get("estimated_unit_price")) || 0,
   };
 

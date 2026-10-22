@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { parseGS1Barcode } from "@/lib/utils/gs1";
+import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
 import { AlertTriangle, ArrowUpFromLine, CheckCircle2, FlaskConical, ScanLine } from "lucide-react";
 
 interface CatalogItem {
@@ -10,6 +11,8 @@ interface CatalogItem {
   technical_name: string;
   commercial_name?: string | null;
   purchase_unit?: string | null;
+  commercial_presentation?: string | null;
+  section_id?: string | null;
   stability_post_opening?: number | null; // horas
 }
 
@@ -21,10 +24,12 @@ interface Batch {
   adjusted_expiration_date?: string | null;
   opening_date?: string | null;
   current_stock: number;
+  status?: string;
   clinical_status?: string;
   item?: CatalogItem | null;
   catalog_items?: CatalogItem | null;
-  locations?: { name: string } | null;
+  location?: { name: string; section_id?: string | null } | null;
+  locations?: { name: string; section_id?: string | null } | null;
 }
 
 interface Props {
@@ -32,7 +37,8 @@ interface Props {
   action: (formData: FormData) => Promise<void>;
 }
 
-export default function ClinicalOutputForm({ batches, action }: Props) {
+export default function ClinicalOutputForm({ batches, sections = [], action }: Props & { sections?: { id: string; name: string }[] }) {
+  const [selectedSectionId, setSelectedSectionId] = useState("");
   const [barcodeInput, setBarcodeInput] = useState("");
   const [selectedItemId, setSelectedItemId] = useState<string>("");
   const [selectedBatchId, setSelectedBatchId] = useState<string>("");
@@ -45,10 +51,16 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
 
   // Filtrar solo lotes activos y aceptados con stock disponible
   const availableBatches = useMemo(() => {
-    return batches.filter(
-      (b) => b.current_stock > 0 && (b.clinical_status === "accepted" || !b.clinical_status)
+    const today = getDateKeyInBusinessTimeZone(new Date());
+      return batches.filter(
+      (b) => b.current_stock > 0
+        && (b.clinical_status === "accepted" || !b.clinical_status)
+        && (b.status === "accepted" || !b.status)
+        && (b.adjusted_expiration_date || b.expiration_date) >= today
+    ).filter(batch => !selectedSectionId ||
+      ((batch.location || batch.locations)?.section_id || (batch.item || batch.catalog_items)?.section_id) === selectedSectionId
     );
-  }, [batches]);
+  }, [batches, selectedSectionId]);
 
   // Lista única de productos que tienen stock
   const availableProducts = useMemo(() => {
@@ -85,7 +97,9 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
   // Detección de desviación FEFO: el usuario eligió un lote que vence después del primero sugerido
   const isFefoDeviated = useMemo(() => {
     if (!fefoSuggestedBatch || !currentBatch) return false;
-    return currentBatch.id !== fefoSuggestedBatch.id;
+    const selectedExpiration = currentBatch.adjusted_expiration_date || currentBatch.expiration_date;
+    const suggestedExpiration = fefoSuggestedBatch.adjusted_expiration_date || fefoSuggestedBatch.expiration_date;
+    return selectedExpiration > suggestedExpiration;
   }, [fefoSuggestedBatch, currentBatch]);
 
   // Manejar escáner de código de barras GS1-128
@@ -111,7 +125,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
         setSelectedItemId(matchedProduct.id);
         const batchesOfProduct = availableBatches
           .filter((b) => b.item_id === matchedProduct.id)
-          .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
+          .sort((a, b) => new Date(a.adjusted_expiration_date || a.expiration_date).getTime() - new Date(b.adjusted_expiration_date || b.expiration_date).getTime());
         if (batchesOfProduct.length > 0) {
           setSelectedBatchId(batchesOfProduct[0].id);
           setScanMessage(`OK: Producto identificado: ${matchedProduct.technical_name}. Seleccionado lote FEFO.`);
@@ -207,7 +221,18 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
         {/* PASO 1: SELECCIONAR REACTIVO */}
         <div>
           <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
-            1. Seleccionar Reactivo / Dispositivo *
+            Área de inventario
+          </label>
+          <select value={selectedSectionId} onChange={event => {
+            setSelectedSectionId(event.target.value);
+            setSelectedItemId("");
+            setSelectedBatchId("");
+          }} style={{ width: "100%", padding: "0.65rem 0.85rem", marginBottom: "0.85rem" }}>
+            <option value="">Todas las áreas</option>
+            {sections.map(section => <option key={section.id} value={section.id}>{section.name}</option>)}
+          </select>
+          <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+            1. Producto *
           </label>
           <select
             value={selectedItemId}
@@ -216,7 +241,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
               setSelectedItemId(itemId);
               const batchesOfProduct = availableBatches
                 .filter((b) => b.item_id === itemId)
-                .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime());
+                .sort((a, b) => new Date(a.adjusted_expiration_date || a.expiration_date).getTime() - new Date(b.adjusted_expiration_date || b.expiration_date).getTime());
               if (batchesOfProduct.length > 0) {
                 setSelectedBatchId(batchesOfProduct[0].id);
               } else {
@@ -233,10 +258,10 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
               backgroundColor: "#ffffff",
             }}
           >
-            <option value="">-- Seleccione un reactivo del catálogo --</option>
+            <option value="">-- Seleccione un producto del catálogo --</option>
             {availableProducts.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.technical_name} [{p.internal_code}] {p.commercial_name ? `(${p.commercial_name})` : ""}
+                {p.technical_name} [{p.internal_code}] {p.commercial_presentation ? `· ${p.commercial_presentation}` : ""}
               </option>
             ))}
           </select>
@@ -292,7 +317,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
               <span>Advertencia de Desviación FEFO (ISO 15189)</span>
             </div>
             <p style={{ lineHeight: "1.5" }}>
-              Está seleccionando el lote <b>{currentBatch?.batch_number}</b> (Vence: {new Date(currentBatch?.expiration_date || "").toLocaleDateString()}), pero existe el lote <b>{fefoSuggestedBatch.batch_number}</b> que vence primero ({new Date(fefoSuggestedBatch.expiration_date).toLocaleDateString()}).
+              Está seleccionando el lote <b>{currentBatch?.batch_number}</b> (Vence: {new Date(currentBatch?.adjusted_expiration_date || currentBatch?.expiration_date || "").toLocaleDateString()}), pero existe el lote <b>{fefoSuggestedBatch.batch_number}</b> que vence primero ({new Date(fefoSuggestedBatch.adjusted_expiration_date || fefoSuggestedBatch.expiration_date).toLocaleDateString()}).
             </p>
             <p style={{ marginTop: "0.35rem", fontSize: "0.825rem", fontWeight: 600 }}>
               Para continuar, debe justificar clínicamente esta selección:
@@ -322,10 +347,18 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
         {/* PASO 3: CANTIDAD Y MOTIVO */}
         {selectedBatchId && (
           <>
+            <div className="form-grid-2" style={{ padding: "0.85rem", background: "var(--bg-app)", borderRadius: "8px" }}>
+              <div><strong>Producto:</strong> {currentBatch?.item?.technical_name || currentBatch?.catalog_items?.technical_name || "No aplica"}</div>
+              <div><strong>Presentación:</strong> {currentBatch?.item?.commercial_presentation || currentBatch?.catalog_items?.commercial_presentation || "No aplica"}</div>
+              <div><strong>Lote:</strong> {currentBatch?.batch_number || "No aplica"}</div>
+              <div><strong>Cantidad actual:</strong> {currentBatch?.current_stock || 0}</div>
+              <div><strong>Unidad:</strong> {currentBatch?.item?.purchase_unit || currentBatch?.catalog_items?.purchase_unit || "No aplica"}</div>
+              <div><strong>Área / ubicación:</strong> {currentBatch?.location?.name || currentBatch?.locations?.name || "No aplica"}</div>
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
-                  Cantidad a Descontar *
+                  Salida (unidades) *
                 </label>
                 <input
                   type="number"
@@ -344,7 +377,7 @@ export default function ClinicalOutputForm({ batches, action }: Props) {
                   }}
                 />
                 <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  Disponible: {currentBatch?.current_stock || 0} unidades
+                  Disponible: {currentBatch?.current_stock || 0} {currentBatch?.item?.purchase_unit || currentBatch?.catalog_items?.purchase_unit || "unidades"}
                 </span>
               </div>
 

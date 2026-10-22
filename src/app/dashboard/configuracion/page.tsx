@@ -4,6 +4,7 @@ import { CatalogService } from "@/lib/services/catalog";
 import DeleteMasterButton from "@/components/DeleteMasterButton";
 import * as Actions from "./actions";
 import ProductMaintenanceList from "@/components/ProductMaintenanceList";
+import ProductTechnicalFields from "@/components/ProductTechnicalFields";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,20 @@ interface CatalogItem {
   section_id: string;
   purchase_unit: string | null;
   minimum_stock_threshold: number | null;
+  maximum_stock_threshold: number | null;
   estimated_unit_price: number | null;
+  supplier_id: string | null;
+  product_type: "medicamento" | "dispositivo_medico" | "reactivo" | "insumo";
+  series: string | null;
+  brand: string | null;
+  product_description: string | null;
+  active_ingredient: string | null;
+  dosage_form: string | null;
+  concentration: string | null;
+  commercial_presentation: string | null;
+  sanitary_registration: string | null;
+  risk_classification: "I" | "II" | "IIA" | "IIB" | "III" | "not_applicable" | null;
+  shelf_life: string | null;
   is_active: boolean;
 }
 
@@ -105,8 +119,7 @@ export default async function ConfiguracionPage({
   ) : null;
 
   const tabs = [
-    { key: 'categorias',  label: 'Categorias Maestras'           },
-    { key: 'secciones',   label: 'Categorías Inventario'         },
+    { key: 'secciones', label: 'Áreas' },
     { key: 'proveedores', label: 'Proveedores'                   },
     { key: 'productos',   label: 'Productos'                     },
     { key: 'ubicaciones', label: 'Ubicaciones de Almacenamiento' },
@@ -133,21 +146,14 @@ export default async function ConfiguracionPage({
         {activeTab === "secciones" && (
           <div className="form-card">
             <div className="card-section-header">
-              <h2 className="card-section-title">{editingItem ? "Editar Categoría de Inventario" : "Categorías de Inventario"}</h2>
+              <h2 className="card-section-title">{editingItem ? "Editar área" : "Áreas"}</h2>
               {editingItem && <a href="?tab=secciones" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleSectionAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
+            <form action={Actions.handleSectionAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
               <input type="hidden" name="id" value={(editingItem as Section)?.id || ""} />
               <div className="form-group">
-                <label className="form-label">Nombre de Subcategoría</label>
+                <label className="form-label">Nombre del área</label>
                 <input className="form-input" name="name" defaultValue={(editingItem as Section)?.name || ""} required placeholder="Ej: Hematología" />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Categoría Padre</label>
-                <select className="form-select" name="category_id" defaultValue={(editingItem as { category_id?: string })?.category_id || ""}>
-                  <option value="">(Ninguna)</option>
-                  {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
               </div>
               <div className="form-group">
                 <label className="form-label">Descripción</label>
@@ -162,7 +168,6 @@ export default async function ConfiguracionPage({
                 <thead>
                   <tr>
                     <th>Nombre</th>
-                    <th>Categoría Padre</th>
                     <th>Descripción</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -172,7 +177,6 @@ export default async function ConfiguracionPage({
                   {sections?.map((s: Section) => (
                     <tr key={s.id}>
                       <td className="cell-primary">{s.name}</td>
-                      <td><span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>{s.categories?.name || '---'}</span></td>
                       <td className="cell-secondary">{s.description}</td>
                       <td><StatusPill active={s.is_active} /></td>
                       <td>
@@ -185,7 +189,7 @@ export default async function ConfiguracionPage({
                           </form>
                           <DeleteMasterButton
                             onDelete={Actions.handleDelete.bind(null, s.id, 'section')}
-                            confirmMessage={`¿Seguro quieres eliminar la categoría "${s.name}"?`}
+                            confirmMessage={`¿Seguro quieres eliminar el área "${s.name}"?`}
                           />
                         </div>
                       </td>
@@ -337,7 +341,7 @@ export default async function ConfiguracionPage({
                 <input className="form-input" name="name" defaultValue={(editingItem as Location)?.name || ""} required placeholder="Ej: Nevera 1 - Estante A" />
               </div>
               <div className="form-group">
-                <label className="form-label">Subcategoría Asociada</label>
+                <label className="form-label">Área de almacenamiento</label>
                 <select className="form-select" name="section_id" defaultValue={(editingItem as { section_id?: string })?.section_id || ""} required>
                   <option value="">Seleccionar...</option>
                   {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -360,7 +364,7 @@ export default async function ConfiguracionPage({
                 <thead>
                   <tr>
                     <th>Nombre</th>
-                    <th>Categoría de Inventario</th>
+                    <th>Área</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>
@@ -414,7 +418,15 @@ export default async function ConfiguracionPage({
                 <input className="form-input" name="commercial_name" defaultValue={(editingItem as CatalogItem)?.commercial_name || ""} placeholder="Ej: Kit x 100 Det" />
               </div>
               <div>
-                <label className="form-label">Categoría / Sección *</label>
+                <label className="form-label">Proveedor asociado</label>
+                <select className="form-select" name="supplier_id" defaultValue={(editingItem as CatalogItem)?.supplier_id || ""}>
+                  <option value="">Seleccione proveedor o No aplica</option>
+                  <option value="not_applicable">No aplica</option>
+                  {suppliers?.filter(supplier => supplier.is_active).map(supplier => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Área *</label>
                 <select className="form-select" name="section_id" defaultValue={(editingItem as CatalogItem)?.section_id || ""} required>
                   <option value="">Seleccione...</option>
                   {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -426,12 +438,17 @@ export default async function ConfiguracionPage({
               </div>
               <div>
                 <label className="form-label">Stock Mínimo</label>
-                <input className="form-input" type="number" name="minimum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.minimum_stock_threshold || 0} />
+                <input className="form-input" type="number" min="0" step="1" name="minimum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.minimum_stock_threshold || 0} />
+              </div>
+              <div>
+                <label className="form-label">Stock Máximo (opcional)</label>
+                <input className="form-input" type="number" min="0" step="1" name="maximum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.maximum_stock_threshold ?? ""} />
               </div>
               <div>
                 <label className="form-label">P. Estimado ($)</label>
                 <input className="form-input" type="number" step="0.01" name="estimated_unit_price" defaultValue={(editingItem as CatalogItem)?.estimated_unit_price || 0} />
               </div>
+              <ProductTechnicalFields initial={editingItem as CatalogItem | null} />
               <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Registrar"}
               </button>

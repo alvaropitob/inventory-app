@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { handleMaintenanceAction } from "@/app/dashboard/equipos/actions";
+import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
 
 interface MaintenanceRegistryFormProps {
   equipmentId: string;
@@ -41,14 +42,19 @@ export default function MaintenanceRegistryForm({ equipmentId }: MaintenanceRegi
           </div>
           
           <div className="form-group">
-            <label>Fecha de Ejecución</label>
-            <input type="date" name="execution_date" required defaultValue={new Date().toISOString().split('T')[0]} />
+            <label>Fecha de realización *</label>
+            <input type="date" name="execution_date" required defaultValue={getDateKeyInBusinessTimeZone(new Date())} />
           </div>
         </div>
 
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+            <label>Fecha de mantenimiento (programada) *</label>
+            <input type="date" name="scheduled_date" required />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
           <label>Técnico / Empresa Responsable</label>
-          <input type="text" name="performed_by" placeholder="Ej: Servicio Técnico Abbott o Bioing. Juan Pérez" required />
+          <input type="text" name="provider_name" placeholder="Ej: Servicio Técnico Abbott o Bioing. Juan Pérez" required />
         </div>
 
         <div className="form-group" style={{ marginBottom: '1.5rem' }}>
@@ -63,7 +69,7 @@ export default function MaintenanceRegistryForm({ equipmentId }: MaintenanceRegi
           </div>
           
           <div className="form-group">
-            <label>Próxima Fecha (Opcional)</label>
+            <label>Próxima fecha (independiente, opcional)</label>
             <input type="date" name="next_due_date" />
           </div>
         </div>

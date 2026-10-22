@@ -1,7 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { AuditService } from "./audit";
-import { CatalogService } from "./catalog";
-import { OrderService } from "./orders";
 
 export type LotStatus = 'accepted' | 'quarantine' | 'rejected' | 'expired';
 export type IncidentType = 'recall' | 'adverse_event' | 'quality_failure' | 'other';
@@ -69,7 +67,28 @@ export interface SupplierEvaluation {
     criteria_support: number;
     total_score: number;
     comments?: string;
+    supplier_email?: string;
+    evaluator_name?: string;
+    evaluator_role?: string;
+    answers?: Record<string, number | null>;
+    applicable_questions?: number;
+    points_possible?: number;
+    percentage_score?: number;
+    rating?: string;
     supplier?: { name: string };
+}
+
+export interface MonthlyAlertReport {
+    id: string;
+    period_month: string;
+    verified_device_reagent_alerts: number;
+    verified_device_reagent_security_reports: number;
+    verified_medicine_biological_reports: number;
+    managed_reactivovigilance: number;
+    managed_tecnovigilance: number;
+    managed_pharmacovigilance: number;
+    vigilance_percentage: number;
+    notes?: string;
 }
 
 export const ComplianceService = {
@@ -113,6 +132,7 @@ export const ComplianceService = {
      */
     async createTechnicalReception(data: {
         order_id: string;
+        invoice_number: string;
         packaging_status: string;
         integrity_verified: boolean;
         reception_temperature: number;
@@ -123,100 +143,30 @@ export const ComplianceService = {
             lot_number: string;
             expiration_date: string;
             quantity_received: number;
+            location_id: string;
             unit_price: number;
         }[];
     }) {
         const supabase = await createClient();
-
-        // 1. Crear el encabezado de recepción
-        const { data: reception, error: receptionError } = await supabase
-            .from('technical_receptions')
-            .insert({
-                order_id: data.order_id,
-                packaging_status: data.packaging_status,
-                integrity_verified: data.integrity_verified,
-                reception_temperature: data.reception_temperature,
-                is_approved: data.is_approved,
-                notes: data.notes
-            })
-            .select()
-            .single();
-
-        if (receptionError) throw receptionError;
-
-        // 2. Procesar cada ítem: Crear lote (batch), asociar a la recepción y actualizar catálogo
-        for (const item of data.items) {
-            // Crear el batch en inventory_batches
-            const { data: batch, error: batchError } = await supabase
-                .from('inventory_batches')
-                .insert({
-                    item_id: item.catalog_item_id,
-                    batch_number: item.lot_number,
-                    expiration_date: item.expiration_date,
-                    current_stock: item.quantity_received,
-                    initial_quantity: item.quantity_received,
-                    clinical_status: data.is_approved ? 'accepted' : 'quarantine'
-                })
-                .select()
-                .single();
-
-            if (batchError) throw batchError;
-
-            // Asociar el ítem a la recepción
-            const { error: itemError } = await supabase
-                .from('reception_items')
-                .insert({
-                    technical_reception_id: reception.id,
-                    catalog_item_id: item.catalog_item_id,
-                    batch_id: batch.id,
-                    quantity_received: item.quantity_received,
-                    unit_price: item.unit_price
-                });
-
-            if (itemError) throw itemError;
-
-            // --- NUEVO: Actualizar cantidad recibida en el pedido ---
-            // Primero obtenemos el registro actual para saber cuánto se había recibido antes
-            const { data: orderItem } = await supabase
-                .from('purchase_order_items')
-                .select('quantity_received')
-                .eq('purchase_order_id', data.order_id)
-                .eq('item_id', item.catalog_item_id)
-                .single();
-            
-            const newTotalReceived = (orderItem?.quantity_received || 0) + item.quantity_received;
-
-            await supabase
-                .from('purchase_order_items')
-                .update({ quantity_received: newTotalReceived })
-                .eq('purchase_order_id', data.order_id)
-                .eq('item_id', item.catalog_item_id);
-
-            // --- NUEVO: Actualizar precio estimado en el catálogo ---
-            await CatalogService.updateEstimatedPrice(item.catalog_item_id, item.unit_price);
-        }
-
-        // 3. Determinar el nuevo estado del pedido
-        // Consultamos todos los ítems del pedido para ver si ya se completó todo
-        const order = await OrderService.getOrderById(data.order_id);
-        const isFullyReceived = order.items?.every(i => (i.quantity_received || 0) >= i.quantity_requested);
-        const hasReceivedSomething = order.items?.some(i => (i.quantity_received || 0) > 0);
-
-        let newStatus = 'requested';
-        if (isFullyReceived) {
-            newStatus = 'completed';
-        } else if (hasReceivedSomething) {
-            newStatus = 'partially_received';
-        }
-
-        const { error: orderUpdateError } = await supabase
-            .from('purchase_orders')
-            .update({ status: newStatus })
-            .eq('id', data.order_id);
-
-        if (orderUpdateError) throw orderUpdateError;
-
-        return { success: true, receptionId: reception.id };
+        const { data: receptionId, error } = await supabase.rpc("fn_register_technical_reception", {
+            p_order_id: data.order_id,
+            p_invoice_number: data.invoice_number,
+            p_packaging_status: data.packaging_status,
+            p_integrity_verified: data.integrity_verified,
+            p_reception_temperature: data.reception_temperature,
+            p_is_approved: data.is_approved,
+            p_notes: data.notes ?? null,
+            p_items: data.items.map(item => ({
+                catalog_item_id: item.catalog_item_id,
+                lot_number: item.lot_number,
+                expiration_date: item.expiration_date,
+                quantity_received: item.quantity_received,
+                location_id: item.location_id,
+                unit_price: item.unit_price,
+            })),
+        });
+        if (error) throw error;
+        return { success: true, receptionId };
     },
 
     /**
@@ -227,35 +177,48 @@ export const ComplianceService = {
         temperature: number;
         humidity?: number;
         notes?: string;
+        reading_type?: "am" | "pm";
+        is_correction?: boolean;
     }) {
         const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) throw new Error("Usuario no autenticado");
-
-        const { data: log, error } = await supabase
-            .from('environmental_readings')
-            .insert({
-                location_id: data.location_id,
-                temperature: data.temperature,
-                humidity: data.humidity,
-                notes: data.notes,
-                user_id: user.id
-            })
-            .select()
-            .single();
+        const { data: readingId, error } = await supabase.rpc("fn_record_environmental_reading", {
+            p_location_id: data.location_id,
+            p_temperature: data.temperature,
+            p_humidity: data.humidity ?? null,
+            p_reading_type: data.reading_type || "am",
+            p_is_correction: data.is_correction || false,
+            p_notes: data.notes ?? null,
+        });
 
         if (error) throw error;
-        return log;
+        return { id: readingId as string };
     },
 
-    async getEnvironmentalLogs(limit = 50) {
+    async hasEnvironmentalReadingForShift(locationId: string, readingDate: string, readingType: "am" | "pm") {
+        const start = new Date(`${readingDate}T05:00:00.000Z`);
+        const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
         const supabase = await createClient();
         const { data, error } = await supabase
+            .from("environmental_readings")
+            .select("id")
+            .eq("location_id", locationId)
+            .eq("reading_type", readingType)
+            .gte("created_at", start.toISOString())
+            .lt("created_at", end.toISOString())
+            .limit(1);
+
+        if (error) throw error;
+        return Boolean(data?.length);
+    },
+
+    async getEnvironmentalLogs(limit = 50, locationId?: string) {
+        const supabase = await createClient();
+        let query = supabase
             .from('environmental_readings')
             .select('*, locations(name)')
-            .order('created_at', { ascending: false })
-            .limit(limit);
+            .order('created_at', { ascending: false });
+        if (locationId) query = query.eq('location_id', locationId);
+        const { data, error } = await query.limit(limit);
 
         if (error) throw error;
         return data as EnvironmentalLog[];
@@ -329,6 +292,29 @@ export const ComplianceService = {
         return data as SafetyIncident[];
     },
 
+    async getMonthlyAlertReports() {
+        const supabase = await createClient();
+        const { data, error } = await supabase
+            .from('safety_alert_monthly_reports')
+            .select('*')
+            .order('period_month', { ascending: false });
+        if (error) throw error;
+        return data as MonthlyAlertReport[];
+    },
+
+    async saveMonthlyAlertReport(data: Omit<MonthlyAlertReport, 'id'>) {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Usuario no autenticado');
+        const { data: report, error } = await supabase
+            .from('safety_alert_monthly_reports')
+            .upsert({ ...data, recorded_by: user.id }, { onConflict: 'period_month' })
+            .select()
+            .single();
+        if (error) throw error;
+        return report as MonthlyAlertReport;
+    },
+
     /**
      * QUALITY VERIFICATIONS (from V3)
      */
@@ -395,6 +381,15 @@ export const ComplianceService = {
         criteria_quality: number;
         criteria_delivery_time: number;
         criteria_support: number;
+        supplier_email: string;
+        evaluation_date: string;
+        evaluator_name: string;
+        evaluator_role: string;
+        answers: Record<string, number | null>;
+        applicable_questions: number;
+        points_possible: number;
+        percentage_score: number;
+        rating: string;
         comments?: string;
     }) {
         const supabase = await createClient();
@@ -402,7 +397,7 @@ export const ComplianceService = {
         
         if (!user) throw new Error("Usuario no autenticado");
 
-        const total_score = (data.criteria_quality + data.criteria_delivery_time + data.criteria_support) / 3;
+        const total_score = 1 + (data.percentage_score / 25);
 
         const { data: evaluation, error } = await supabase
             .from('supplier_evaluations')
@@ -412,6 +407,15 @@ export const ComplianceService = {
                 criteria_delivery_time: data.criteria_delivery_time,
                 criteria_support: data.criteria_support,
                 total_score,
+                evaluation_date: data.evaluation_date,
+                supplier_email: data.supplier_email,
+                evaluator_name: data.evaluator_name,
+                evaluator_role: data.evaluator_role,
+                answers: data.answers,
+                applicable_questions: data.applicable_questions,
+                points_possible: data.points_possible,
+                percentage_score: data.percentage_score,
+                rating: data.rating,
                 comments: data.comments,
                 evaluated_by: user.id
             })

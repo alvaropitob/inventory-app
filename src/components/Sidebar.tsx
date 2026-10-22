@@ -79,12 +79,12 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
       ),
       show: true,
       subItems: [
-        { name: "Resumen de Stock", href: "/dashboard/inventario" },
-        { name: "Verificación de Calidad", href: "/dashboard/inventario/calidad" },
-        { name: "Entrada de productos", href: "/dashboard/inventario?view=entradas" },
-        { name: "Salida de productos", href: "/dashboard/inventario?view=salidas" },
-        { name: "Traslados Internos", href: "/dashboard/inventario?view=traslados" },
-        { name: "Bajas y Disposición Final", href: "/dashboard/inventario?view=bajas" },
+        { name: "Stock", href: "/dashboard/inventario" },
+        { name: "Calidad", href: "/dashboard/inventario/calidad" },
+        { name: "Entradas", href: "/dashboard/inventario?view=entradas" },
+        { name: "Salidas", href: "/dashboard/inventario?view=salidas" },
+        { name: "Traslados", href: "/dashboard/inventario?view=traslados" },
+        { name: "Trazabilidad", href: "/dashboard/inventario?view=movimientos" },
       ]
     },
     {
@@ -139,7 +139,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
       show: true,
     },
     {
-      name: "Seguridad Clínica",
+      name: "Gestión de Alertas",
       href: "/dashboard/seguridad",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -150,7 +150,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
       show: true,
     },
     {
-      name: "Reportes",
+      name: "Suficiencia",
       href: "/dashboard/reportes",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -328,7 +328,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className={`sub-nav ${item.name === "Proveedores" ? "sub-nav-providers" : ""}`}
+                      className={`sub-nav ${item.name === "Proveedores" ? "sub-nav-providers" : ""} ${item.name === "Inventario" ? "sub-nav-inventory" : ""}`}
                     >
                       {item.subItems?.map(sub => (
                         <Link 

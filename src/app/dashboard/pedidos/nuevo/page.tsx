@@ -27,6 +27,8 @@ export default async function NewOrderPage() {
             technical_name: i.technical_name,
             commercial_name: i.commercial_name || "",
             internal_code: i.internal_code,
+            supplier_id: i.supplier_id || "",
+            estimated_unit_price: Number(i.estimated_unit_price || 0),
           }))}
         />
       </div>

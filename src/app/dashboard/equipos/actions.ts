@@ -3,6 +3,7 @@
 import { EquipmentService, Equipment, MaintenanceRecord } from "@/lib/services/equipment";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/supabase/authorization";
+import { isValidDateKey } from "@/lib/dates";
 
 export async function handleEquipmentAction(formData: FormData) {
   await requireRole(["admin", "supervisor"]);
@@ -14,6 +15,14 @@ export async function handleEquipmentAction(formData: FormData) {
     brand: formData.get("brand") as string,
     model: formData.get("model") as string,
     serial_number: formData.get("serial_number") as string,
+    inventory_number: formData.get("inventory_number") as string,
+    section_id: formData.get("section_id") as string,
+    measurement_range: formData.get("measurement_range") as string,
+    sanitary_registration: formData.get("sanitary_registration") as string,
+    risk_classification: formData.get("risk_classification") as string,
+    calibration_frequency: formData.get("calibration_frequency") as string,
+    maintenance_frequency: formData.get("maintenance_frequency") as string,
+    responsible: formData.get("responsible") as string,
     location_id: formData.get("location_id") as string,
     status: (formData.get("status") as Equipment['status']) || 'active',
   };
@@ -30,15 +39,23 @@ export async function handleEquipmentAction(formData: FormData) {
 export async function handleMaintenanceAction(formData: FormData) {
   const { user } = await requireRole(["admin", "supervisor", "operator"]);
   const equipmentId = formData.get("equipment_id") as string;
+  const executionDate = String(formData.get("execution_date") || "");
+  const scheduledDate = String(formData.get("scheduled_date") || "");
+  const nextDueDate = String(formData.get("next_due_date") || "");
+  if (!equipmentId || !isValidDateKey(executionDate) || !isValidDateKey(scheduledDate) || (nextDueDate && !isValidDateKey(nextDueDate))) {
+    throw new Error("Registra una fecha programada y una fecha de realización válidas.");
+  }
   
   const data: Partial<MaintenanceRecord> = {
     equipment_id: equipmentId,
     type: formData.get("type") as MaintenanceRecord['type'],
-    execution_date: formData.get("execution_date") as string,
+    execution_date: executionDate,
+    scheduled_date: scheduledDate,
     performed_by: user.id,
+    provider_name: formData.get("provider_name") as string,
     description: formData.get("description") as string,
     result: formData.get("result") as string,
-    next_due_date: formData.get("next_due_date") as string,
+    next_due_date: nextDueDate || undefined,
   };
 
   try {

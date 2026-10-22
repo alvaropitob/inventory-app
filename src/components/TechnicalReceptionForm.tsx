@@ -12,8 +12,10 @@ interface OrderItem {
         internal_code: string;
         technical_name: string;
         commercial_name: string;
+        section_id?: string | null;
     };
     quantity_requested: number;
+    quantity_received: number;
     estimated_unit_price: number;
 }
 
@@ -24,7 +26,9 @@ interface Order {
     items: OrderItem[];
 }
 
-export default function TechnicalReceptionForm({ order }: { order: Order }) {
+interface Location { id: string; name: string; section_id?: string | null; location_type?: string; }
+
+export default function TechnicalReceptionForm({ order, locations }: { order: Order; locations: Location[] }) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -35,21 +39,27 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
     const [receptionTemp, setReceptionTemp] = useState(20);
     const [isApproved, setIsApproved] = useState(true);
     const [notes, setNotes] = useState("");
+    const [invoiceNumber, setInvoiceNumber] = useState("");
+
+    const locationsForItem = (item: OrderItem) => locations.filter(location =>
+        !item.catalog_item.section_id || !location.section_id || location.section_id === item.catalog_item.section_id
+    );
 
     // Items states (lot, expiration, qty, price per item)
-    const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string, qty: number, price: number }>>(
+    const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string, qty: number, price: number, location_id: string }>>(
         order.items.reduce((acc, item) => ({
             ...acc,
             [item.catalog_item_id]: { 
                 lot: "", 
                 exp: "", 
-                qty: item.quantity_requested, 
-                price: item.estimated_unit_price 
+                qty: Math.max(0, item.quantity_requested - item.quantity_received),
+                price: item.estimated_unit_price,
+                location_id: locationsForItem(item).find(location => location.section_id === item.catalog_item.section_id)?.id || locationsForItem(item)[0]?.id || "",
             }
         }), {})
     );
 
-    const handleItemChange = (itemId: string, field: 'lot' | 'exp' | 'qty' | 'price', value: string | number) => {
+    const handleItemChange = (itemId: string, field: 'lot' | 'exp' | 'qty' | 'location_id', value: string | number) => {
         setItemData(prev => ({
             ...prev,
             [itemId]: { ...prev[itemId], [field]: value }
@@ -63,25 +73,29 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
 
         try {
             // Check if all items have lot and exp
-            const itemsToSubmit = order.items.map(item => {
+            const itemsToSubmit = order.items.filter(item => itemData[item.catalog_item_id].qty > 0).map(item => {
                 const data = itemData[item.catalog_item_id];
+                const remaining = item.quantity_requested - item.quantity_received;
                 if (!data.lot || !data.exp) {
                     throw new Error(`Faltan datos de lote/vencimiento para ${item.catalog_item.technical_name}`);
                 }
-                if (data.qty <= 0) {
-                    throw new Error(`La cantidad recibida de ${item.catalog_item.technical_name} debe ser mayor a 0`);
+                if (!data.location_id || data.qty > remaining) {
+                    throw new Error(`Revisa ubicación y cantidad pendiente de ${item.catalog_item.technical_name}`);
                 }
                 return {
                     catalog_item_id: item.catalog_item_id,
                     lot_number: data.lot,
                     expiration_date: data.exp,
                     quantity_received: Number(data.qty),
+                    location_id: data.location_id,
                     unit_price: Number(data.price)
                 };
             });
+            if (itemsToSubmit.length === 0) throw new Error("Ingresa al menos un producto recibido.");
 
             await submitTechnicalReception({
                 order_id: order.id,
+                invoice_number: invoiceNumber,
                 packaging_status: packagingStatus,
                 integrity_verified: integrityVerified,
                 reception_temperature: Number(receptionTemp),
@@ -104,7 +118,7 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
 
             <div className="form-row" style={{ marginBottom: '2rem' }}>
                 <div className="form-group">
-                    <label>Estado del Empaque</label>
+                    <label>Condiciones de empaque, envase y etiqueta</label>
                     <select value={packagingStatus} onChange={e => setPackagingStatus(e.target.value)}>
                         <option value="Intacto">Intacto / Buen Estado</option>
                         <option value="Dañado">Dañado / Alterado</option>
@@ -112,7 +126,7 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                     </select>
                 </div>
                 <div className="form-group">
-                    <label>Temperatura al Recibo (°C)</label>
+                    <label>Temperatura (°C)</label>
                     <input 
                         type="number" 
                         step="0.1" 
@@ -122,7 +136,7 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                     />
                 </div>
                 <div className="form-group">
-                    <label>Resultado Global</label>
+                    <label>Resultado global</label>
                     <select value={isApproved ? "true" : "false"} onChange={e => setIsApproved(e.target.value === "true")}>
                         <option value="true">APROBADO PARA USO</option>
                         <option value="false">EN CUARENTENA / RECHAZADO</option>
@@ -130,15 +144,20 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                 </div>
             </div>
 
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label>Número de factura</label>
+                <input value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} placeholder="Factura del proveedor" required />
+            </div>
+
             <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 Detalle de Ítems y Lotes
                 <ContextualHelp content={{
                     title: "Inspección de Lotes",
-                    description: "Debe verificar físicamente que el lote y la fecha de vencimiento coincidan con el producto entregado.",
+                    description: "Verifique producto, cantidades, factura, lote y vencimiento. El precio se toma del pedido y no se diligencia durante la recepción.",
                     steps: [
                         "Confirme que el producto recibido corresponda a la orden de compra.",
-                        "Compare la cantidad recibida y el precio con el documento del proveedor.",
-                        "Registre el número de lote y la fecha de vencimiento tal como aparecen en el envase.",
+                        "Compare la cantidad recibida con la orden y la factura.",
+                        "Registre el número de factura, lote y fecha de vencimiento tal como aparecen en los documentos y el envase.",
                         "Use el escaneo GS1-128 cuando el empaque tenga un código legible."
                     ],
                     tips: ["Si hay diferencias, daño, temperatura inadecuada o documentación incompleta, deje constancia y no libere el lote sin revisión."]
@@ -151,8 +170,9 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                         <tr>
                             <th style={{ padding: '1rem', textAlign: 'left' }}>Producto</th>
                             <th style={{ padding: '1rem', textAlign: 'center' }}>Solicitado</th>
+                            <th style={{ padding: '1rem', textAlign: 'center' }}>Pendiente</th>
                             <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'center' }}>Recibido</th>
-                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'center' }}>Precio ($)</th>
+                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Ubicación</th>
                             <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Número de Lote</th>
                             <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Vencimiento</th>
                             <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left', minWidth: '180px' }}>Escanear GS1-128</th>
@@ -166,11 +186,13 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.catalog_item.commercial_name} ({item.catalog_item.internal_code})</div>
                                 </td>
                                 <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 'bold', color: 'var(--text-muted)' }}>{item.quantity_requested}</td>
+                                <td style={{ padding: '1rem', textAlign: 'center' }}>{Math.max(0, item.quantity_requested - item.quantity_received)}</td>
                                 <td style={{ padding: '1rem' }}>
                                     <input 
                                         type="number" 
                                         min="0"
-                                        max={item.quantity_requested}
+                                        max={Math.max(0, item.quantity_requested - item.quantity_received)}
+                                        disabled={item.quantity_requested <= item.quantity_received}
                                         value={itemData[item.catalog_item_id].qty}
                                         onChange={e => handleItemChange(item.catalog_item_id, 'qty', Number(e.target.value))}
                                         className="table-input"
@@ -179,16 +201,10 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                                     />
                                 </td>
                                 <td style={{ padding: '1rem' }}>
-                                    <input 
-                                        type="number" 
-                                        step="0.01"
-                                        min="0"
-                                        value={itemData[item.catalog_item_id].price}
-                                        onChange={e => handleItemChange(item.catalog_item_id, 'price', Number(e.target.value))}
-                                        className="table-input"
-                                        style={{ width: '120px', textAlign: 'right' }}
-                                        required
-                                    />
+                                    <select value={itemData[item.catalog_item_id].location_id} onChange={e => handleItemChange(item.catalog_item_id, 'location_id', e.target.value)} className="table-input" required={itemData[item.catalog_item_id].qty > 0} disabled={item.quantity_requested <= item.quantity_received}>
+                                        <option value="">Seleccione...</option>
+                                        {locationsForItem(item).map(location => <option key={location.id} value={location.id}>{location.name}</option>)}
+                                    </select>
                                 </td>
                                 <td style={{ padding: '1rem' }}>
                                     <input 
@@ -197,7 +213,7 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                                         value={itemData[item.catalog_item_id].lot}
                                         onChange={e => handleItemChange(item.catalog_item_id, 'lot', e.target.value)}
                                         className="table-input"
-                                        required
+                                        required={itemData[item.catalog_item_id].qty > 0}
                                     />
                                 </td>
                                 <td style={{ padding: '1rem' }}>
@@ -206,7 +222,7 @@ export default function TechnicalReceptionForm({ order }: { order: Order }) {
                                         value={itemData[item.catalog_item_id].exp}
                                         onChange={e => handleItemChange(item.catalog_item_id, 'exp', e.target.value)}
                                         className="table-input"
-                                        required
+                                        required={itemData[item.catalog_item_id].qty > 0}
                                     />
                                 </td>
                                 <td style={{ padding: '1rem' }}>

@@ -5,9 +5,10 @@ import EquipmentForm from "@/components/EquipmentForm";
 import ContextualHelp from "@/components/ContextualHelp";
 
 export default async function EquipmentPage() {
-  const [equipments, locations] = await Promise.all([
+  const [equipments, locations, sections] = await Promise.all([
     EquipmentService.getEquipments(),
     CatalogService.getLocations(),
+    CatalogService.getSections(),
   ]);
 
   return (
@@ -37,7 +38,7 @@ export default async function EquipmentPage() {
             }} />
           </div>
           <div className="form-card-body">
-            <EquipmentForm locations={locations.data || []} />
+            <EquipmentForm locations={locations.data || []} sections={sections.data || []} />
           </div>
         </div>
 

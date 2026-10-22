@@ -3412,6 +3412,17 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 .sidebar .sub-nav-item.active-sub { color: #0e5268; background: #f0f7f9; font-weight: 650; }
 .sidebar .sub-nav-providers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.3rem; padding-left: 0; margin-left: 0; }
 .sidebar .sub-nav-providers .sub-nav-item { justify-content: center; min-width: 0; padding: 0.45rem 0.3rem; font-size: 0.7rem; white-space: nowrap; }
+.sidebar .sub-nav-inventory {
+  display: flex; flex-flow: row nowrap; align-items: center; gap: 0.22rem;
+  width: 100%; max-width: 100%; padding: 0.12rem 0 0.3rem; margin: 0.12rem 0 0;
+  overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
+}
+.sidebar .sub-nav-inventory .sub-nav-item {
+  flex: 0 0 auto; min-height: 30px; padding: 0.38rem 0.48rem;
+  font-size: 0.68rem; line-height: 1; white-space: nowrap;
+}
+.sidebar .sub-nav-inventory::-webkit-scrollbar { height: 3px; }
+.sidebar .sub-nav-inventory::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 .sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .nav-item { justify-content: center; padding-inline: 0; }
 .sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .nav-item .nav-icon { margin: 0; }
 .sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .sidebar-footer .user-profile-mini { justify-content: center; }

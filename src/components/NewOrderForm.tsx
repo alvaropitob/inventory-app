@@ -7,7 +7,7 @@ import Link from "next/link";
 import SearchableProductSelect from "@/components/SearchableProductSelect";
 
 interface Supplier { id: string; name: string; }
-interface CatalogItem { id: string; technical_name: string; commercial_name: string; internal_code: string; estimated_unit_price?: number; }
+interface CatalogItem { id: string; technical_name: string; commercial_name: string; internal_code: string; supplier_id: string; estimated_unit_price?: number | null; }
 
 export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier[], items: CatalogItem[] }) {
   const router = useRouter();
@@ -22,6 +22,8 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
   const [selectedItem, setSelectedItem] = useState("");
   const [selectedQty, setSelectedQty] = useState(1);
   const [selectedPrice, setSelectedPrice] = useState(0);
+  const supplierItems = supplierId ? items.filter(item => item.supplier_id === supplierId) : [];
+  const selectedCatalogItem = items.find(item => item.id === selectedItem);
 
   const totalEstimated = orderItems.reduce((acc, curr) => acc + (curr.quantity * curr.price), 0);
 
@@ -80,7 +82,7 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
       
       <div className="form-group" style={{ marginBottom: '1.5rem' }}>
         <label style={{ display: 'block', marginBottom: '0.75rem' }}>Proveedor Responsable</label>
-        <select value={supplierId} onChange={e => setSupplierId(e.target.value)} required>
+        <select value={supplierId} onChange={e => { setSupplierId(e.target.value); setOrderItems([]); setSelectedItem(""); setSelectedPrice(0); }} required>
           <option value="">-- Seleccionar Proveedor --</option>
           {suppliers.map(s => (
             <option key={s.id} value={s.id}>{s.name}</option>
@@ -107,15 +109,14 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
         <div className="form-group" style={{ flex: 2 }}>
           <label style={{ display: 'block', marginBottom: '0.75rem' }}>Producto a Pedir</label>
           <SearchableProductSelect 
-            items={items}
+            items={supplierItems}
             onSelect={(item) => {
               setSelectedItem(item.id);
-              if (item.estimated_unit_price) {
-                setSelectedPrice(item.estimated_unit_price);
-              }
+              setSelectedPrice(item.estimated_unit_price || 0);
             }}
             placeholder="Escribe nombre o código..."
           />
+          {supplierId && supplierItems.length === 0 && <p role="status" className="cell-muted">Este proveedor aún no tiene productos activos asociados. Asócialos desde Configuración.</p>}
         </div>
         <div className="form-group" style={{ flex: 1 }}>
           <label style={{ display: 'block', marginBottom: '0.75rem' }}>Cantidad</label>
@@ -124,6 +125,7 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
         <div className="form-group" style={{ flex: 1 }}>
           <label style={{ display: 'block', marginBottom: '0.75rem' }}>Precio Unit. Est. ($)</label>
           <input type="number" step="0.01" min="0" value={selectedPrice} onChange={e => setSelectedPrice(Number(e.target.value))} />
+          {selectedItem && selectedCatalogItem?.estimated_unit_price == null && <p role="status" className="cell-muted">No hay precio estimado configurado para este producto; ingresa el valor de referencia del pedido.</p>}
         </div>
         <button type="button" onClick={handleAddItem} className="btn-secondary">
           Agregar

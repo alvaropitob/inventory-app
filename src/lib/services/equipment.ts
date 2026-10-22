@@ -6,6 +6,14 @@ export interface Equipment {
   brand?: string;
   model?: string;
   serial_number?: string;
+  inventory_number?: string;
+  section_id?: string;
+  measurement_range?: string;
+  sanitary_registration?: string;
+  risk_classification?: string;
+  calibration_frequency?: string;
+  maintenance_frequency?: string;
+  responsible?: string;
   location_id?: string;
   status: 'active' | 'maintenance' | 'out_of_service';
   last_preventive_maintenance?: string;
@@ -13,6 +21,7 @@ export interface Equipment {
   last_calibration?: string;
   next_calibration?: string;
   location?: { name: string };
+  section?: { name: string };
 }
 
 export interface MaintenanceRecord {
@@ -20,7 +29,9 @@ export interface MaintenanceRecord {
   equipment_id: string;
   type: 'preventive' | 'corrective' | 'calibration';
   execution_date: string;
+  scheduled_date?: string;
   performed_by?: string;
+  provider_name?: string;
   description?: string;
   result?: string;
   next_due_date?: string;
@@ -31,7 +42,7 @@ export const EquipmentService = {
     const supabase = await createClient();
     return await supabase
       .from('equipments')
-      .select('*, location:locations(name)')
+      .select('*, location:locations(name), section:sections(name)')
       .order('name');
   },
 
@@ -39,18 +50,20 @@ export const EquipmentService = {
     const supabase = await createClient();
     return await supabase
       .from('equipments')
-      .select('*, location:locations(name)')
+      .select('*, location:locations(name), section:sections(name)')
       .eq('id', id)
       .single();
   },
 
   async upsertEquipment(data: Partial<Equipment>) {
     const supabase = await createClient();
-    return await supabase
+    const { data: equipment, error } = await supabase
       .from('equipments')
       .upsert(data)
       .select()
       .single();
+    if (error) throw error;
+    return equipment;
   },
 
   async getMaintenanceHistory(equipmentId: string) {
@@ -85,10 +98,11 @@ export const EquipmentService = {
     }
 
     if (Object.keys(updateData).length > 0) {
-      await supabase
+      const { error: updateError } = await supabase
         .from('equipments')
         .update(updateData)
         .eq('id', data.equipment_id);
+      if (updateError) throw updateError;
     }
 
     return record;

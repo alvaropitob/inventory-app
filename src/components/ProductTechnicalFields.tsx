@@ -1,0 +1,55 @@
+"use client";
+
+import { useState } from "react";
+
+type ProductType = "medicamento" | "dispositivo_medico" | "reactivo" | "insumo";
+interface Values {
+  product_type?: ProductType | null;
+  purchase_unit?: string | null;
+  commercial_name?: string | null;
+  sanitary_registration?: string | null;
+  brand?: string | null;
+  active_ingredient?: string | null;
+  dosage_form?: string | null;
+  concentration?: string | null;
+  commercial_presentation?: string | null;
+  shelf_life?: string | null;
+  product_description?: string | null;
+  risk_classification?: "I" | "II" | "IIA" | "IIB" | "III" | "not_applicable" | null;
+  series?: string | null;
+}
+
+export default function ProductTechnicalFields({ initial }: { initial?: Values | null }) {
+  const [type, setType] = useState<ProductType | "">(initial?.product_type || "");
+  const isMedicine = type === "medicamento";
+  const isQaTrackedType = type === "dispositivo_medico" || type === "reactivo" || type === "insumo";
+
+  return <div className="form-fields">
+    <div><label className="form-label">Tipo de producto *</label><select name="product_type" required className="form-select" value={type} onChange={event => setType(event.target.value as ProductType | "")}>
+      <option value="">Seleccione el tipo de producto...</option><option value="medicamento">Medicamento</option><option value="dispositivo_medico">Dispositivo médico</option><option value="reactivo">Reactivo</option><option value="insumo">Insumo</option>
+    </select></div>
+    <div className="form-grid-1-12">
+      <div><label className="form-label">Presentación / nombre comercial</label><input name="commercial_name" defaultValue={initial?.commercial_name || ""} className="form-input" placeholder="Marca, nombre o referencia" /></div>
+      <div><label className="form-label">Unidad de medida *</label><input name="purchase_unit" defaultValue={initial?.purchase_unit || "Unidad"} className="form-input" required /></div>
+    </div>
+    <div className="form-grid-2">
+      <div><label className="form-label">Marca{isQaTrackedType ? " *" : ""}</label><input name="brand" defaultValue={initial?.brand || ""} className="form-input" required={isQaTrackedType} placeholder="Escriba No aplica si corresponde" /></div>
+      <div><label className="form-label">Presentación comercial *</label><input name="commercial_presentation" defaultValue={initial?.commercial_presentation || ""} className="form-input" required placeholder="Ej. Frasco por 700 mL; No aplica" /></div>
+    </div>
+    {isMedicine && <div className="form-grid-2">
+      <div><label className="form-label">Principio activo *</label><input name="active_ingredient" defaultValue={initial?.active_ingredient || ""} className="form-input" required placeholder="Escriba No aplica si corresponde" /></div>
+      <div><label className="form-label">Forma farmacéutica *</label><input name="dosage_form" defaultValue={initial?.dosage_form || ""} className="form-input" required placeholder="Solución, polvo, etc." /></div>
+      <div><label className="form-label">Concentración *</label><input name="concentration" defaultValue={initial?.concentration || ""} className="form-input" required placeholder="Ej. 70 %; No aplica" /></div>
+    </div>}
+    {(isMedicine || isQaTrackedType) && <div className="form-grid-2">
+      <div><label className="form-label">Registro INVIMA *</label><input name="sanitary_registration" defaultValue={initial?.sanitary_registration || ""} className="form-input" required placeholder="Registro o No aplica" /></div>
+      {isQaTrackedType && <div><label className="form-label">Clasificación de riesgo *</label><select name="risk_classification" required defaultValue={initial?.risk_classification || ""} className="form-select"><option value="">Seleccione...</option><option value="I">I</option><option value="II">II</option><option value="IIA">IIA</option><option value="IIB">IIB</option><option value="III">III</option><option value="not_applicable">No aplica</option></select></div>}
+      {isQaTrackedType && <div><label className="form-label">Vida útil *</label><input name="shelf_life" defaultValue={initial?.shelf_life || ""} className="form-input" required placeholder="Ej. 2 años; No aplica" /></div>}
+    </div>}
+    <div className="form-grid-2">
+      {isQaTrackedType && <div><label className="form-label">Serie / referencia *</label><input name="series" defaultValue={initial?.series || ""} className="form-input" required placeholder="Serie o No aplica" /></div>}
+      <div><label className="form-label">Descripción{isQaTrackedType ? " *" : ""}</label><textarea name="product_description" defaultValue={initial?.product_description || ""} className="form-textarea" rows={2} required={isQaTrackedType} placeholder="Descripción o No aplica" /></div>
+    </div>
+    <p className="cell-secondary">Complete los datos aplicables al tipo de producto. Si un campo no corresponde, escriba “No aplica”.</p>
+  </div>;
+}

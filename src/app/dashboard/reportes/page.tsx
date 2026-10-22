@@ -4,19 +4,13 @@ import { ComplianceService } from "@/lib/services/compliance";
 import { StockService } from "@/lib/services/stock";
 import { CatalogService } from "@/lib/services/catalog";
 import {
-  CalendarDays,
-  ClipboardList,
-  DollarSign,
-  FileText,
-  PackageX,
-  ShieldAlert,
-  Thermometer,
   Building2,
   BookmarkCheck,
   AlertTriangle,
 } from "lucide-react";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import PrintReportButton from "@/components/PrintReportButton";
+import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +24,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     redirect("/auth/login");
   }
 
-  const { type = "resumen" } = await searchParams;
+  const { type = "suficiencia" } = await searchParams;
+  const activeReportType: string = type === "suficiencia" ? type : "suficiencia";
 
   const [incidents, logs, movementsResponse, batchesResponse, catalogResponse] = await Promise.all([
     ComplianceService.getSafetyIncidents(),
@@ -63,6 +58,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     batch_number: string;
     expiration_date: string;
     current_stock: number;
+    clinical_status?: string | null;
+    adjusted_expiration_date?: string | null;
     initial_quantity?: number;
     status?: string;
     item?: {
@@ -94,7 +91,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   // Semáforo de Lotes
   const today = new Date();
   const batchesWithDays = batches.map((b) => {
-    const expDate = new Date(b.expiration_date);
+    const expDate = new Date(b.adjusted_expiration_date || b.expiration_date);
     const diffDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     let trafficLight = "Óptimo";
     let trafficColor = "#10b981";
@@ -118,7 +115,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     };
   });
 
-  // Datos para exportación Kardex
+  // Datos para exportación de trazabilidad
   const kardexExportData = movements.map((m) => ({
     Fecha: new Date(m.created_at).toLocaleString(),
     Producto: m.batch?.item?.technical_name || "N/A",
@@ -147,19 +144,37 @@ export default async function ReportesPage({ searchParams }: PageProps) {
 
   // Datos para exportación Suficiencia / Habilitación Res. 3100
   const suficienciaData = catalog.map((item) => {
+    const todayKey = getDateKeyInBusinessTimeZone(new Date());
     const itemBatches = batches.filter((b) => b.item?.internal_code === item.internal_code);
-    const totalStock = itemBatches.reduce((acc, b) => acc + (b.current_stock || 0), 0);
+    const totalStock = itemBatches.filter(b => b.clinical_status === "accepted" && b.status !== "expired" && (b.adjusted_expiration_date || b.expiration_date) >= todayKey)
+      .reduce((acc, b) => acc + (b.current_stock || 0), 0);
     const minStock = item.minimum_stock_threshold || 1;
+    const maxStock = item.maximum_stock_threshold ?? null;
     let estado = "Suficiente";
     if (totalStock === 0) estado = "Desabastecido (Crítico)";
     else if (totalStock <= minStock) estado = "Stock Mínimo (Alerta)";
+
+    else if (maxStock !== null && totalStock > maxStock) estado = "Sobre stock (Alerta)";
 
     return {
       Codigo: item.internal_code,
       Producto: item.technical_name,
       Seccion: item.sections?.name || "General",
+      Marca: item.brand || "No aplica",
+      Descripcion: item.product_description || "No aplica",
+      Serie: item.series || "No aplica",
+      PrincipioActivo: item.active_ingredient || "No aplica",
+      FormaFarmaceutica: item.dosage_form || "No aplica",
+      Concentracion: item.concentration || "No aplica",
+      PresentacionComercial: item.commercial_presentation || "No aplica",
+      UnidadMedida: item.purchase_unit || "No aplica",
+      RegistroInvima: item.sanitary_registration || "No aplica",
+      ClasificacionRiesgo: item.risk_classification || "No aplica",
+      VidaUtil: item.shelf_life || "No aplica",
+      Proveedor: item.suppliers?.name || "No aplica",
       StockActual: totalStock,
       StockMinimo: minStock,
+      StockMaximo: maxStock ?? "Sin definir",
       Unidad: item.purchase_unit || "Unidad",
       Estado: estado,
     };
@@ -196,7 +211,10 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   // Valorización del inventario y costos
   const valorizacionData = catalog.map((item) => {
     const itemBatches = batches.filter((b) => b.item?.internal_code === item.internal_code);
-    const totalStock = itemBatches.reduce((acc, b) => acc + (b.current_stock || 0), 0);
+    const todayKey = getDateKeyInBusinessTimeZone(new Date());
+    const totalStock = itemBatches
+      .filter((b) => b.clinical_status === "accepted" && b.status !== "expired" && (b.adjusted_expiration_date || b.expiration_date) >= todayKey)
+      .reduce((acc, b) => acc + (b.current_stock || 0), 0);
     const unitPrice = Number(item.estimated_unit_price || 0);
     const totalValue = totalStock * unitPrice;
 
@@ -232,14 +250,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   }));
 
   const navItems = [
-    { key: "resumen", label: "Resumen Normativo", icon: ClipboardList },
-    { key: "valorizacion", label: "Valorización y Costos", icon: DollarSign },
-    { key: "kardex", label: "Kardex Oficial de Movimientos", icon: FileText },
-    { key: "suficiencia", label: "Suficiencia y Habilitación (Res. 3100)", icon: Building2 },
-    { key: "vencimientos", label: "Semáforo de Vencimientos", icon: CalendarDays },
-    { key: "mermas", label: "Bajas y Disposición Final", icon: PackageX },
-    { key: "reactivovigilancia", label: "Reactivovigilancia (INVIMA)", icon: ShieldAlert },
-    { key: "ambiental", label: "Bitácora Red de Frío", icon: Thermometer },
+    { key: "suficiencia", label: "Suficiencia", icon: Building2 },
   ];
 
   return (
@@ -248,10 +259,10 @@ export default async function ReportesPage({ searchParams }: PageProps) {
       <div className="page-header">
         <div>
           <h1 className="page-header-title">
-            Centro de Reportes y Auditoría
+            Suficiencia
           </h1>
           <p className="page-header-subtitle">
-            Informes oficiales para cumplimiento de Resolución 3100 de 2019, ISO 15189 y trazabilidad INVIMA.
+            Existencias por producto y seccion, comparadas con los niveles minimos configurados.
           </p>
         </div>
       </div>
@@ -260,12 +271,12 @@ export default async function ReportesPage({ searchParams }: PageProps) {
         {/* NAVEGACIÓN LATERAL DE REPORTES */}
         <div className="reports-nav-card" style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", padding: "1.25rem", boxShadow: "var(--shadow-sm)" }}>
           <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.75rem" }}>
-            Tipos de Reporte
+            Suficiencia
           </h2>
           <nav style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = type === item.key;
+              const isActive = activeReportType === item.key;
               return (
               <a
                 key={item.key}
@@ -285,7 +296,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
         <div className="reports-content-card" style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
           
           {/* TAB 1: RESUMEN NORMATIVO */}
-          {type === "resumen" && (
+          {activeReportType === "resumen" && (
             <div style={{ padding: "1.75rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
@@ -329,23 +340,23 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 <ul style={{ paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                   <li>Para <b>Habilitación (Resolución 3100)</b>: descargue el reporte de <i>Suficiencia de Insumos</i> y la <i>Bitácora de Red de Frío</i> del último mes.</li>
                   <li>Para <b>Inspección INVIMA</b>: presente el reporte oficial de <i>Reactivovigilancia</i> junto con las actas de <i>Bajas y Disposición Final</i>.</li>
-                  <li>Para <b>ISO 15189</b>: descargue el <i>Kardex Oficial</i> para validar la trazabilidad por lote y la no utilización de reactivos caducados.</li>
+                  <li>Para <b>ISO 15189</b>: descargue el reporte de <i>Trazabilidad</i> para validar los movimientos por lote y la no utilización de reactivos caducados.</li>
                 </ul>
               </div>
             </div>
           )}
 
           {/* TAB 2: KARDEX OFICIAL DE MOVIMIENTOS */}
-          {type === "kardex" && (
+          {activeReportType === "kardex" && (
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Kardex Oficial de Movimientos</h2>
+                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Trazabilidad de Movimientos</h2>
                   <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Historial cronológico inmutable de entradas, salidas y descartes.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <ExportCSVButton data={kardexExportData} filename="KARDEX_MOVIMIENTOS" label="Exportar a Excel / CSV" />
-                  <PrintReportButton reportTitle="Kardex_Oficial_Movimientos" />
+                  <PrintReportButton reportTitle="Trazabilidad_Movimientos" />
                 </div>
               </div>
               <div style={{ overflowX: "auto" }}>
@@ -397,16 +408,16 @@ export default async function ReportesPage({ searchParams }: PageProps) {
           )}
 
           {/* TAB 3: SUFICIENCIA Y HABILITACIÓN RES 3100 */}
-          {type === "suficiencia" && (
+          {activeReportType === "suficiencia" && (
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Suficiencia de Insumos y Reactivos (Res. 3100)</h2>
+                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Suficiencia</h2>
                   <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Evidencia de disponibilidad de stock para la cartera de servicios habilitada.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <ExportCSVButton data={suficienciaData} filename="SUFICIENCIA_HABILITACION_RES3100" label="Exportar a Excel / CSV" />
-                  <PrintReportButton reportTitle="Suficiencia_Insumos_Res3100" />
+                  <ExportCSVButton data={suficienciaData} filename="SUFICIENCIA" label="Exportar a Excel / CSV" />
+                  <PrintReportButton reportTitle="Suficiencia" />
                 </div>
               </div>
               <div style={{ overflowX: "auto" }}>
@@ -418,6 +429,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                       <th style={{ padding: "0.75rem 1rem" }}>Sección</th>
                       <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Stock Actual</th>
                       <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Mínimo Requerido</th>
+                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Stock MÃ¡ximo</th>
                       <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Estado de Suficiencia</th>
                     </tr>
                   </thead>
@@ -431,6 +443,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                           {item.StockActual} {item.Unidad}
                         </td>
                         <td style={{ padding: "0.75rem 1rem", textAlign: "center", color: "var(--text-muted)" }}>{item.StockMinimo}</td>
+                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", color: "var(--text-muted)" }}>{item.StockMaximo}</td>
                         <td style={{ padding: "0.75rem 1rem", textAlign: "center" }}>
                           <span
                             style={{
@@ -438,8 +451,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                               borderRadius: "999px",
                               fontSize: "0.725rem",
                               fontWeight: 700,
-                              backgroundColor: item.StockActual === 0 ? "#fee2e2" : item.StockActual <= item.StockMinimo ? "#fef3c7" : "#dcfce7",
-                              color: item.StockActual === 0 ? "#991b1b" : item.StockActual <= item.StockMinimo ? "#b45309" : "#15803d",
+                              backgroundColor: item.StockActual === 0 || (typeof item.StockMaximo === "number" && item.StockActual > item.StockMaximo) ? "#fee2e2" : item.StockActual <= item.StockMinimo ? "#fef3c7" : "#dcfce7",
+                              color: item.StockActual === 0 || (typeof item.StockMaximo === "number" && item.StockActual > item.StockMaximo) ? "#991b1b" : item.StockActual <= item.StockMinimo ? "#b45309" : "#15803d",
                             }}
                           >
                             {item.Estado}
@@ -454,7 +467,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
           )}
 
           {/* TAB 4: SEMÁFORO DE VENCIMIENTOS */}
-          {type === "vencimientos" && (
+          {activeReportType === "vencimientos" && (
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
@@ -514,7 +527,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
           )}
 
           {/* TAB 5: BAJAS Y DISPOSICIÓN FINAL */}
-          {type === "mermas" && (
+          {activeReportType === "mermas" && (
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
@@ -565,7 +578,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
           )}
 
           {/* TAB 6: REACTIVOVIGILANCIA */}
-          {type === "reactivovigilancia" && (
+          {activeReportType === "reactivovigilancia" && (
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
@@ -612,7 +625,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
           )}
 
           {/* TAB 7: HISTORIAL AMBIENTAL */}
-          {type === "ambiental" && (
+          {activeReportType === "ambiental" && (
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
@@ -667,7 +680,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
           )}
 
           {/* TAB 8: VALORIZACIÓN Y COSTOS DEL INVENTARIO */}
-          {type === "valorizacion" && (
+          {activeReportType === "valorizacion" && (
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>

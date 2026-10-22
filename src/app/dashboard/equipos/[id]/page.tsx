@@ -45,6 +45,30 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
             </div>
             <div className="form-card-body" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div className="tech-info-row">
+                <span className="cell-muted">No. Inventario:</span>
+                <span style={{ fontWeight: 600 }}>{equipment.data.inventory_number || "—"}</span>
+              </div>
+              <div className="tech-info-row">
+                <span className="cell-muted">Área:</span>
+                <span style={{ fontWeight: 600 }}>{equipment.data.section?.name || "—"}</span>
+              </div>
+              <div className="tech-info-row">
+                <span className="cell-muted">Rango de medición:</span>
+                <span style={{ fontWeight: 600 }}>{equipment.data.measurement_range || "—"}</span>
+              </div>
+              <div className="tech-info-row">
+                <span className="cell-muted">Registro sanitario / riesgo:</span>
+                <span style={{ fontWeight: 600 }}>{equipment.data.sanitary_registration || "No aplica"} / {equipment.data.risk_classification || "No aplica"}</span>
+              </div>
+              <div className="tech-info-row">
+                <span className="cell-muted">Frecuencias:</span>
+                <span style={{ fontWeight: 600 }}>Mantenimiento {equipment.data.maintenance_frequency || "—"}; calibración {equipment.data.calibration_frequency || "—"}</span>
+              </div>
+              <div className="tech-info-row">
+                <span className="cell-muted">Responsable:</span>
+                <span style={{ fontWeight: 600 }}>{equipment.data.responsible || "—"}</span>
+              </div>
+              <div className="tech-info-row">
                 <span className="cell-muted">Marca/Modelo:</span>
                 <span style={{ fontWeight: 600 }}>{equipment.data.brand} {equipment.data.model}</span>
               </div>

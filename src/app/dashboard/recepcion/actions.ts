@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/supabase/authorization";
 
 export async function submitTechnicalReception(data: {
     order_id: string;
+    invoice_number: string;
     packaging_status: string;
     integrity_verified: boolean;
     reception_temperature: number;
@@ -16,15 +17,20 @@ export async function submitTechnicalReception(data: {
         lot_number: string;
         expiration_date: string;
         quantity_received: number;
+        location_id: string;
         unit_price: number;
     }[];
 }) {
     await requireRole(["admin", "operator"]);
     if (!data.order_id || !Array.isArray(data.items) || data.items.length === 0 || data.items.length > 500 ||
-        !Number.isFinite(data.reception_temperature) || data.items.some(item =>
+        !Number.isFinite(data.reception_temperature) || !data.invoice_number?.trim() || data.items.some(item =>
           !item.catalog_item_id || !item.lot_number?.trim() || !Number.isSafeInteger(item.quantity_received) || item.quantity_received <= 0 ||
+          !item.location_id ||
           !Number.isFinite(item.unit_price) || item.unit_price < 0 || !/^\d{4}-\d{2}-\d{2}$/.test(item.expiration_date))) {
         throw new Error("Datos de recepción inválidos");
+    }
+    if (new Set(data.items.map(item => item.catalog_item_id)).size !== data.items.length) {
+        throw new Error("Cada producto de la orden solo puede aparecer una vez por recepción.");
     }
     try {
         const result = await ComplianceService.createTechnicalReception(data);

@@ -31,8 +31,19 @@ export interface CatalogItem {
   purchase_unit: string;
   usage_unit?: string | null;
   minimum_stock_threshold?: number;
+  maximum_stock_threshold?: number | null;
   estimated_unit_price?: number;
   sanitary_registration?: string | null;
+  product_type?: 'medicamento' | 'dispositivo_medico' | 'reactivo' | 'insumo';
+  series?: string | null;
+  brand?: string | null;
+  product_description?: string | null;
+  active_ingredient?: string | null;
+  dosage_form?: string | null;
+  concentration?: string | null;
+  commercial_presentation?: string | null;
+  shelf_life?: string | null;
+  risk_classification?: 'I' | 'II' | 'IIA' | 'IIB' | 'III' | 'not_applicable' | null;
   is_active?: boolean;
   created_at?: string;
   // Relational data

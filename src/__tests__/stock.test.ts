@@ -2,33 +2,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { StockService } from '@/lib/services/stock';
 import { createClient } from '@/lib/supabase/server';
 
-// Mock Supabase client
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
 }));
 
 describe('StockService', () => {
   const mockSupabase = {
-    from: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    single: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockReturnThis(),
+    rpc: vi.fn(),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (createClient as unknown as { mockResolvedValue: (v: unknown) => void }).mockResolvedValue(mockSupabase);
+    (createClient as unknown as { mockResolvedValue: (value: unknown) => void }).mockResolvedValue(mockSupabase);
   });
 
   describe('consumeStock', () => {
-    it('should fail if stock is insufficient', async () => {
-      mockSupabase.single.mockResolvedValueOnce({ 
-        data: { current_stock: 5, batch_number: 'B-001' }, 
-        error: null 
-      });
+    it('returns the database error when stock is insufficient', async () => {
+      const stockError = { message: 'Insufficient stock; available: 5' };
+      mockSupabase.rpc.mockResolvedValueOnce({ error: stockError });
 
       const result = await StockService.consumeStock({
         batch_id: 'batch-1',
@@ -38,15 +29,15 @@ describe('StockService', () => {
       });
 
       expect(result.data).toBeNull();
-      expect(result.error?.message).toContain('Stock insuficiente');
+      expect(result.error).toEqual(stockError);
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('fn_consume_inventory_batch', expect.objectContaining({
+        p_batch_id: 'batch-1',
+        p_quantity: 10,
+      }));
     });
 
-    it('should create a stock movement if stock is sufficient', async () => {
-      mockSupabase.single.mockResolvedValueOnce({ 
-        data: { current_stock: 50, batch_number: 'B-001' }, 
-        error: null 
-      });
-      mockSupabase.insert.mockResolvedValueOnce({ error: null });
+    it('consumes stock through the atomic database function', async () => {
+      mockSupabase.rpc.mockResolvedValueOnce({ error: null });
 
       const result = await StockService.consumeStock({
         batch_id: 'batch-1',
@@ -56,10 +47,9 @@ describe('StockService', () => {
       });
 
       expect(result.data?.success).toBe(true);
-      expect(mockSupabase.from).toHaveBeenCalledWith('stock_movements');
-      expect(mockSupabase.insert).toHaveBeenCalledWith(expect.objectContaining({
-        movement_type: 'exit',
-        quantity: 10,
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('fn_consume_inventory_batch', expect.objectContaining({
+        p_batch_id: 'batch-1',
+        p_quantity: 10,
       }));
     });
   });

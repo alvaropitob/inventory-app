@@ -7,7 +7,7 @@ interface Product {
   technical_name: string;
   commercial_name: string;
   internal_code: string;
-  estimated_unit_price?: number;
+  estimated_unit_price?: number | null;
 }
 
 interface SearchableProductSelectProps {

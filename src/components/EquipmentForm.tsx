@@ -7,7 +7,9 @@ interface Location {
   name: string;
 }
 
-export default function EquipmentForm({ locations }: { locations: Location[] }) {
+interface Section { id: string; name: string; }
+
+export default function EquipmentForm({ locations, sections }: { locations: Location[]; sections: Section[] }) {
   const [loading, setLoading] = useState(false);
 
   async function clientAction(formData: FormData) {
@@ -26,9 +28,39 @@ export default function EquipmentForm({ locations }: { locations: Location[] }) 
   return (
     <form id="equipment-form" action={clientAction} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       <div className="form-group">
+        <label>Número de inventario</label>
+        <input name="inventory_number" placeholder="Ej: LCE.MB-03" />
+      </div>
+
+      <div className="form-group">
         <label>Nombre del Equipo / Analizador *</label>
         <input name="name" required placeholder="Ej: Cobas c311" />
       </div>
+
+      <div className="form-group">
+        <label>Área *</label>
+        <select name="section_id" required defaultValue="">
+          <option value="">Seleccione un área...</option>
+          {sections.map(section => <option key={section.id} value={section.id}>{section.name}</option>)}
+        </select>
+      </div>
+
+      <div className="form-group">
+        <label>Rango de medición</label>
+        <input name="measurement_range" placeholder="Ej: Verificar a 37 °C" />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group"><label>Registro sanitario</label><input name="sanitary_registration" placeholder="No requiere / registro" /></div>
+        <div className="form-group"><label>Clasificación por riesgo</label><select name="risk_classification" defaultValue=""><option value="">No aplica</option><option value="I">I</option><option value="II">II</option><option value="IIA">IIA</option><option value="IIB">IIB</option><option value="III">III</option></select></div>
+      </div>
+
+      <div className="form-row">
+        <div className="form-group"><label>Frecuencia de calibración</label><input name="calibration_frequency" placeholder="Ej: Anual / No requiere" /></div>
+        <div className="form-group"><label>Frecuencia de mantenimiento</label><input name="maintenance_frequency" placeholder="Ej: Anual / Diaria" /></div>
+      </div>
+
+      <div className="form-group"><label>Responsable / proveedor</label><input name="responsible" placeholder="Biomédico, proveedor o usuario" /></div>
 
       <div className="form-row">
         <div className="form-group">

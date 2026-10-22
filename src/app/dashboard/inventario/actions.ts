@@ -6,11 +6,20 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/supabase/authorization";
+import { validateCatalogProduct } from "@/lib/validation/catalog";
 
 export async function handleCatalogAction(formData: FormData) {
   await requireRole(["admin", "supervisor"]);
   const id = formData.get("id") as string;
   const sectionId = formData.get("section_id") as string;
+  const productType = String(formData.get("product_type") || "");
+  const value = (key: string) => String(formData.get(key) || "").trim();
+  const validationError = validateCatalogProduct(Object.fromEntries([
+    "product_type", "internal_code", "technical_name", "purchase_unit", "commercial_presentation",
+    "active_ingredient", "dosage_form", "concentration", "sanitary_registration", "brand",
+    "shelf_life", "series", "product_description", "risk_classification", "supplier_id",
+  ].map(field => [field, value(field)])));
+  if (validationError) redirect(`/dashboard/inventario?view=entradas&error=${encodeURIComponent(validationError)}`);
   
   // Fetch sections to get category_id and avoid closure issues
   const { data: sections } = await CatalogService.getSections();
@@ -22,10 +31,21 @@ export async function handleCatalogAction(formData: FormData) {
       internal_code: formData.get("internal_code") as string,
       technical_name: formData.get("technical_name") as string,
       commercial_name: (formData.get("commercial_name") as string) || null,
-      sanitary_registration: (formData.get("sanitary_registration") as string) || null,
+      sanitary_registration: value("sanitary_registration") || null,
+      product_type: productType as "medicamento" | "dispositivo_medico" | "reactivo" | "insumo",
+      series: value("series") || null,
+      brand: value("brand") || null,
+      product_description: value("product_description") || null,
+      active_ingredient: value("active_ingredient") || null,
+      dosage_form: value("dosage_form") || null,
+      concentration: value("concentration") || null,
+      commercial_presentation: value("commercial_presentation") || null,
+      shelf_life: value("shelf_life") || null,
+      risk_classification: (value("risk_classification") as "I" | "II" | "IIA" | "IIB" | "III" | "not_applicable") || "not_applicable",
+      purchase_unit: (formData.get("purchase_unit") as string) || "Unidad",
       category_id: (selectedSection as { category_id: string | null })?.category_id || null,
       section_id: sectionId || null, 
-      supplier_id: (formData.get("supplier_id") as string) || null,
+      supplier_id: value("supplier_id") && value("supplier_id") !== "not_applicable" ? value("supplier_id") : null,
       is_active: true,
     };
 
@@ -38,13 +58,17 @@ export async function handleCatalogAction(formData: FormData) {
     }
 
     // Register physical stock entry if quantity is provided
-    const quantity = Number(formData.get("quantity"));
+    const rawQuantity = String(formData.get("quantity") || "").trim();
+    const quantity = rawQuantity ? Number(rawQuantity) : 0;
     const batchNumber = formData.get("batch_number") as string;
-    const expirationDate = formData.get("expiration_date") as string;
-    const locationId = formData.get("location_id") as string;
+    const expirationDate = String(formData.get("expiration_date") || "").trim();
+    const locationId = String(formData.get("location_id") || "").trim();
+    const hasAnyBatchData = Boolean(rawQuantity || String(batchNumber || "").trim() || expirationDate || locationId);
 
-    if (quantity && (!Number.isSafeInteger(quantity) || quantity < 1)) throw new Error("La cantidad de ingreso debe ser un entero positivo");
-    if (item && quantity > 0 && batchNumber && expirationDate && locationId) {
+    if (hasAnyBatchData && (!Number.isSafeInteger(quantity) || quantity < 1 || !String(batchNumber || "").trim() || !expirationDate || !locationId)) {
+      throw new Error("Para registrar existencias, completa cantidad, lote, vencimiento y ubicación.");
+    }
+    if (item && quantity > 0) {
       // If editing, check if we are just re-submitting the same batch info
       let shouldReceive = true;
       if (id) {
@@ -74,11 +98,7 @@ export async function handleCatalogAction(formData: FormData) {
           });
           if (stockError) {
             console.error("Stock Error:", stockError);
-            if (stockError.code === '23505') { // Unique violation
-              // Silence this specific error if it happens despite our check
-            } else {
-              throw stockError;
-            }
+            throw stockError;
           }
         }
       }
@@ -119,7 +139,7 @@ export async function handleConsumeAction(formData: FormData) {
 
   try {
     const { user } = await requireRole(["admin", "operator"]);
-    if (!batchId || quantity <= 0) throw new Error("Datos inválidos");
+    if (!batchId || !Number.isSafeInteger(quantity) || quantity <= 0) throw new Error("Lote o cantidad no válidos");
 
     if (fefoDeviation && (!justificationReason || justificationReason.trim() === "")) {
       throw new Error("Norma ISO 15189: Debe ingresar una justificación técnica obligatoria para desviarse del lote sugerido por FEFO.");
@@ -157,45 +177,6 @@ export async function handleConsumeAction(formData: FormData) {
   redirect("/dashboard/inventario?view=movimientos");
 }
 
-export async function handleDiscardAction(formData: FormData) {
-  const batchId = formData.get("batch_id") as string;
-  const quantity = Number(formData.get("quantity"));
-  const reason = formData.get("reason") as string;
-  const disposalMethod = formData.get("disposal_method") as string;
-
-  try {
-    const { user } = await requireRole(["admin", "supervisor"]);
-    if (!batchId || quantity <= 0) throw new Error("Lote o cantidad no válida");
-    if (!reason || reason.trim() === "") throw new Error("Debe ingresar la justificación técnica de la baja");
-
-    const { error: discardError } = await StockService.discardStock({
-      batch_id: batchId,
-      quantity,
-      discarded_by: user.id,
-      reason,
-      disposal_method: disposalMethod,
-    });
-
-    if (discardError) {
-      console.error("Discard error:", discardError);
-      const errorMsg = encodeURIComponent(
-        typeof discardError === "object" && discardError !== null && "message" in discardError
-          ? String((discardError as { message: string }).message)
-          : "Error al registrar la baja técnica"
-      );
-      redirect(`/dashboard/inventario?view=bajas&error=${errorMsg}`);
-    }
-  } catch (error) {
-    if (error instanceof Error && (error as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw error;
-    console.error("Fatal Discard Error:", error);
-    const errorMsg = encodeURIComponent(error instanceof Error ? error.message : "Error inesperado");
-    redirect(`/dashboard/inventario?view=bajas&error=${errorMsg}`);
-  }
-
-  revalidatePath("/dashboard/inventario");
-  redirect("/dashboard/inventario?view=movimientos&success=discard");
-}
-
 export async function handleTransferAction(formData: FormData) {
   const batchId = formData.get("batch_id") as string;
   const destinationLocationId = formData.get("destination_location_id") as string;
@@ -203,10 +184,19 @@ export async function handleTransferAction(formData: FormData) {
   const reason = formData.get("reason") as string;
 
   try {
-    const { user } = await requireRole(["admin", "operator"]);
+    const { user } = await requireRole(["admin", "supervisor", "operator"]);
     if (!batchId || !destinationLocationId || !Number.isSafeInteger(quantity) || quantity <= 0) {
       throw new Error("Lote, ubicación destino o cantidad no válidos");
     }
+
+    const { data: locations, error: locationsError } = await CatalogService.getLocations();
+    if (locationsError) throw locationsError;
+    const isSedeNorte = locations?.some((location: { id: string; name: string; is_active?: boolean }) =>
+      location.id === destinationLocationId &&
+      location.is_active !== false &&
+      location.name.trim().toLocaleLowerCase() === "sede norte"
+    );
+    if (!isSedeNorte) throw new Error("El destino del traslado debe ser la ubicación Sede Norte.");
 
     const { error: transferError } = await StockService.transferStock({
       batch_id: batchId,

@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { OrderService } from "@/lib/services/orders";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import Link from "next/link";
+import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ interface Batch {
   item_id: string;
   batch_number: string;
   expiration_date: string;
+  adjusted_expiration_date?: string | null;
   current_stock: number;
   clinical_status?: 'accepted' | 'quarantine' | 'rejected' | string;
   item?: { technical_name: string };
@@ -36,12 +38,15 @@ export default async function DashboardPage() {
 
   const stockLevels = (items || []).map(item => {
     const itemBatches = (batches || []).filter(b => b.item_id === item.id);
-    const totalStock = itemBatches.reduce((sum, b) => sum + b.current_stock, 0);
+    const todayKey = getDateKeyInBusinessTimeZone(new Date());
+    const totalStock = itemBatches.filter(b => b.clinical_status === "accepted" && (b.adjusted_expiration_date || b.expiration_date) >= todayKey && b.status !== "expired")
+      .reduce((sum, b) => sum + b.current_stock, 0);
     const threshold = item.minimum_stock_threshold || 0;
 
     let priority: 'none' | 'low' | 'medium' | 'high' = 'none';
     if (totalStock === 0) priority = 'high';
     else if (totalStock < threshold) priority = 'medium';
+    else if (item.maximum_stock_threshold != null && totalStock > item.maximum_stock_threshold) priority = 'low';
     else if (totalStock < threshold * 1.5) priority = 'low';
 
     return { ...item, totalStock, priority };
@@ -52,8 +57,8 @@ export default async function DashboardPage() {
   const now = new Date();
   const next30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  const expirationAlerts = (batches || []).map(batch => {
-    const expDate = new Date(batch.expiration_date);
+  const expirationAlerts = (batches || []).filter(batch => batch.current_stock > 0 && batch.clinical_status === "accepted" && batch.status !== "expired").map(batch => {
+    const expDate = new Date(batch.adjusted_expiration_date || batch.expiration_date);
     let priority: 'none' | 'medium' | 'high' = 'none';
     if (expDate <= now) priority = 'high';
     else if (expDate <= next30Days) priority = 'medium';
@@ -61,10 +66,11 @@ export default async function DashboardPage() {
   }).filter(b => b.priority !== 'none');
 
   const criticalExpiry = expirationAlerts.filter(e => e.priority === 'high').length;
-  const totalAlerts = criticalStockCount + criticalExpiry;
+  const overStockCount = stockLevels.filter(s => s.maximum_stock_threshold != null && s.totalStock > s.maximum_stock_threshold).length;
+  const totalAlerts = criticalStockCount + overStockCount + criticalExpiry;
 
   const totalInventoryValue = (items || []).reduce((acc, item) => {
-    const itemBatches = (batches || []).filter(b => b.item_id === item.id);
+    const itemBatches = (batches || []).filter(b => b.item_id === item.id && b.clinical_status === "accepted" && b.status !== "expired" && (b.adjusted_expiration_date || b.expiration_date) >= getDateKeyInBusinessTimeZone(new Date()));
     const totalStock = itemBatches.reduce((sum, b) => sum + (b.current_stock || 0), 0);
     const price = Number(item.estimated_unit_price || 0);
     return acc + (totalStock * price);
@@ -110,8 +116,8 @@ export default async function DashboardPage() {
           <strong>{totalAlerts > 0 ? `${totalAlerts} alertas requieren revisión` : "Inventario dentro de parámetros"}</strong>
           <span>
             {totalAlerts > 0
-              ? `${criticalStockCount} productos bajo el mínimo y ${criticalExpiry} lotes vencidos.`
-              : "No se detectan productos bajo el mínimo ni lotes vencidos."}
+              ? `${criticalStockCount} productos bajo el mínimo, ${overStockCount} sobre el máximo y ${criticalExpiry} lotes vencidos.`
+              : "No se detectan productos bajo el mínimo o sobre el máximo ni lotes vencidos."}
           </span>
         </div>
         <Link href="/dashboard/inventario" className="dashboard-alert-link">
@@ -317,7 +323,7 @@ export default async function DashboardPage() {
                 <div className="expiry-list">
                   {expirationAlerts
                     .filter(e => e.priority === 'high' || e.priority === 'medium')
-                    .sort((a, b) => new Date(a.expiration_date).getTime() - new Date(b.expiration_date).getTime())
+                    .sort((a, b) => new Date(a.adjusted_expiration_date || a.expiration_date).getTime() - new Date(b.adjusted_expiration_date || b.expiration_date).getTime())
                     .slice(0, 6)
                     .map((batch: Batch) => {
                       const cStatus = batch.clinical_status || 'accepted';
@@ -328,7 +334,7 @@ export default async function DashboardPage() {
                               {(batch as { item?: { technical_name: string } }).item?.technical_name}
                             </span>
                             <span className={batch.priority === 'high' ? 'expiry-item-date-danger' : 'expiry-item-date-warning'}>
-                              {new Date(batch.expiration_date).toLocaleDateString()}
+                              {new Date(batch.adjusted_expiration_date || batch.expiration_date).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="expiry-item-bottom">

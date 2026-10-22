@@ -1,6 +1,7 @@
 "use client";
 
 import { MaintenanceRecord } from "@/lib/services/equipment";
+import { formatDateKeyInBusinessTimeZone } from "@/lib/dates";
 
 interface MaintenanceHistoryProps {
   records: MaintenanceRecord[];
@@ -24,18 +25,22 @@ export default function MaintenanceHistory({ records }: MaintenanceHistoryProps)
         <table className="w-full text-left">
           <thead className="bg-navy/5 border-b border-navy/10 text-[10px] font-black uppercase text-navy-light tracking-widest">
             <tr>
-              <th className="px-6 py-4">Fecha</th>
+              <th className="px-6 py-4">Fecha de mantenimiento</th>
+              <th className="px-6 py-4">Fecha de realización</th>
               <th className="px-6 py-4">Tipo</th>
               <th className="px-6 py-4">Responsable</th>
               <th className="px-6 py-4">Resultado</th>
-              <th className="px-6 py-4">Próximo Vencimiento</th>
+              <th className="px-6 py-4">Próxima fecha</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-navy/5">
             {records.map((record) => (
               <tr key={record.id} className="hover:bg-navy/5 transition-colors">
+                <td className="px-6 py-4 text-sm text-navy-light">
+                  {formatDateKeyInBusinessTimeZone(record.scheduled_date)}
+                </td>
                 <td className="px-6 py-4 text-sm font-bold text-navy">
-                  {new Date(record.execution_date).toLocaleDateString()}
+                  {formatDateKeyInBusinessTimeZone(record.execution_date)}
                 </td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${
@@ -48,13 +53,13 @@ export default function MaintenanceHistory({ records }: MaintenanceHistoryProps)
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-navy-light">
-                  {record.performed_by}
+                  {record.provider_name || record.performed_by || "—"}
                 </td>
                 <td className="px-6 py-4 text-sm font-semibold text-navy">
                   {record.result}
                 </td>
                 <td className="px-6 py-4 text-sm text-navy-light">
-                  {record.next_due_date ? new Date(record.next_due_date).toLocaleDateString() : 'N/A'}
+                  {formatDateKeyInBusinessTimeZone(record.next_due_date)}
                 </td>
               </tr>
             ))}

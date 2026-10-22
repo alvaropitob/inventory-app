@@ -4,13 +4,15 @@ import { StockService } from "@/lib/services/stock";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import DeleteMasterButton from "@/components/DeleteMasterButton";
 import InventoryProductSelector from "@/components/InventoryProductSelector";
+import ProductTechnicalFields from "@/components/ProductTechnicalFields";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import RealtimeStockTable from "./RealtimeStockTable";
 import ContextualHelp from "@/components/ContextualHelp";
 import * as Actions from "./actions";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ClinicalOutputForm from "@/components/ClinicalOutputForm";
-import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Boxes, ClipboardList, FileText, History, Package, PackagePlus, Trash2, X } from "lucide-react";
+import { getDateKeyInBusinessTimeZone, getDaysUntilDateKey } from "@/lib/dates";
+import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Boxes, ClipboardList, FileText, History, Package, PackagePlus, X } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -32,12 +34,25 @@ interface CatalogItem {
   id: string;
   internal_code: string;
   technical_name: string;
+  section_id?: string | null;
+  supplier_id?: string | null;
   commercial_name?: string | null;
   purchase_unit?: string | null;
   minimum_stock_threshold?: number | null;
+  maximum_stock_threshold?: number | null;
   sections?: { name: string } | null;
   is_active?: boolean;
   sanitary_registration?: string | null;
+  product_type?: 'medicamento' | 'dispositivo_medico' | 'reactivo' | 'insumo' | null;
+  series?: string | null;
+  brand?: string | null;
+  product_description?: string | null;
+  active_ingredient?: string | null;
+  dosage_form?: string | null;
+  concentration?: string | null;
+  commercial_presentation?: string | null;
+  shelf_life?: string | null;
+  risk_classification?: 'I' | 'II' | 'IIA' | 'IIB' | 'III' | 'not_applicable';
 }
 
 interface Batch {
@@ -45,13 +60,16 @@ interface Batch {
   item_id: string;
   batch_number: string;
   expiration_date: string;
+  adjusted_expiration_date?: string | null;
   current_stock: number;
   location_id?: string | null;
   item?: CatalogItem | null;
   catalog_items?: CatalogItem | null;
+  location?: { name: string; section_id?: string | null } | null;
   locations?: { name: string } | null;
   unit_cost?: number;
   clinical_status?: 'accepted' | 'quarantine' | 'rejected' | string;
+  status?: string | null;
 }
 
 interface StockMovement {
@@ -62,6 +80,7 @@ interface StockMovement {
   reason?: string | null;
   batch?: Batch | null;
   batches?: Batch | null;
+  user_id?: string | null;
   users?: AuditUser | AuditUser[] | null;
   equipment_name?: string | null;
   catalog_items?: CatalogItem | null;
@@ -98,9 +117,9 @@ function movementQtyClass(type: string) {
 export default async function InventarioPage({
   searchParams,
 }: {
-  searchParams: Promise<{ editId?: string; view?: string; error?: string }>;
+  searchParams: Promise<{ editId?: string; view?: string; error?: string; from?: string; to?: string; user?: string; product?: string; location?: string; movementType?: string }>;
 }) {
-  const { editId, view, error } = await searchParams;
+  const { editId, view, error, from, to, user: userFilter, product, location, movementType } = await searchParams;
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
 
@@ -121,6 +140,10 @@ export default async function InventarioPage({
   ]);
 
   const editingItem = editId ? catalogItems?.find(i => i.id === editId) : null;
+  const activeSections = (sections || []).filter((section: { is_active?: boolean }) => section.is_active !== false);
+  const northLocations = (locations || []).filter((location: { is_active?: boolean; name: string }) =>
+    location.is_active !== false && location.name.trim().toLocaleLowerCase() === "sede norte"
+  );
 
   let latestBatch = null;
   if (editId) {
@@ -133,12 +156,21 @@ export default async function InventarioPage({
     }
   }
 
-  const currentView = view || "entradas";
+  const currentView = view === "bajas" ? "entradas" : (view || "entradas");
+  const filteredMovements = (allMovements || []).filter((movement: StockMovement) => {
+    const movementDate = movement.created_at.slice(0, 10);
+    return (!from || movementDate >= from)
+      && (!to || movementDate <= to)
+      && (!userFilter || movement.user_id === userFilter)
+      && (!product || movement.batch?.item_id === product)
+      && (!location || movement.batch?.location_id === location)
+      && (!movementType || movement.movement_type === movementType);
+  });
+  const movementUsers = Array.from(new Map((allMovements || [])
+    .filter((movement: StockMovement) => movement.user_id)
+    .map((movement: StockMovement) => [movement.user_id!, getUserDisplayName(movement.users)])).entries());
   const activeBatches = (allBatches || []).filter((batch: Batch) => batch.current_stock > 0);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysUntilExpiry = (batch: Batch) =>
-    Math.ceil((new Date(`${batch.expiration_date}T00:00:00`).getTime() - today.getTime()) / 86_400_000);
+  const daysUntilExpiry = (batch: Batch) => getDaysUntilDateKey(batch.adjusted_expiration_date || batch.expiration_date);
   const criticalExpiryCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) <= 15).length;
   const warningExpiryCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) > 15 && daysUntilExpiry(batch) <= 45).length;
   const validBatchCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) > 45).length;
@@ -149,7 +181,9 @@ export default async function InventarioPage({
 
   const consolidatedStock = catalogItems?.map((item: CatalogItem) => {
     const itemBatches = allBatches?.filter((b: Batch) => b.item_id === item.id) || [];
-    const totalStock = itemBatches.reduce((acc: number, b: Batch) => acc + (b.current_stock || 0), 0);
+    const todayKey = getDateKeyInBusinessTimeZone(new Date());
+    const usableBatches = itemBatches.filter((b: Batch) => b.clinical_status === 'accepted' && b.status !== 'expired' && (b.adjusted_expiration_date || b.expiration_date) >= todayKey);
+    const totalStock = usableBatches.reduce((acc: number, b: Batch) => acc + (b.current_stock || 0), 0);
     return { ...item, itemBatches, totalStock };
   }).filter((item: CatalogItem & { totalStock: number, itemBatches: Batch[] }) =>
     item.totalStock > 0 || (item.itemBatches && item.itemBatches.length > 0)
@@ -192,8 +226,7 @@ export default async function InventarioPage({
           { key: 'stock', label: 'Stock', icon: <Boxes className="ui-icon" aria-hidden="true" /> },
           { key: 'salidas', label: 'Salidas', icon: <ArrowUpFromLine className="ui-icon" aria-hidden="true" /> },
           { key: 'traslados', label: 'Traslados', icon: <ArrowLeftRight className="ui-icon" aria-hidden="true" /> },
-          { key: 'bajas', label: 'Bajas', icon: <Trash2 className="ui-icon" aria-hidden="true" /> },
-          { key: 'movimientos', label: 'Kardex', icon: <History className="ui-icon" aria-hidden="true" /> },
+          { key: 'movimientos', label: 'Trazabilidad', icon: <History className="ui-icon" aria-hidden="true" /> },
         ].map(tab => (
           <a
             key={tab.key}
@@ -279,39 +312,19 @@ export default async function InventarioPage({
                           </div>
                         </div>
 
-                        <div className="form-grid-1-12">
-                          <div>
-                            <label className="form-label">Presentación / Comercial</label>
-                            <input
-                              name="commercial_name"
-                              defaultValue={editingItem?.commercial_name || ""}
-                              readOnly={!!editingItem}
-                              placeholder="Ej: Kit KIT01"
-                              className={`form-input ${editingItem ? 'form-input-readonly' : ''}`}
-                            />
-                          </div>
-                          <div>
-                            <label className="form-label">Registro Sanitario / INVIMA</label>
-                            <input
-                              name="sanitary_registration"
-                              defaultValue={editingItem?.sanitary_registration || ""}
-                              placeholder="Ej: INVIMA 2024RD-..."
-                              className="form-input"
-                            />
-                          </div>
-                        </div>
+                        <ProductTechnicalFields initial={editingItem as CatalogItem | null} />
 
                         <div>
-                          <label className="form-label">Categoría / Clasificación</label>
+                          <label className="form-label">Área</label>
                           {editingItem ? (
                             <div className="form-readonly-field">
-                              {sections?.find(s => s.id === editingItem.section_id)?.name || "Sin Categoría"}
+                              {sections?.find(s => s.id === editingItem.section_id)?.name || "Sin área"}
                               <input type="hidden" name="section_id" value={editingItem.section_id || ""} />
                             </div>
                           ) : (
                             <select name="section_id" required className="form-select">
-                              <option value="">Seleccione Categoría...</option>
-                              {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                              <option value="">Seleccione un área...</option>
+                              {activeSections.map((s: { id: string; name: string }) => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
                           )}
                         </div>
@@ -321,26 +334,27 @@ export default async function InventarioPage({
                     {/* Purchase / Stock Entry */}
                     <div className="form-section">
                       <div className="form-section-header">
-                        <h3 className="form-section-title"><ArrowDownToLine className="ui-icon" aria-hidden="true" /> Registro de Compra / Entrada</h3>
+                        <h3 className="form-section-title"><ArrowDownToLine className="ui-icon" aria-hidden="true" /> Registro</h3>
                         <ContextualHelp
                           content={{
-                            title: "Ingreso de Stock",
-                            description: "Registra nuevos lotes adquiridos. El sistema aplicará automáticamente la política FEFO (First Expired, First Out) basada en la fecha de vencimiento que ingreses.",
-                            tips: ["Verifique que el número de lote coincida con la factura."]
+                            title: "Registro de existencias",
+                            description: "Registra lotes y existencias de productos del catálogo. Las compras a proveedores se gestionan desde Pedidos y se ingresan mediante Recepción Técnica.",
+                            tips: ["Para compras, complete la recepción técnica del pedido para conservar la trazabilidad de factura, lote y vencimiento."]
                           }}
                         />
                       </div>
 
                       <div className="form-fields">
+
                         <div>
-                          <label className="form-label">Proveedor Habitual *</label>
+                          <label className="form-label">Proveedor Habitual</label>
                           <select
                             name="supplier_id"
                             defaultValue={latestBatch?.supplier_id || editingItem?.supplier_id || ""}
-                            required
                             className="form-select"
                           >
-                            <option value="">Seleccione Proveedor...</option>
+                            <option value="">Seleccione proveedor o No aplica...</option>
+                            <option value="not_applicable">No aplica</option>
                             {suppliers?.map(sup => <option key={sup.id} value={sup.id}>{sup.name}</option>)}
                           </select>
                         </div>
@@ -407,7 +421,7 @@ export default async function InventarioPage({
                         <tr>
                           <th>Código</th>
                           <th>Nombre del Producto</th>
-                          <th>Categoría</th>
+                          <th>Área</th>
                           <th>Presentación</th>
                           <th>Mín. Stock</th>
                           <th>Acciones</th>
@@ -470,15 +484,16 @@ export default async function InventarioPage({
                   'Código': row.internal_code || 'N/A',
                   'Producto': row.technical_name || 'N/A',
                   'Nombre Comercial': row.commercial_name || 'N/A',
-                  'Categoría': row.sections?.name || 'Genérico',
+                  'Área': row.sections?.name || 'Sin área',
                   'Stock Total': row.totalStock,
                   'Unidad de Compra': row.purchase_unit || 'N/A',
+                  'Stock Máximo': row.maximum_stock_threshold ?? 'Sin definir',
                   'Lotes Disponibles': row.itemBatches?.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => `${b.batch_number}:${b.current_stock}`).join(' | ') || 'Agotado',
                   'Estado': row.totalStock === 0 ? 'Agotado' : row.totalStock <= (row.minimum_stock_threshold || 10) ? 'Stock Bajo' : 'Óptimo'
                 }))}
               />
             </div>
-            <RealtimeStockTable initialBatches={allBatches || []} />
+            <RealtimeStockTable initialBatches={allBatches || []} sections={activeSections.map((section: { id: string; name: string }) => section)} />
           </div>
         )}
 
@@ -490,7 +505,7 @@ export default async function InventarioPage({
             icon={<ArrowUpFromLine className="ui-icon" aria-hidden="true" />}
           >
             <div className="form-card" style={{ padding: '1.5rem' }}>
-              <ClinicalOutputForm batches={allBatches || []} action={Actions.handleConsumeAction} />
+              <ClinicalOutputForm batches={allBatches || []} sections={activeSections.map((section: { id: string; name: string }) => section)} action={Actions.handleConsumeAction} />
             </div>
           </CollapsibleSection>
         )}
@@ -498,8 +513,8 @@ export default async function InventarioPage({
         {/* ====== TRASLADOS INTERNOS ====== */}
         {currentView === 'traslados' && (
           <CollapsibleSection
-            title="Traslado Interno entre Ubicaciones y Sedes"
-            subtitle="Reubicación de reactivos e insumos entre bodegas, neveras y áreas analíticas con trazabilidad completa."
+            title="Traslado entre ubicaciones"
+            subtitle="Traslade existencias a Sede Norte con trazabilidad del área y lote de origen."
             icon={<ArrowLeftRight className="ui-icon" aria-hidden="true" />}
           >
             <div className="form-card">
@@ -507,7 +522,7 @@ export default async function InventarioPage({
                 <div>
                   <h2 className="form-card-title">Formulario de Reubicación / Traslado</h2>
                   <p className="form-card-subtitle">
-                    Seleccione el lote origen y la ubicación de destino. El sistema registrará el movimiento en el Kardex y actualizará el stock disponible en cada ubicación.
+                    Seleccione el producto y la ubicación de origen. El lote se conserva durante el traslado y el stock se actualiza en ambas ubicaciones.
                   </p>
                 </div>
               </div>
@@ -515,31 +530,30 @@ export default async function InventarioPage({
               <form action={Actions.handleTransferAction} className="form-body">
                 <div className="form-grid">
                   <div className="form-field-full">
-                    <label className="form-label">Lote e Insumo a Trasladar *</label>
+                    <label className="form-label">Producto a trasladar *</label>
                     <select name="batch_id" required className="form-select">
-                      <option value="">-- Seleccione lote origen con stock disponible --</option>
+                      <option value="">-- Seleccione producto y ubicación de origen --</option>
                       {(allBatches || [])
                         .filter((b: Batch) => b.current_stock > 0)
                         .map((b: Batch) => (
                           <option key={b.id} value={b.id}>
-                            {b.item?.technical_name || b.catalog_items?.technical_name} | Lote: {b.batch_number} | Stock: {b.current_stock} | Ubicación Actual: [{b.locations?.name || "Sin Asignar"}]
+                            {b.item?.technical_name || b.catalog_items?.technical_name} | {b.item?.commercial_presentation || b.catalog_items?.commercial_presentation || "No aplica"} | Stock: {b.current_stock} {b.item?.purchase_unit || b.catalog_items?.purchase_unit || "unidades"} | Ubicación: {b.location?.name || b.locations?.name || "Sin asignar"} | Vence: {new Date(b.expiration_date).toLocaleDateString("es-CO")}
                           </option>
                         ))}
                     </select>
                   </div>
 
                   <div className="form-field-half">
-                    <label className="form-label">Ubicación / Nevera de Destino *</label>
+                    <label className="form-label">Ubicación de destino *</label>
                     <select name="destination_location_id" required className="form-select">
-                      <option value="">-- Seleccione nueva ubicación o sede --</option>
-                      {(locations || [])
-                        .filter((loc: { is_active?: boolean }) => loc.is_active !== false)
-                        .map((loc: { id: string; name: string; location_type?: string }) => (
+                      <option value="">-- Seleccione Sede Norte --</option>
+                      {northLocations.map((loc: { id: string; name: string; location_type?: string }) => (
                           <option key={loc.id} value={loc.id}>
-                            {loc.name} {loc.location_type ? `(${loc.location_type})` : ""}
+                            {loc.name}
                           </option>
                         ))}
                     </select>
+                    {northLocations.length === 0 && <p className="cell-secondary">Configure primero la ubicación Sede Norte desde los maestros.</p>}
                   </div>
 
                   <div className="form-field-half">
@@ -559,7 +573,7 @@ export default async function InventarioPage({
                     <input
                       type="text"
                       name="reason"
-                      placeholder="Ej: Reabastecimiento de Nevera Hematología / Traslado a Sede Norte / Mantenimiento de equipo de frío..."
+                      placeholder="Motivo del traslado a Sede Norte"
                       className="form-input"
                     />
                   </div>
@@ -591,124 +605,17 @@ export default async function InventarioPage({
           </CollapsibleSection>
         )}
 
-        {/* ====== BAJAS Y DISPOSICIÓN FINAL ====== */}
-        {currentView === 'bajas' && (
-          <CollapsibleSection
-            title="Acta de Baja y Disposición Final de Residuos"
-            subtitle="Descarte formal de reactivos vencidos, mermas, contaminación o material no conforme (Normativa Ambiental e INVIMA)."
-            icon={<Trash2 className="ui-icon" aria-hidden="true" />}
-          >
-            <div className="form-card">
-              <div className="form-card-header">
-                <div>
-                  <h2 className="form-card-title">Registro Oficial de Baja Técnica</h2>
-                  <p className="form-card-subtitle">
-                    Descarga definitiva del inventario con trazabilidad auditable para inspectores de salud y gestión ambiental.
-                  </p>
-                </div>
-              </div>
-
-              <form action={Actions.handleDiscardAction} className="form-body">
-                <div className="form-grid">
-                  <div className="form-field-full">
-                    <label className="form-label">Seleccionar Lote / Insumo para Baja *</label>
-                    <select name="batch_id" required className="form-select">
-                      <option value="">-- Seleccione el lote a dar de baja --</option>
-                      {(allBatches || [])
-                        .filter((b: Batch) => b.current_stock > 0)
-                        .map((b: Batch) => {
-                          const isExpired = new Date(b.expiration_date) < new Date();
-                          return (
-                            <option key={b.id} value={b.id}>
-                              {b.item?.technical_name || b.catalog_items?.technical_name} | Lote: {b.batch_number} | Stock: {b.current_stock} | Vence: {new Date(b.expiration_date).toLocaleDateString()} {isExpired ? "[VENCIDO]" : ""}
-                            </option>
-                          );
-                        })}
-                    </select>
-                  </div>
-
-                  <div className="form-field-half">
-                    <label className="form-label">Cantidad a Dar de Baja *</label>
-                    <input
-                      type="number"
-                      name="quantity"
-                      min="1"
-                      required
-                      placeholder="Ej: 5"
-                      className="form-input"
-                    />
-                  </div>
-
-                  <div className="form-field-half">
-                    <label className="form-label">Método de Disposición Final *</label>
-                    <select name="disposal_method" required className="form-select">
-                      <option value="Inactivación química y entrega a gestor de residuos peligrosos">
-                        Inactivación química + Gestor ambiental autorizado
-                      </option>
-                      <option value="Autoclave y descarte biológico">
-                        Esterilización en Autoclave (Biológico)
-                      </option>
-                      <option value="Incineración externa certificada">
-                        Incineración externa certificada
-                      </option>
-                      <option value="Devolución al proveedor / Recall técnico">
-                        Devolución / Retiro de Mercado por Proveedor (Recall)
-                      </option>
-                      <option value="Derrame accidental / Rotura de frasco">
-                        Neutralización de derrame / Frasco quebrado
-                      </option>
-                    </select>
-                  </div>
-
-                  <div className="form-field-full">
-                    <label className="form-label">Motivo Detallado y Justificación Técnica *</label>
-                    <textarea
-                      name="reason"
-                      required
-                      rows={3}
-                      placeholder="Explique la causa de la baja (ej: Lote vencido sin rotación, frasco contaminado con turbidez, control de calidad fallido...)"
-                      className="form-textarea"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-actions-center" style={{ marginTop: '1.5rem' }}>
-                  <button
-                    type="submit"
-                    style={{
-                      padding: '0.75rem 1.75rem',
-                      borderRadius: '8px',
-                      backgroundColor: '#dc2626',
-                      color: '#ffffff',
-                      border: 'none',
-                      fontWeight: 700,
-                      fontSize: '0.925rem',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      boxShadow: 'var(--shadow-md)',
-                    }}
-                  >
-                      <Trash2 className="ui-icon" aria-hidden="true" /> Procesar Baja y Disposición Final
-                  </button>
-                </div>
-              </form>
-            </div>
-          </CollapsibleSection>
-        )}
-
         {/* ====== MOVIMIENTOS (KARDEX) ====== */}
         {currentView === 'movimientos' && (
           <div className="data-card">
             <div className="card-section-header">
               <div>
-                <h2 className="card-section-title">Kardex (Historial de Movimientos)</h2>
+                <h2 className="card-section-title">Trazabilidad de movimientos</h2>
                 <p className="card-section-subtitle">Registro auditable de todas las entradas, salidas y ajustes de inventario.</p>
               </div>
               <ExportCSVButton
-                filename="Kardex_Movimientos"
-                data={(allMovements || []).map((row: StockMovement) => ({
+                filename="Trazabilidad_Movimientos"
+                data={filteredMovements.map((row: StockMovement) => ({
                   'Fecha': new Date(row.created_at).toLocaleString(),
                   'Tipo': movementLabel(row.movement_type),
                   'Producto': row.batch?.item?.technical_name || 'Desconocido',
@@ -721,6 +628,17 @@ export default async function InventarioPage({
                 }))}
               />
             </div>
+            <form method="get" className="form-fields" style={{ padding: '1rem 1.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', alignItems: 'end' }}>
+              <input type="hidden" name="view" value="movimientos" />
+              <div><label className="form-label" htmlFor="movement-from">Desde</label><input id="movement-from" className="form-input" type="date" name="from" defaultValue={from || ''} /></div>
+              <div><label className="form-label" htmlFor="movement-to">Hasta</label><input id="movement-to" className="form-input" type="date" name="to" defaultValue={to || ''} /></div>
+              <div><label className="form-label" htmlFor="movement-product">Producto</label><select id="movement-product" className="form-select" name="product" defaultValue={product || ''}><option value="">Todos</option>{catalogItems?.map(item => <option key={item.id} value={item.id}>{item.technical_name}</option>)}</select></div>
+              <div><label className="form-label" htmlFor="movement-location">Ubicación</label><select id="movement-location" className="form-select" name="location" defaultValue={location || ''}><option value="">Todas</option>{locations?.map((loc: { id: string; name: string }) => <option key={loc.id} value={loc.id}>{loc.name}</option>)}</select></div>
+              <div><label className="form-label" htmlFor="movement-user">Usuario</label><select id="movement-user" className="form-select" name="user" defaultValue={userFilter || ''}><option value="">Todos</option>{movementUsers.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></div>
+              <div><label className="form-label" htmlFor="movement-type">Tipo</label><select id="movement-type" className="form-select" name="movementType" defaultValue={movementType || ''}><option value="">Todos</option><option value="entry">Entrada</option><option value="exit">Salida</option><option value="adjustment">Ajuste</option><option value="discard">Descarte</option></select></div>
+              <button type="submit" className="btn-primary">Filtrar movimientos</button>
+              <a href="?view=movimientos" className="btn-secondary" style={{ textAlign: 'center', textDecoration: 'none' }}>Limpiar filtros</a>
+            </form>
             <div className="table-responsive">
               <table className="kardex-table">
                 <thead>
@@ -735,7 +653,7 @@ export default async function InventarioPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {allMovements?.map((m: StockMovement) => (
+                  {filteredMovements.map((m: StockMovement) => (
                     <tr key={m.id}>
                       <td>
                         <span className="kardex-date">{new Date(m.created_at).toLocaleDateString()}</span>
@@ -791,7 +709,7 @@ export default async function InventarioPage({
                       </td>
                     </tr>
                   ))}
-                  {(!allMovements || allMovements.length === 0) && (
+                  {filteredMovements.length === 0 && (
                     <tr>
                       <td colSpan={7} className="empty-state">
                         <p className="empty-state-text">No hay movimientos registrados en el historial.</p>
