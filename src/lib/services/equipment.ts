@@ -10,6 +10,7 @@ export interface Equipment {
   section_id?: string;
   measurement_range?: string;
   sanitary_registration?: string;
+  invima_expiration_date?: string;
   risk_classification?: string;
   calibration_frequency?: string;
   maintenance_frequency?: string;

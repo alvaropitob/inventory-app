@@ -13,7 +13,6 @@ export async function createPurchaseOrder(formData: FormData) {
     return { error: "El proveedor es obligatorio" };
   }
 
-  const expected_delivery_date = formData.get("expected_delivery_date") as string;
   const notes = formData.get("notes") as string;
   
   const itemsStr = formData.get("items") as string;
@@ -46,7 +45,6 @@ export async function createPurchaseOrder(formData: FormData) {
   try {
     const order = await OrderService.createOrder({
       supplier_id,
-      expected_delivery_date: expected_delivery_date || null,
       notes: notes || null,
       total_estimated_value: totalValue, // Use the calculated totalValue
       created_by: user.id,

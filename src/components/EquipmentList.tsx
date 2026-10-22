@@ -40,6 +40,7 @@ export default function EquipmentList({ equipments }: { equipments: Equipment[] 
                 <td>
                   <div style={{ fontWeight: '700', color: 'var(--navy)' }}>{eq.name}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Inventario: {eq.inventory_number || "N/A"}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Vencimiento INVIMA: {formatDateKeyInBusinessTimeZone(eq.invima_expiration_date)}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{eq.brand} {eq.model} • SN: {eq.serial_number}</div>
                 </td>
                 <td>

@@ -26,7 +26,7 @@ interface Order {
     items: OrderItem[];
 }
 
-interface Location { id: string; name: string; section_id?: string | null; location_type?: string; }
+interface Location { id: string; name: string; section_id?: string | null; location_type?: string; sections?: { name: string } | null; }
 
 export default function TechnicalReceptionForm({ order, locations }: { order: Order; locations: Location[] }) {
     const router = useRouter();
@@ -44,6 +44,15 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
     const locationsForItem = (item: OrderItem) => locations.filter(location =>
         !item.catalog_item.section_id || !location.section_id || location.section_id === item.catalog_item.section_id
     );
+    const areasForItem = (item: OrderItem) => {
+        const seen = new Set<string>();
+        return locationsForItem(item).filter(location => {
+            const areaKey = location.section_id || location.id;
+            if (seen.has(areaKey)) return false;
+            seen.add(areaKey);
+            return true;
+        });
+    };
 
     // Items states (lot, expiration, qty, price per item)
     const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string, qty: number, price: number, location_id: string }>>(
@@ -129,7 +138,8 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                     <label>Temperatura (°C)</label>
                     <input 
                         type="number" 
-                        step="0.1" 
+                        step="any"
+                        inputMode="decimal"
                         value={receptionTemp} 
                         onChange={e => setReceptionTemp(Number(e.target.value))} 
                         required
@@ -203,7 +213,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                 <td style={{ padding: '1rem' }}>
                                     <select value={itemData[item.catalog_item_id].location_id} onChange={e => handleItemChange(item.catalog_item_id, 'location_id', e.target.value)} className="table-input" required={itemData[item.catalog_item_id].qty > 0} disabled={item.quantity_requested <= item.quantity_received}>
                                         <option value="">Seleccione...</option>
-                                        {locationsForItem(item).map(location => <option key={location.id} value={location.id}>{location.name}</option>)}
+                                        {areasForItem(item).map(location => <option key={location.id} value={location.id}>{location.sections?.name || location.name}</option>)}
                                     </select>
                                 </td>
                                 <td style={{ padding: '1rem' }}>

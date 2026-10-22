@@ -82,7 +82,6 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <h3 className="info-card-title">Información del Pedido</h3>
             <p className="info-card-row"><strong>Estado:</strong> <OrderStatusBadge status={order.status} /></p>
             <p className="info-card-row"><strong>Fecha Emisión:</strong> {order.created_at && new Date(order.created_at).toLocaleDateString()}</p>
-            <p className="info-card-row"><strong>Fecha Estimada Entrega:</strong> {order.expected_delivery_date ? new Date(order.expected_delivery_date).toLocaleDateString() : 'No especificada'}</p>
             <p className="info-card-row"><strong>Creado por:</strong> {order.creator?.full_name}</p>
             {order.notes && <p className="info-card-row"><strong>Notas:</strong> {order.notes}</p>}
           </div>

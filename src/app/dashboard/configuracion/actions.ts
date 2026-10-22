@@ -52,7 +52,7 @@ export async function handleLocationAction(formData: FormData) {
     id: (formData.get("id") as string) || undefined,
     name: formData.get("name") as string,
     description: formData.get("description") as string,
-    section_id: formData.get("section_id") as string,
+    section_id: null,
     location_type: formData.get("location_type") as string,
   };
   await CatalogService.upsertLocation(data);

@@ -8,6 +8,10 @@ import { isValidDateKey } from "@/lib/dates";
 export async function handleEquipmentAction(formData: FormData) {
   await requireRole(["admin", "supervisor"]);
   const id = formData.get("id") as string;
+  const invimaExpirationDate = String(formData.get("invima_expiration_date") || "");
+  if (invimaExpirationDate && !isValidDateKey(invimaExpirationDate)) {
+    throw new Error("La fecha de vencimiento INVIMA no es válida.");
+  }
   
   const data: Partial<Equipment> = {
     id: id || undefined,
@@ -19,6 +23,7 @@ export async function handleEquipmentAction(formData: FormData) {
     section_id: formData.get("section_id") as string,
     measurement_range: formData.get("measurement_range") as string,
     sanitary_registration: formData.get("sanitary_registration") as string,
+    invima_expiration_date: invimaExpirationDate || undefined,
     risk_classification: formData.get("risk_classification") as string,
     calibration_frequency: formData.get("calibration_frequency") as string,
     maintenance_frequency: formData.get("maintenance_frequency") as string,

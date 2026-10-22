@@ -23,9 +23,12 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
   const logs = await ComplianceService.getEnvironmentalLogs(60, selectedLocationId);
   const chartReadings = [...logs].reverse();
   const temperatures = chartReadings.map(log => Number(log.temperature));
-  const minTemp = Math.min(...temperatures, 0);
-  const maxTemp = Math.max(...temperatures, 1);
+  const minTemp = Math.min(...temperatures, 2);
+  const maxTemp = Math.max(...temperatures, 8);
   const tempRange = Math.max(maxTemp - minTemp, 1);
+  const chartTop = 24;
+  const chartBottom = 176;
+  const yForTemperature = (temperature: number) => chartBottom - ((temperature - minTemp) / tempRange) * (chartBottom - chartTop);
   const readingDays = [...new Set(chartReadings.map(log => getDateKeyInBusinessTimeZone(log.created_at)))];
   const todayInBogota = getDateKeyInBusinessTimeZone(new Date());
   const todayShifts = new Set(logs
@@ -87,7 +90,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
 
             <div>
               <label className="form-label">Observaciones</label>
-              <textarea name="notes" rows={3} className="form-textarea" placeholder="Cualquier desviación o evento..." style={{ resize: 'none' }} />
+              <textarea name="notes" rows={3} className="form-textarea" defaultValue="Temperatura acorde a los limites de almacenamiento establecidos por el fabricante" placeholder="Cualquier desviación o evento..." style={{ resize: 'none' }} />
             </div>
 
             <label style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
@@ -114,6 +117,11 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
           </div>
           {chartReadings.length ? <div style={{ padding: '1rem 1.5rem 0' }}>
             <svg viewBox="0 0 800 220" role="img" aria-label="Gráfica de temperaturas AM y PM de la ubicación seleccionada" style={{ width: '100%', height: 'auto' }}>
+              <rect x="24" y={yForTemperature(8)} width="752" height={yForTemperature(2) - yForTemperature(8)} fill="#dcfce7" />
+              <line x1="24" y1={yForTemperature(8)} x2="776" y2={yForTemperature(8)} stroke="#16a34a" strokeDasharray="6 4" strokeWidth="2" />
+              <line x1="24" y1={yForTemperature(2)} x2="776" y2={yForTemperature(2)} stroke="#16a34a" strokeDasharray="6 4" strokeWidth="2" />
+              <text x="30" y={yForTemperature(8) - 5} fontSize="10" fill="#15803d">8 °C</text>
+              <text x="30" y={yForTemperature(2) - 5} fontSize="10" fill="#15803d">2 °C</text>
               <line x1="24" y1="176" x2="776" y2="176" stroke="#cbd5e1" />
               {(["am", "pm"] as const).map((shift, shiftIndex) => {
                 const shiftPoints = chartReadings.filter(log => (log.reading_type || "am") === shift).map(log => {
@@ -122,7 +130,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
                   return {
                     log,
                     x: centerX + (shiftIndex === 0 ? -5 : 5),
-                    y: 176 - ((Number(log.temperature) - minTemp) / tempRange) * 152,
+                    y: yForTemperature(Number(log.temperature)),
                   };
                 });
                 return <g key={shift}>

@@ -40,6 +40,7 @@ interface CatalogItem {
   purchase_unit?: string | null;
   minimum_stock_threshold?: number | null;
   maximum_stock_threshold?: number | null;
+  estimated_unit_price?: number | null;
   sections?: { name: string } | null;
   is_active?: boolean;
   sanitary_registration?: string | null;
@@ -140,7 +141,9 @@ export default async function InventarioPage({
   ]);
 
   const editingItem = editId ? catalogItems?.find(i => i.id === editId) : null;
-  const activeSections = (sections || []).filter((section: { is_active?: boolean }) => section.is_active !== false);
+  const sectionOrder = ["hematologia", "microbiologia", "quimica", "especiales", "sede norte", "inmunologia", "inmunologia manual", "insumos", "medicamentos", "repuestos", "riqas", "glicosiladas", "dispositivos medicos", "colorantes", "aseo", "especiales 2"];
+  const activeSections = (sections || []).filter((section: { is_active?: boolean }) => section.is_active !== false)
+    .sort((a: { name: string }, b: { name: string }) => sectionOrder.indexOf(a.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase()) - sectionOrder.indexOf(b.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase()));
   const northLocations = (locations || []).filter((location: { is_active?: boolean; name: string }) =>
     location.is_active !== false && location.name.trim().toLocaleLowerCase() === "sede norte"
   );
@@ -312,7 +315,13 @@ export default async function InventarioPage({
                           </div>
                         </div>
 
-                        <ProductTechnicalFields initial={editingItem as CatalogItem | null} />
+                        <ProductTechnicalFields
+                          initial={editingItem as CatalogItem | null}
+                          suppliers={suppliers || []}
+                          batchNumber={latestBatch?.batch_number || ""}
+                          expirationDate={latestBatch?.expiration_date ? new Date(latestBatch.expiration_date).toISOString().split('T')[0] : ""}
+                          supplierId={latestBatch?.supplier_id || editingItem?.supplier_id || ""}
+                        />
 
                         <div>
                           <label className="form-label">Área</label>
@@ -328,6 +337,11 @@ export default async function InventarioPage({
                             </select>
                           )}
                         </div>
+                        <div className="form-grid-2">
+                          <div><label className="form-label">Stock mínimo</label><input className="form-input" type="number" min="0" step="1" name="minimum_stock_threshold" defaultValue={editingItem?.minimum_stock_threshold || 0} /></div>
+                          <div><label className="form-label">Stock máximo (opcional)</label><input className="form-input" type="number" min="0" step="1" name="maximum_stock_threshold" defaultValue={editingItem?.maximum_stock_threshold ?? ""} /></div>
+                        </div>
+                        <div><label className="form-label">Precio estimado ($)</label><input className="form-input" type="number" min="0" step="0.01" name="estimated_unit_price" defaultValue={editingItem?.estimated_unit_price || 0} /></div>
                       </div>
                     </div>
 
@@ -345,42 +359,6 @@ export default async function InventarioPage({
                       </div>
 
                       <div className="form-fields">
-
-                        <div>
-                          <label className="form-label">Proveedor Habitual</label>
-                          <select
-                            name="supplier_id"
-                            defaultValue={latestBatch?.supplier_id || editingItem?.supplier_id || ""}
-                            className="form-select"
-                          >
-                            <option value="">Seleccione proveedor o No aplica...</option>
-                            <option value="not_applicable">No aplica</option>
-                            {suppliers?.map(sup => <option key={sup.id} value={sup.id}>{sup.name}</option>)}
-                          </select>
-                        </div>
-
-                        <div className="form-grid-2">
-                          <div>
-                            <label className="form-label">Lote / Batch *</label>
-                            <input
-                              name="batch_number"
-                              defaultValue={latestBatch?.batch_number || ""}
-                              required
-                              placeholder="Ej: LOT-2024-001"
-                              className="form-input"
-                            />
-                          </div>
-                          <div>
-                            <label className="form-label">Fecha de Vencimiento *</label>
-                            <input
-                              type="date"
-                              name="expiration_date"
-                              defaultValue={latestBatch?.expiration_date ? new Date(latestBatch.expiration_date).toISOString().split('T')[0] : ""}
-                              required
-                              className="form-input"
-                            />
-                          </div>
-                        </div>
 
                         <div className="form-grid-2">
                           <div>

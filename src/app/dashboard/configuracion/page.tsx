@@ -36,7 +36,7 @@ interface Supplier {
 interface Location {
   id: string;
   name: string;
-  section_id: string;
+  section_id: string | null;
   location_type: string;
   is_active: boolean;
   sections?: { name: string } | null;
@@ -334,18 +334,11 @@ export default async function ConfiguracionPage({
               <h2 className="card-section-title">{editingItem ? "Editar Ubicación" : "Ubicaciones de Almacenamiento"}</h2>
               {editingItem && <a href="?tab=ubicaciones" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleLocationAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr 1fr auto' }}>
+            <form action={Actions.handleLocationAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
               <input type="hidden" name="id" value={(editingItem as Location)?.id || ""} />
               <div className="form-group">
                 <label className="form-label">Nombre Ubicación</label>
                 <input className="form-input" name="name" defaultValue={(editingItem as Location)?.name || ""} required placeholder="Ej: Nevera 1 - Estante A" />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Área de almacenamiento</label>
-                <select className="form-select" name="section_id" defaultValue={(editingItem as { section_id?: string })?.section_id || ""} required>
-                  <option value="">Seleccionar...</option>
-                  {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
               </div>
               <div className="form-group">
                 <label className="form-label">Tipo de Almacenamiento</label>
@@ -364,7 +357,6 @@ export default async function ConfiguracionPage({
                 <thead>
                   <tr>
                     <th>Nombre</th>
-                    <th>Área</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>
@@ -373,7 +365,6 @@ export default async function ConfiguracionPage({
                   {locations?.map((l: Location) => (
                     <tr key={l.id}>
                       <td className="cell-primary">{l.name}</td>
-                      <td className="cell-secondary">{l.sections?.name}</td>
                       <td><StatusPill active={l.is_active} /></td>
                       <td>
                         <div className="action-group">

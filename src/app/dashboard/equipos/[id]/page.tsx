@@ -61,6 +61,10 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
                 <span style={{ fontWeight: 600 }}>{equipment.data.sanitary_registration || "No aplica"} / {equipment.data.risk_classification || "No aplica"}</span>
               </div>
               <div className="tech-info-row">
+                <span className="cell-muted">Vencimiento INVIMA:</span>
+                <span style={{ fontWeight: 600 }}>{equipment.data.invima_expiration_date || "—"}</span>
+              </div>
+              <div className="tech-info-row">
                 <span className="cell-muted">Frecuencias:</span>
                 <span style={{ fontWeight: 600 }}>Mantenimiento {equipment.data.maintenance_frequency || "—"}; calibración {equipment.data.calibration_frequency || "—"}</span>
               </div>

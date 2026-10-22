@@ -55,6 +55,11 @@ export default function EquipmentForm({ locations, sections }: { locations: Loca
         <div className="form-group"><label>Clasificación por riesgo</label><select name="risk_classification" defaultValue=""><option value="">No aplica</option><option value="I">I</option><option value="II">II</option><option value="IIA">IIA</option><option value="IIB">IIB</option><option value="III">III</option></select></div>
       </div>
 
+      <div className="form-group">
+        <label>Vencimiento INVIMA</label>
+        <input type="date" name="invima_expiration_date" />
+      </div>
+
       <div className="form-row">
         <div className="form-group"><label>Frecuencia de calibración</label><input name="calibration_frequency" placeholder="Ej: Anual / No requiere" /></div>
         <div className="form-group"><label>Frecuencia de mantenimiento</label><input name="maintenance_frequency" placeholder="Ej: Anual / Diaria" /></div>

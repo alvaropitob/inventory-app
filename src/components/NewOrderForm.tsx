@@ -15,7 +15,6 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
   const [error, setError] = useState<string | null>(null);
 
   const [supplierId, setSupplierId] = useState("");
-  const [expectedDate, setExpectedDate] = useState("");
   const [notes, setNotes] = useState("");
   
   const [orderItems, setOrderItems] = useState<{item_id: string; quantity: number; price: number}[]>([]);
@@ -56,7 +55,6 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
 
     const formData = new FormData();
     formData.append("supplier_id", supplierId);
-    if (expectedDate) formData.append("expected_delivery_date", expectedDate);
     if (notes) formData.append("notes", notes);
     formData.append("total_estimated_value", totalEstimated.toString());
     formData.append("items", JSON.stringify(orderItems));
@@ -91,10 +89,6 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
       </div>
 
       <div className="form-row" style={{ gap: '2rem', marginBottom: '2rem' }}>
-        <div className="form-group">
-          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Fecha Estimada de Entrega (Opcional)</label>
-          <input type="date" value={expectedDate} onChange={e => setExpectedDate(e.target.value)} />
-        </div>
         <div className="form-group">
           <label style={{ display: 'block', marginBottom: '0.75rem' }}>Notas Adicionales</label>
           <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Ej. Urgente, refrigerado..." />

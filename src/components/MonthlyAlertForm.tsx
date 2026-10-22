@@ -9,9 +9,9 @@ const countFields = [
   ["verified_device_reagent_alerts", "Reportes de alertas sanitarias verificadas: dispositivos médicos y reactivos"],
   ["verified_device_reagent_security_reports", "Reportes de informes de seguridad verificados: dispositivos médicos y reactivos"],
   ["verified_medicine_biological_reports", "Reportes de alertas e informes de seguridad verificados: medicamentos y productos biológicos"],
-  ["managed_reactivovigilance", "Reactivos gestionados (reactivovigilancia)"],
-  ["managed_tecnovigilance", "Dispositivos gestionados (tecnovigilancia)"],
-  ["managed_pharmacovigilance", "Medicamentos gestionados (farmacovigilancia)"],
+  ["managed_reactivovigilance", "Total de alertas y/o informes de seguridad en Reactivovigilancia gestionados que aplican al laboratorio."],
+  ["managed_tecnovigilance", "Total de alertas y/o informes de seguridad en Tecnovigilancia gestionados que aplican al laboratorio."],
+  ["managed_pharmacovigilance", "Total de alertas y/o informes de seguridad en Farmacovigilancia gestionados que aplican al laboratorio."],
 ] as const;
 
 export default function MonthlyAlertForm({ reports, action }: { reports: MonthlyAlertReport[]; action: FormAction }) {
