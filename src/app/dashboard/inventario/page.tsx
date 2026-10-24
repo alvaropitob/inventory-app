@@ -280,9 +280,9 @@ export default async function InventarioPage({
                 <form key={editId || 'new'} action={Actions.handleCatalogAction} className="form-card-body">
                   <input type="hidden" name="id" value={editingItem?.id || ""} />
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                  <div className="inventory-product-form-grid">
                     {/* Master / Technical */}
-                    <div className={editingItem ? 'form-section-readonly' : 'form-section'}>
+                    <div className={`inventory-basic-section ${editingItem ? 'form-section-readonly' : 'form-section'}`}>
                       <div className="form-section-header">
                         <h3 className="form-section-title">
                           {editingItem ? <><FileText className="ui-icon" aria-hidden="true" /> Ficha Técnica (Maestro)</> : "Información Básica"}
@@ -347,7 +347,7 @@ export default async function InventarioPage({
                     </div>
 
                     {/* Purchase / Stock Entry */}
-                    <div className="form-section">
+                    <div className="form-section inventory-stock-section">
                       <div className="form-section-header">
                         <h3 className="form-section-title"><ArrowDownToLine className="ui-icon" aria-hidden="true" /> Registro</h3>
                         <ContextualHelp

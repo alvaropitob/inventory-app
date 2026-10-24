@@ -3368,11 +3368,20 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 .inventory-register-section .form-card-header { padding-inline: 1.1rem; }
 .inventory-register-section .form-card-title { font-size: 0.86rem; }
 .inventory-register-section .form-card-body { padding: 1rem 1.1rem 1.1rem; }
-.inventory-register-section .form-card-body > div[style*="grid-template-columns"] { gap: 1rem !important; }
 .inventory-register-section .form-section { padding: 0.9rem; }
 .inventory-register-section .inventory-product-selector { gap: 0.75rem !important; padding: 0.75rem 1.1rem !important; }
 .inventory-register-section .inventory-product-selector label { font-size: 0.76rem !important; }
 .inventory-register-section .inventory-product-selector select { min-width: 0; font-size: 0.8rem; }
+.inventory-product-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.25fr) minmax(260px, 0.85fr);
+  align-items: start;
+  gap: 1rem;
+}
+.inventory-product-form-grid > * { min-width: 0; }
+.inventory-stock-section .form-grid-2 { grid-template-columns: minmax(0, 1fr); }
+.inventory-stock-section .form-section-header { align-items: center; }
+.inventory-stock-section .form-fields { gap: 0.85rem; }
 .inventory-movement-filters {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -3398,6 +3407,8 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
   .inventory-movement-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 900px) {
+  .inventory-product-form-grid { grid-template-columns: minmax(0, 1fr); }
+  .inventory-stock-section .form-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .equipment-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .providers-layout { grid-template-columns: minmax(0, 1fr); }
 }
@@ -3407,6 +3418,7 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
   .inventory-filter-actions > * { flex: 1 1 auto; }
 }
 @media (max-width: 420px) {
+  .inventory-stock-section .form-grid-2 { grid-template-columns: minmax(0, 1fr); }
   .inventory-movement-filters { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 600px) {
