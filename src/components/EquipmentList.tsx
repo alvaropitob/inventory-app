@@ -16,7 +16,7 @@ export default function EquipmentList({ equipments }: { equipments: Equipment[] 
 
   return (
     <div className="table-responsive">
-      <table className="table">
+      <table className="table equipment-table">
         <thead>
           <tr>
             <th>Equipo</th>

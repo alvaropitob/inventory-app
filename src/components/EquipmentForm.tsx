@@ -26,7 +26,7 @@ export default function EquipmentForm({ locations, sections }: { locations: Loca
   }
 
   return (
-    <form id="equipment-form" action={clientAction} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <form id="equipment-form" className="equipment-form" action={clientAction}>
       <div className="form-group">
         <label>Número de inventario</label>
         <input name="inventory_number" placeholder="Ej: LCE.MB-03" />

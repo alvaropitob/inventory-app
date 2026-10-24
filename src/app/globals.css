@@ -3291,7 +3291,46 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 @media (max-width: 420px) {
   .workflow-metrics { grid-template-columns: minmax(0, 1fr); }
 }
-.equipment-grid, .eq-detail-grid { gap: 1rem; }
+.equipment-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+.equipment-grid > * { min-width: 0; }
+.equipment-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 0.85rem 1rem;
+}
+.equipment-form > .form-group,
+.equipment-form > .form-row > .form-group { min-width: 0; margin: 0; }
+.equipment-form > .form-row { display: contents; }
+.equipment-form input,
+.equipment-form select { width: 100%; min-width: 0; }
+.equipment-form > button { grid-column: 1 / -1; width: auto !important; margin-top: 0.15rem !important; }
+.equipment-table { width: 100%; min-width: 900px; table-layout: fixed; }
+.equipment-table th,
+.equipment-table td { padding: 0.7rem 0.75rem; overflow-wrap: anywhere; vertical-align: middle; }
+.equipment-table th:nth-child(1) { width: 22%; }
+.equipment-table th:nth-child(2) { width: 15%; }
+.equipment-table th:nth-child(3) { width: 12%; }
+.equipment-table th:nth-child(4),
+.equipment-table th:nth-child(5) { width: 19%; }
+.equipment-table th:nth-child(6) { width: 13%; }
+.equipment-table td:nth-child(6) { text-align: right; }
+.equipment-table td:nth-child(6) .btn-secondary { white-space: nowrap; }
+.equipment-grid .table-responsive { max-width: 100%; }
+.equipment-grid .table-card { min-width: 0; }
+.eq-detail-grid { gap: 1rem; }
+@media (max-width: 900px) {
+  .equipment-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .equipment-form { grid-template-columns: minmax(0, 1fr); }
+  .equipment-form > button { grid-column: auto; }
+  .equipment-table { min-width: 820px; }
+}
 .audit-stats-grid { margin-bottom: 1rem; }
 .audit-panel-grid { gap: 1rem; }
 .audit-panel, .sentinel-panel { padding: 1rem; border-radius: 8px; box-shadow: 0 1px 2px rgba(15,23,42,0.035); }
