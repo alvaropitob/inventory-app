@@ -3337,9 +3337,49 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 .reports-page .reports-content-card [style*="font-size: 1.75rem"] {
   font-size: 1.4rem !important; line-height: 1.25; font-weight: 700 !important; font-variant-numeric: tabular-nums;
 }
+/* Use the full content width for reports; the one-item selector should not
+   reserve a permanent side column beside wide tables. */
+.reports-page .reports-layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0.75rem !important;
+}
+.reports-page .reports-nav-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  padding: 0.65rem 0.85rem !important;
+}
+.reports-page .reports-nav-card h2 {
+  flex: 0 0 auto;
+  margin: 0 !important;
+  white-space: nowrap;
+}
+.reports-page .reports-nav-card nav {
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 0.35rem !important;
+}
+.reports-page .report-nav-item {
+  align-items: center;
+  padding: 0.45rem 0.7rem;
+  white-space: nowrap;
+}
+.reports-page .report-nav-item svg { margin-top: 0; }
+.reports-page .reports-content-card {
+  width: 100%;
+  min-width: 0;
+}
+.reports-page .reports-content-card > div > div[style*="overflow-x: auto"] {
+  max-width: 100%;
+}
 @media (max-width: 768px) {
   .reports-page .reports-layout { gap: 0.75rem !important; }
-  .reports-page .reports-nav-card { padding: 0.8rem !important; }
+  .reports-page .reports-nav-card { padding: 0.65rem 0.75rem !important; gap: 0.5rem; }
+  .reports-page .reports-nav-card h2 { font-size: 0.72rem !important; }
+  .reports-page .report-nav-item { padding: 0.4rem 0.55rem; }
   .reports-page .reports-content-card > div[style*="padding: 1.75rem"] { padding: 1rem !important; }
   .reports-page .reports-content-card > div > div[style*="padding: 1.25rem 1.5rem"] { padding: 0.9rem 1rem !important; }
 }
