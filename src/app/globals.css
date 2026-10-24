@@ -3557,7 +3557,7 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 }
 .sidebar .sub-nav-inventory::-webkit-scrollbar { height: 3px; }
 .sidebar .sub-nav-inventory::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-.sidebar .sub-nav.sub-nav-audit {
+.sidebar .sub-nav.sub-nav-standard {
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch;
@@ -3565,8 +3565,9 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
   padding: 0.12rem 0 0.2rem 1.9rem;
   margin: 0.12rem 0 0;
   gap: 0.08rem;
+  overflow: visible;
 }
-.sidebar .sub-nav-audit .sub-nav-item {
+.sidebar .sub-nav-standard .sub-nav-item {
   display: flex;
   justify-content: flex-start;
   width: 100%;

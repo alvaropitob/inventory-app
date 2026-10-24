@@ -328,7 +328,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className={`sub-nav ${item.name === "Proveedores" ? "sub-nav-providers" : ""} ${item.name === "Inventario" ? "sub-nav-inventory" : ""} ${item.name === "Auditoría" ? "sub-nav-audit" : ""}`}
+                      className={`sub-nav ${item.name === "Proveedores" ? "sub-nav-providers sub-nav-standard" : ""} ${item.name === "Inventario" ? "sub-nav-inventory sub-nav-standard" : ""} ${item.name === "Auditoría" ? "sub-nav-audit sub-nav-standard" : ""}`}
                     >
                       {item.subItems?.map(sub => (
                         <Link 
