@@ -341,6 +341,15 @@ export default async function ConfiguracionPage({
                 <input className="form-input" name="name" defaultValue={(editingItem as Location)?.name || ""} required placeholder="Ej: Nevera 1 - Estante A" />
               </div>
               <div className="form-group">
+                <label className="form-label">Área asociada</label>
+                <select className="form-select" name="section_id" defaultValue={(editingItem as Location)?.section_id || ""}>
+                  <option value="">Sin área asociada</option>
+                  {sections?.filter(section => section.is_active || section.id === (editingItem as Location)?.section_id).map(section => (
+                    <option key={section.id} value={section.id}>{section.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
                 <label className="form-label">Tipo de Almacenamiento</label>
                 <select className="form-select" name="location_type" defaultValue={(editingItem as Location)?.location_type || "refrigerated"}>
                   <option value="refrigerated">Refrigerado (2-8°C)</option>
@@ -357,6 +366,7 @@ export default async function ConfiguracionPage({
                 <thead>
                   <tr>
                     <th>Nombre</th>
+                    <th>Área</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>
@@ -365,6 +375,7 @@ export default async function ConfiguracionPage({
                   {locations?.map((l: Location) => (
                     <tr key={l.id}>
                       <td className="cell-primary">{l.name}</td>
+                      <td className="cell-secondary">{l.sections?.name || "Sin área"}</td>
                       <td><StatusPill active={l.is_active} /></td>
                       <td>
                         <div className="action-group">
@@ -409,14 +420,6 @@ export default async function ConfiguracionPage({
                 <input className="form-input" name="commercial_name" defaultValue={(editingItem as CatalogItem)?.commercial_name || ""} placeholder="Ej: Kit x 100 Det" />
               </div>
               <div>
-                <label className="form-label">Proveedor asociado</label>
-                <select className="form-select" name="supplier_id" defaultValue={(editingItem as CatalogItem)?.supplier_id || ""}>
-                  <option value="">Seleccione proveedor o No aplica</option>
-                  <option value="not_applicable">No aplica</option>
-                  {suppliers?.filter(supplier => supplier.is_active).map(supplier => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
-                </select>
-              </div>
-              <div>
                 <label className="form-label">Área *</label>
                 <select className="form-select" name="section_id" defaultValue={(editingItem as CatalogItem)?.section_id || ""} required>
                   <option value="">Seleccione...</option>
@@ -439,7 +442,11 @@ export default async function ConfiguracionPage({
                 <label className="form-label">P. Estimado ($)</label>
                 <input className="form-input" type="number" step="0.01" name="estimated_unit_price" defaultValue={(editingItem as CatalogItem)?.estimated_unit_price || 0} />
               </div>
-              <ProductTechnicalFields initial={editingItem as CatalogItem | null} />
+              <ProductTechnicalFields
+                initial={editingItem as CatalogItem | null}
+                suppliers={(suppliers || []).filter(supplier => supplier.is_active !== false)}
+                supplierId={(editingItem as CatalogItem | null)?.supplier_id || ""}
+              />
               <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Registrar"}
               </button>

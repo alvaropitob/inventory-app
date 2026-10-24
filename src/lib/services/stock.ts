@@ -128,7 +128,7 @@ export class StockService {
       .from('inventory_batches')
       .select(`
         *,
-        item:catalog_items(technical_name, commercial_name, commercial_presentation, purchase_unit, internal_code, minimum_stock_threshold, maximum_stock_threshold, section_id, sections(name)),
+        item:catalog_items(id, technical_name, commercial_name, commercial_presentation, purchase_unit, internal_code, minimum_stock_threshold, maximum_stock_threshold, section_id, sections(name)),
         location:locations(name, section_id)
       `)
       .order('expiration_date', { ascending: true });

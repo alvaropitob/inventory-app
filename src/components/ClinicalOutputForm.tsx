@@ -67,7 +67,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
     const map = new Map<string, CatalogItem>();
     availableBatches.forEach((b) => {
       const item = b.item || b.catalog_items;
-      if (item && !map.has(item.id)) {
+      if (item?.id && !map.has(item.id)) {
         map.set(item.id, item);
       }
     });
@@ -236,6 +236,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
           </label>
           <select
             value={selectedItemId}
+            disabled={availableProducts.length === 0}
             onChange={(e) => {
               const itemId = e.target.value;
               setSelectedItemId(itemId);
@@ -265,6 +266,11 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               </option>
             ))}
           </select>
+          {availableProducts.length === 0 && (
+            <p role="status" className="empty-state-text" style={{ marginTop: "0.5rem" }}>
+              No hay lotes disponibles para salida. Se muestran lotes con stock, aceptados y vigentes.
+            </p>
+          )}
         </div>
 
         {/* PASO 2: SELECCIONAR LOTE (ORDENADO FEFO) */}

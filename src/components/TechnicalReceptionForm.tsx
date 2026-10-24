@@ -44,15 +44,6 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
     const locationsForItem = (item: OrderItem) => locations.filter(location =>
         !item.catalog_item.section_id || !location.section_id || location.section_id === item.catalog_item.section_id
     );
-    const areasForItem = (item: OrderItem) => {
-        const seen = new Set<string>();
-        return locationsForItem(item).filter(location => {
-            const areaKey = location.section_id || location.id;
-            if (seen.has(areaKey)) return false;
-            seen.add(areaKey);
-            return true;
-        });
-    };
 
     // Items states (lot, expiration, qty, price per item)
     const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string, qty: number, price: number, location_id: string }>>(
@@ -213,7 +204,11 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                 <td style={{ padding: '1rem' }}>
                                     <select value={itemData[item.catalog_item_id].location_id} onChange={e => handleItemChange(item.catalog_item_id, 'location_id', e.target.value)} className="table-input" required={itemData[item.catalog_item_id].qty > 0} disabled={item.quantity_requested <= item.quantity_received}>
                                         <option value="">Seleccione...</option>
-                                        {areasForItem(item).map(location => <option key={location.id} value={location.id}>{location.sections?.name || location.name}</option>)}
+                                        {locationsForItem(item).map(location => (
+                                            <option key={location.id} value={location.id}>
+                                                {location.sections?.name ? `${location.sections.name} — ${location.name}` : location.name}
+                                            </option>
+                                        ))}
                                     </select>
                                 </td>
                                 <td style={{ padding: '1rem' }}>
@@ -257,9 +252,16 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                 </td>
                             </tr>
                         ))}
+                {order.items.length === 0 && (
+                    <tr><td colSpan={8} className="empty-state">Esta orden no tiene productos para recibir.</td></tr>
+                )}
                     </tbody>
                 </table>
             </div>
+
+            {locations.length === 0 && (
+                <div className="error-message">No hay ubicaciones activas. Asigna una ubicación a un área en Configuración antes de confirmar la recepción.</div>
+            )}
 
             <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                 <label>Notas de la Inspección</label>

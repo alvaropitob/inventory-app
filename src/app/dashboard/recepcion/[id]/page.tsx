@@ -50,7 +50,10 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
         </div>
 
         <div className="form-card">
-          <TechnicalReceptionForm order={formattedOrder} locations={locationsResponse.data || []} />
+          <TechnicalReceptionForm
+            order={formattedOrder}
+            locations={(locationsResponse.data || []).filter(location => location.is_active !== false)}
+          />
         </div>
       </div>
     );
