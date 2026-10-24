@@ -312,7 +312,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
             )}
           </div>
 
-          <form action={Actions.handleSupplierAction} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <form action={Actions.handleSupplierAction} className="provider-form">
             {editingSupplier && <input type="hidden" name="id" value={editingSupplier.id} />}
 
             <div>

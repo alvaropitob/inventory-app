@@ -3352,6 +3352,16 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 .providers-table td:nth-child(3) > div { overflow-wrap: anywhere; }
 .providers-table td:nth-child(6) { white-space: nowrap; }
 .providers-form-card label { font-size: 0.73rem !important; }
+.providers-page .providers-layout { grid-template-columns: minmax(0, 1fr); gap: 0.9rem; }
+.providers-page .provider-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 0.8rem 1rem;
+}
+.providers-page .provider-form > div { min-width: 0; }
+.providers-page .provider-contact-grid { display: contents; }
+.providers-page .provider-form > button { grid-column: 1 / -1; width: 100%; margin-top: 0.1rem !important; }
 .supplier-evaluation-page .eval-grid {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
@@ -3449,6 +3459,7 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 @media (max-width: 900px) {
   .inventory-product-form-grid { grid-template-columns: minmax(0, 1fr); }
   .inventory-stock-section .form-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .providers-page .provider-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .equipment-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .providers-layout { grid-template-columns: minmax(0, 1fr); }
 }
@@ -3462,6 +3473,7 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
   .inventory-movement-filters { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 600px) {
+  .providers-page .provider-form { grid-template-columns: minmax(0, 1fr); }
   .inventory-register-section .inventory-product-selector { align-items: stretch !important; flex-direction: column; }
 }
 @media (max-width: 560px) {
