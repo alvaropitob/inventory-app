@@ -154,7 +154,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
 
       <div className="providers-layout">
         {/* LISTADO Y BÚSQUEDA */}
-        <div style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
+        <div className="providers-list-card" style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
           <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
             <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--navy)" }}>
               Lista de Proveedores Registrados ({filteredSuppliers.length})
@@ -192,7 +192,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
           </div>
 
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.875rem" }}>
+            <table className="providers-table" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.875rem" }}>
               <thead>
                 <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>
                   <th style={{ padding: "0.85rem 1.25rem" }}>Razón Social / Proveedor</th>
