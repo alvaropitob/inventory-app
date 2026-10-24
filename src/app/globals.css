@@ -3654,6 +3654,29 @@ body {
   background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
+.audit-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto auto;
+  align-items: end;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+.audit-filters > div { min-width: 0; }
+.audit-filters .form-label { display: block; margin: 0 0 0.35rem; }
+.audit-filters .form-input,
+.audit-filters .form-select { width: 100%; min-width: 0; min-height: 40px; }
+.audit-filters > .btn-primary,
+.audit-filters > .btn-secondary { min-height: 40px; padding: 0.6rem 0.85rem; white-space: nowrap; }
+@media (max-width: 900px) {
+  .audit-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .audit-filters > .btn-primary,
+  .audit-filters > .btn-secondary { width: 100%; }
+}
+@media (max-width: 560px) {
+  .audit-filters { grid-template-columns: minmax(0, 1fr); padding: 0.85rem; }
+}
 .form-card, .data-card, .table-card { overflow: hidden; }
 .form-card-header, .data-card-header, .card-section-header {
   min-height: 58px;

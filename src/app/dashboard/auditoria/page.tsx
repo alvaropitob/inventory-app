@@ -50,7 +50,7 @@ export default async function AuditoriaPage({ searchParams }: { searchParams: Pr
           <span className="badge-verified"><BadgeCheck className="ui-icon" aria-hidden="true" /> Integridad Verificada</span>
         </div>
 
-        <form method="get" className="form-fields" style={{ padding: '1rem 1.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', alignItems: 'end' }}>
+        <form method="get" className="audit-filters">
           <div><label className="form-label" htmlFor="audit-from">Desde</label><input className="form-input" id="audit-from" type="date" name="from" defaultValue={from || ''} /></div>
           <div><label className="form-label" htmlFor="audit-to">Hasta</label><input className="form-input" id="audit-to" type="date" name="to" defaultValue={to || ''} /></div>
           <div><label className="form-label" htmlFor="audit-user">Usuario</label><select className="form-select" id="audit-user" name="user" defaultValue={selectedUser || ''}><option value="">Todos</option>{users.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}</select></div>
