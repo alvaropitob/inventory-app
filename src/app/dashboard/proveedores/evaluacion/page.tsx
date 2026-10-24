@@ -56,7 +56,7 @@ export default async function EvaluacionProveedoresPage() {
   let questionNumber = 0;
 
   return (
-    <div className="dashboard-main">
+    <div className="dashboard-main supplier-evaluation-page">
       <div className="page-header">
         <div>
           <h1 className="page-header-title">Evaluación de Proveedores</h1>
@@ -68,7 +68,7 @@ export default async function EvaluacionProveedoresPage() {
         <div className="table-card">
           <div className="card-section-header"><h2 className="card-section-title">Evaluaciones recientes</h2></div>
           <div className="table-responsive">
-            <table className="data-table">
+            <table className="data-table supplier-evaluation-table">
               <thead><tr><th>Fecha</th><th>Proveedor</th><th>Evaluador</th><th>Preguntas aplicables</th><th>Calificación</th><th className="cell-center">Puntaje</th></tr></thead>
               <tbody>
                 {evaluations.map(ev => (
@@ -89,7 +89,7 @@ export default async function EvaluacionProveedoresPage() {
 
         <div className="form-card" style={{ borderColor: "var(--primary-light)" }}>
           <div className="form-card-header"><h2 className="form-card-title" style={{ color: "var(--primary)" }}>Nueva evaluación</h2></div>
-          <form action={Actions.submitSupplierEvaluation} className="form-card-body form-fields">
+          <form action={Actions.submitSupplierEvaluation} className="form-card-body form-fields evaluation-form">
             <SupplierEvaluationFields suppliers={suppliers.data?.map(s => ({ id: s.id, name: s.name, contact_email: s.contact_email })) || []} />
             <div className="form-grid-2">
               <div><label className="form-label">Fecha de evaluación *</label><input type="date" name="evaluation_date" required defaultValue={today} className="form-input" /></div>
@@ -97,7 +97,7 @@ export default async function EvaluacionProveedoresPage() {
               <div><label className="form-label">Cargo *</label><input name="evaluator_role" required className="form-input" placeholder="Ej. Coordinación de Calidad" /></div>
             </div>
 
-            <div className="form-fields" style={{ gap: "1.25rem" }}>
+            <div className="form-fields evaluation-question-groups">
               <div>
                 <h3 className="card-section-title">Sistema de puntuación</h3>
                 <p className="card-section-subtitle">0 No cumple · 1 Cumple mínimamente · 2 Cumple parcialmente · 3 Cumple plenamente · 4 Supera las expectativas. Las respuestas No aplicable se excluyen del máximo posible.</p>

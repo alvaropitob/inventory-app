@@ -9,7 +9,7 @@ export default function SupplierEvaluationFields({ suppliers }: { suppliers: Sup
   const selected = suppliers.find(supplier => supplier.id === supplierId);
   const [email, setEmail] = useState("");
 
-  return <div className="form-fields">
+  return <div className="form-fields evaluation-supplier-fields">
     <div>
       <label className="form-label" htmlFor="evaluation-supplier">Proveedor *</label>
       <select id="evaluation-supplier" name="supplier_id" required className="form-select" value={supplierId} onChange={event => {
