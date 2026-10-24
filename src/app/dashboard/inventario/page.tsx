@@ -607,7 +607,7 @@ export default async function InventarioPage({
                 }))}
               />
             </div>
-            <form method="get" className="form-fields" style={{ padding: '1rem 1.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', alignItems: 'end' }}>
+            <form method="get" className="inventory-movement-filters">
               <input type="hidden" name="view" value="movimientos" />
               <div><label className="form-label" htmlFor="movement-from">Desde</label><input id="movement-from" className="form-input" type="date" name="from" defaultValue={from || ''} /></div>
               <div><label className="form-label" htmlFor="movement-to">Hasta</label><input id="movement-to" className="form-input" type="date" name="to" defaultValue={to || ''} /></div>
@@ -615,8 +615,10 @@ export default async function InventarioPage({
               <div><label className="form-label" htmlFor="movement-location">Ubicación</label><select id="movement-location" className="form-select" name="location" defaultValue={location || ''}><option value="">Todas</option>{locations?.map((loc: { id: string; name: string }) => <option key={loc.id} value={loc.id}>{loc.name}</option>)}</select></div>
               <div><label className="form-label" htmlFor="movement-user">Usuario</label><select id="movement-user" className="form-select" name="user" defaultValue={userFilter || ''}><option value="">Todos</option>{movementUsers.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></div>
               <div><label className="form-label" htmlFor="movement-type">Tipo</label><select id="movement-type" className="form-select" name="movementType" defaultValue={movementType || ''}><option value="">Todos</option><option value="entry">Entrada</option><option value="exit">Salida</option><option value="adjustment">Ajuste</option><option value="discard">Descarte</option></select></div>
-              <button type="submit" className="btn-primary">Filtrar movimientos</button>
-              <a href="?view=movimientos" className="btn-secondary" style={{ textAlign: 'center', textDecoration: 'none' }}>Limpiar filtros</a>
+              <div className="inventory-filter-actions">
+                <button type="submit" className="btn-primary">Filtrar movimientos</button>
+                <a href="?view=movimientos" className="btn-secondary" style={{ textAlign: 'center', textDecoration: 'none' }}>Limpiar filtros</a>
+              </div>
             </form>
             <div className="table-responsive">
               <table className="kardex-table">

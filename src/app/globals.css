@@ -3373,9 +3373,41 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 .inventory-register-section .inventory-product-selector { gap: 0.75rem !important; padding: 0.75rem 1.1rem !important; }
 .inventory-register-section .inventory-product-selector label { font-size: 0.76rem !important; }
 .inventory-register-section .inventory-product-selector select { min-width: 0; font-size: 0.8rem; }
+.inventory-movement-filters {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: end;
+  gap: 0.75rem;
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+.inventory-movement-filters > div { min-width: 0; }
+.inventory-movement-filters .form-label { display: block; margin: 0 0 0.35rem; }
+.inventory-movement-filters .form-input,
+.inventory-movement-filters .form-select { width: 100%; min-width: 0; min-height: 40px; }
+.inventory-filter-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+.inventory-filter-actions > * { min-height: 40px; padding: 0.6rem 0.9rem; white-space: nowrap; }
+@media (max-width: 1024px) {
+  .inventory-movement-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 @media (max-width: 900px) {
   .equipment-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .providers-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .inventory-movement-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0.85rem; }
+  .inventory-filter-actions { justify-content: stretch; }
+  .inventory-filter-actions > * { flex: 1 1 auto; }
+}
+@media (max-width: 420px) {
+  .inventory-movement-filters { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 600px) {
   .inventory-register-section .inventory-product-selector { align-items: stretch !important; flex-direction: column; }
