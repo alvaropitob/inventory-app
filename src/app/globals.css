@@ -3942,6 +3942,7 @@ body {
   gap: 1rem;
   padding: clamp(1rem, 2vw, 1.4rem);
 }
+.dashboard-main .config-form-panel > button { align-self: end; justify-self: stretch; }
 .dashboard-main .form-fields { gap: 1rem; }
 .dashboard-main .form-actions { gap: 0.65rem; padding-top: 1rem; margin-top: 1.25rem; border-top-color: var(--border); }
 .dashboard-main .form-readonly-field { border-color: var(--border); border-radius: var(--control-radius); background: #f7f9fa; color: var(--text-main); }
