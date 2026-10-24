@@ -3356,12 +3356,16 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 .inventory-page .inventory-metrics { gap: 0.65rem; margin-bottom: 0.8rem; }
 .inventory-page .inventory-metric { padding: 0.65rem 0.8rem; }
 .inventory-page .inventory-tabs-nav { margin-bottom: 0.85rem; }
-.inventory-register-section { margin-bottom: 1rem !important; }
-.inventory-register-section > button { padding: 1rem 1.2rem !important; }
-.inventory-register-section > button h2 { font-size: 1.02rem !important; line-height: 1.35; }
-.inventory-register-section > button p { font-size: 0.78rem !important; }
+.inventory-page .collapsible-section { margin-bottom: 1rem !important; }
+.inventory-page .collapsible-section > button { padding: 1rem 1.2rem !important; }
+.inventory-page .collapsible-section > button h2 { font-size: 1.02rem !important; line-height: 1.35; }
+.inventory-page .collapsible-section > button p { font-size: 0.78rem !important; }
+.inventory-page .collapsible-section .form-card[style*="padding: 1.5rem"] { padding: 1rem !important; }
+.inventory-page .collapsible-section .form-card-header { min-height: 0; padding: 0.75rem 1rem; }
+.inventory-page .collapsible-section .form-card-title { font-size: 0.88rem; }
+.inventory-page .collapsible-section .form-card-subtitle { font-size: 0.76rem; line-height: 1.45; }
 .inventory-register-section .form-card { border: 0; border-radius: 0; box-shadow: none; }
-.inventory-register-section .form-card-header { min-height: 0; padding: 0.75rem 1.1rem; }
+.inventory-register-section .form-card-header { padding-inline: 1.1rem; }
 .inventory-register-section .form-card-title { font-size: 0.86rem; }
 .inventory-register-section .form-card-body { padding: 1rem 1.1rem 1.1rem; }
 .inventory-register-section .form-card-body > div[style*="grid-template-columns"] { gap: 1rem !important; }
