@@ -3577,6 +3577,40 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
   line-height: 1.3;
   white-space: nowrap;
 }
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) { overflow-x: hidden; }
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .sidebar-header {
+  justify-content: center;
+  gap: 0;
+  padding-inline: 0.5rem;
+  overflow: hidden;
+}
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .sidebar-logo-text,
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .nav-text,
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .user-info-text {
+  display: none !important;
+}
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .sidebar-nav {
+  min-width: 0;
+  padding-inline: 0.55rem;
+  overflow-x: hidden;
+}
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .nav-item {
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+  padding-inline: 0;
+}
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .nav-item .nav-icon {
+  flex: 0 0 19px;
+  margin: 0;
+}
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .sidebar-footer {
+  overflow: hidden;
+}
+.sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .sidebar-footer .user-profile-mini {
+  justify-content: center;
+  gap: 0;
+}
 .sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .nav-item { justify-content: center; padding-inline: 0; }
 .sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .nav-item .nav-icon { margin: 0; }
 .sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .sidebar-footer .user-profile-mini { justify-content: center; }
