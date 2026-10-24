@@ -193,7 +193,7 @@ export default async function InventarioPage({
   ).sort((a, b) => a.technical_name.localeCompare(b.technical_name)) || [];
 
   return (
-    <div className="dashboard-main">
+    <div className="dashboard-main inventory-page">
       <div className="welcome-section">
         <h1 className="page-header-title">Gestión de Inventario</h1>
         <p>Control de entradas, salidas y existencias del laboratorio.</p>
@@ -261,11 +261,12 @@ export default async function InventarioPage({
               title="Nuevo Registro en Catálogo"
               subtitle="Defina los productos maestros que ingresarán al inventario."
               icon={<Package className="ui-icon" aria-hidden="true" />}
+              className="inventory-register-section"
             >
               <div className="form-card">
                 <div className="form-card-header">
                   <h2 className="form-card-title">
-                    {editingItem ? "Editar Producto" : "Nuevo Registro en Catálogo"}
+                    {editingItem ? "Editar Producto" : "Datos del producto"}
                   </h2>
                   {editingItem && (
                     <a href="?view=entradas" style={{ fontSize: '0.875rem', color: 'var(--error)', textDecoration: 'none' }}>

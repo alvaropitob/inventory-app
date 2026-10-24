@@ -10,6 +10,7 @@ interface CollapsibleSectionProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   icon?: React.ReactNode;
+  className?: string;
 }
 
 export default function CollapsibleSection({
@@ -17,12 +18,13 @@ export default function CollapsibleSection({
   subtitle,
   children,
   defaultOpen = true,
-  icon
+  icon,
+  className = ''
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="stat-card" style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch', marginBottom: '2rem', overflow: 'hidden' }}>
+    <div className={`stat-card collapsible-section ${className}`.trim()} style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch', marginBottom: '2rem', overflow: 'hidden' }}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{

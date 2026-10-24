@@ -3352,9 +3352,29 @@ input, select, textarea { border-radius: 6px; font-size: 0.82rem; }
 .providers-table td:nth-child(3) > div { overflow-wrap: anywhere; }
 .providers-table td:nth-child(6) { white-space: nowrap; }
 .providers-form-card label { font-size: 0.73rem !important; }
+.inventory-page .welcome-section { margin-bottom: 0.8rem; padding: 0.9rem 1.2rem; }
+.inventory-page .inventory-metrics { gap: 0.65rem; margin-bottom: 0.8rem; }
+.inventory-page .inventory-metric { padding: 0.65rem 0.8rem; }
+.inventory-page .inventory-tabs-nav { margin-bottom: 0.85rem; }
+.inventory-register-section { margin-bottom: 1rem !important; }
+.inventory-register-section > button { padding: 1rem 1.2rem !important; }
+.inventory-register-section > button h2 { font-size: 1.02rem !important; line-height: 1.35; }
+.inventory-register-section > button p { font-size: 0.78rem !important; }
+.inventory-register-section .form-card { border: 0; border-radius: 0; box-shadow: none; }
+.inventory-register-section .form-card-header { min-height: 0; padding: 0.75rem 1.1rem; }
+.inventory-register-section .form-card-title { font-size: 0.86rem; }
+.inventory-register-section .form-card-body { padding: 1rem 1.1rem 1.1rem; }
+.inventory-register-section .form-card-body > div[style*="grid-template-columns"] { gap: 1rem !important; }
+.inventory-register-section .form-section { padding: 0.9rem; }
+.inventory-register-section .inventory-product-selector { gap: 0.75rem !important; padding: 0.75rem 1.1rem !important; }
+.inventory-register-section .inventory-product-selector label { font-size: 0.76rem !important; }
+.inventory-register-section .inventory-product-selector select { min-width: 0; font-size: 0.8rem; }
 @media (max-width: 900px) {
   .equipment-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .providers-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .inventory-register-section .inventory-product-selector { align-items: stretch !important; flex-direction: column; }
 }
 @media (max-width: 560px) {
   .equipment-form { grid-template-columns: minmax(0, 1fr); }
