@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import { parseGS1Barcode } from "@/lib/utils/gs1";
 import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
-import { AlertTriangle, ArrowUpFromLine, CheckCircle2, FlaskConical, ScanLine } from "lucide-react";
+import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
+import { AlertTriangle, ArrowUpFromLine, CheckCircle2, FlaskConical, Layers, ScanLine } from "lucide-react";
 
 interface CatalogItem {
   id: string;
@@ -43,6 +44,8 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
   const [selectedItemId, setSelectedItemId] = useState<string>("");
   const [selectedBatchId, setSelectedBatchId] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
+  const [isFractional, setIsFractional] = useState<boolean>(false);
+  const [fractionalUnits, setFractionalUnits] = useState<number>(1);
   const [reason, setReason] = useState<string>("Consumo operativo analítico");
   const [equipment, setEquipment] = useState<string>("");
   const [justification, setJustification] = useState<string>("");
@@ -52,14 +55,16 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
   // Filtrar solo lotes activos y aceptados con stock disponible
   const availableBatches = useMemo(() => {
     const today = getDateKeyInBusinessTimeZone(new Date());
-      return batches.filter(
+    return batches.filter(
       (b) => b.current_stock > 0
         && (b.clinical_status === "accepted" || !b.clinical_status)
         && (b.status === "accepted" || !b.status)
         && (b.adjusted_expiration_date || b.expiration_date) >= today
-    ).filter(batch => !selectedSectionId ||
-      ((batch.location || batch.locations)?.section_id || (batch.item || batch.catalog_items)?.section_id) === selectedSectionId
-    );
+    ).filter(batch => {
+      if (!selectedSectionId) return true;
+      const batchSectionId = batch.location?.section_id || batch.locations?.section_id || batch.item?.section_id || batch.catalog_items?.section_id;
+      return batchSectionId === selectedSectionId;
+    });
   }, [batches, selectedSectionId]);
 
   // Lista única de productos que tienen stock
@@ -93,6 +98,12 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
   const currentBatch = useMemo(() => {
     return availableBatches.find((b) => b.id === selectedBatchId) || null;
   }, [availableBatches, selectedBatchId]);
+
+  // Unidades por presentación comercial (ej. Kit x 100 -> 100)
+  const unitsInPackage = useMemo(() => {
+    const pres = currentBatch?.item?.commercial_presentation || currentBatch?.catalog_items?.commercial_presentation;
+    return parseUnitsFromPresentation(pres);
+  }, [currentBatch]);
 
   // Detección de desviación FEFO: el usuario eligió un lote que vence después del primero sugerido
   const isFefoDeviated = useMemo(() => {
@@ -216,7 +227,10 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
       <form action={action} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
         {/* Hidden inputs para invariantes de servidor */}
         <input type="hidden" name="fefo_deviation" value={isFefoDeviated ? "true" : "false"} />
-        <input type="hidden" name="mark_as_opened" value={markAsOpened ? "true" : "false"} />
+        <input type="hidden" name="mark_as_opened" value={markAsOpened || isFractional ? "true" : "false"} />
+        <input type="hidden" name="is_fractional" value={isFractional ? "true" : "false"} />
+        <input type="hidden" name="fractional_units" value={fractionalUnits} />
+        <input type="hidden" name="presentation_units" value={unitsInPackage || ""} />
 
         {/* PASO 1: SELECCIONAR REACTIVO */}
         <div>
@@ -296,9 +310,10 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               {productBatches.map((b, idx) => {
                 const expDate = new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString();
                 const isFirst = idx === 0;
+                const locName = b.location?.name || b.locations?.name;
                 return (
                   <option key={b.id} value={b.id}>
-                    {isFirst ? "⭐ [SUGERIDO FEFO] " : ""}Lote: {b.batch_number} | Vence: {expDate} | Disp: {b.current_stock} unidades {b.locations ? `(${b.locations.name})` : ""}
+                    {isFirst ? "⭐ [SUGERIDO FEFO] " : ""}Lote: {b.batch_number} | Vence: {expDate} | Disp: {b.current_stock} unidades {locName ? `(${locName})` : ""}
                   </option>
                 );
               })}
@@ -361,10 +376,121 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               <div><strong>Unidad:</strong> {currentBatch?.item?.purchase_unit || currentBatch?.catalog_items?.purchase_unit || "No aplica"}</div>
               <div><strong>Área / ubicación:</strong> {currentBatch?.location?.name || currentBatch?.locations?.name || "No aplica"}</div>
             </div>
+            {/* OPCIÓN DE CONSUMO FRACCIONADO PARA PRESENTACIONES EN KIT / CAJA */}
+            {unitsInPackage && unitsInPackage > 1 && (
+              <div
+                style={{
+                  padding: "0.85rem 1rem",
+                  borderRadius: "8px",
+                  backgroundColor: isFractional ? "#f0fdf4" : "#f8fafc",
+                  border: isFractional ? "1px solid #86efac" : "1px solid var(--border)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.6rem",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <Layers className="ui-icon" style={{ color: isFractional ? "#16a34a" : "var(--navy)" }} aria-hidden="true" />
+                    <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--navy)" }}>
+                      Presentación comercial con unidades internas ({unitsInPackage} por empaque)
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFractional(false);
+                        setQuantity(1);
+                      }}
+                      style={{
+                        padding: "0.35rem 0.75rem",
+                        borderRadius: "6px",
+                        fontSize: "0.8rem",
+                        fontWeight: 600,
+                        border: "1px solid",
+                        borderColor: !isFractional ? "var(--primary)" : "var(--border)",
+                        backgroundColor: !isFractional ? "var(--primary)" : "#ffffff",
+                        color: !isFractional ? "#ffffff" : "var(--text)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Sacar caja/kit completo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFractional(true);
+                        setQuantity(1);
+                        if (!fractionalUnits || fractionalUnits <= 0) setFractionalUnits(1);
+                      }}
+                      style={{
+                        padding: "0.35rem 0.75rem",
+                        borderRadius: "6px",
+                        fontSize: "0.8rem",
+                        fontWeight: 600,
+                        border: "1px solid",
+                        borderColor: isFractional ? "#16a34a" : "var(--border)",
+                        backgroundColor: isFractional ? "#16a34a" : "#ffffff",
+                        color: isFractional ? "#ffffff" : "var(--text)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Sacar unidades/pruebas de una caja
+                    </button>
+                  </div>
+                </div>
+
+                {isFractional && (
+                  <div
+                    style={{
+                      marginTop: "0.4rem",
+                      padding: "0.75rem",
+                      borderRadius: "6px",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #bbf7d0",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                      <label style={{ fontSize: "0.85rem", fontWeight: 700, color: "#166534" }}>
+                        Unidades / determinaciones a extraer del empaque:
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={unitsInPackage}
+                        value={fractionalUnits}
+                        onChange={(e) => setFractionalUnits(Math.min(unitsInPackage, Math.max(1, Number(e.target.value))))}
+                        style={{
+                          width: "90px",
+                          padding: "0.35rem 0.6rem",
+                          borderRadius: "6px",
+                          border: "1px solid #86efac",
+                          fontWeight: 700,
+                          fontSize: "0.95rem",
+                          textAlign: "center",
+                          color: "#166534",
+                        }}
+                      />
+                      <span style={{ fontSize: "0.8rem", color: "#15803d" }}>
+                        de <b>{unitsInPackage}</b> unidades del kit/caja ({unitsInPackage - (fractionalUnits || 0)} quedarán disponibles en el empaque abierto).
+                      </span>
+                    </div>
+                    <span style={{ fontSize: "0.75rem", color: "#166534" }}>
+                      💡 La caja/kit se abrirá automáticamente para seguimiento analítico post-apertura.
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
-                  Salida (unidades) *
+                  {isFractional ? "Cajas a destapar / consumir *" : "Cantidad a retirar *"}
                 </label>
                 <input
                   type="number"

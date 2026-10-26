@@ -148,13 +148,27 @@ export async function handleConsumeAction(formData: FormData) {
       throw new Error("Norma ISO 15189: Debe ingresar una justificación técnica obligatoria para desviarse del lote sugerido por FEFO.");
     }
 
+    const isFractional = formData.get("is_fractional") === "true";
+    const fractionalUnits = Number(formData.get("fractional_units"));
+    const presentationUnits = Number(formData.get("presentation_units"));
+
+    let effectiveReason = reason;
+    if (isFractional && Number.isSafeInteger(fractionalUnits) && fractionalUnits > 0) {
+      const unitsDetail = presentationUnits > 0 
+        ? `Consumo fraccionado: ${fractionalUnits} de ${presentationUnits} unidades/pruebas`
+        : `Consumo fraccionado: ${fractionalUnits} unidades/pruebas`;
+      effectiveReason = effectiveReason 
+        ? `${effectiveReason} (${unitsDetail})`
+        : unitsDetail;
+    }
+
     const { error: consumeError } = await StockService.consumeStock({
       batch_id: batchId,
       quantity,
       consumed_by: user.id,
-      reason,
+      reason: effectiveReason,
       equipment,
-      mark_as_opened: markAsOpened,
+      mark_as_opened: markAsOpened || isFractional,
       reconstituted,
       fefo_deviation: fefoDeviation,
       justification_reason: justificationReason?.trim() || undefined,
