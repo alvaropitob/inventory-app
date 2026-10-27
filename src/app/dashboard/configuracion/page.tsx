@@ -426,8 +426,8 @@ export default async function ConfiguracionPage({
                 <input className="form-input" name="technical_name" defaultValue={(editingItem as CatalogItem)?.technical_name || ""} required placeholder="Ej: Glucosa Oxidasa" />
               </div>
               <div>
-                <label className="form-label">Presentación Comercial</label>
-                <input className="form-input" name="commercial_name" defaultValue={(editingItem as CatalogItem)?.commercial_name || ""} placeholder="Ej: Kit x 100 Det" />
+                <label className="form-label">Presentación Comercial *</label>
+                <input className="form-input" name="commercial_presentation" defaultValue={(editingItem as CatalogItem)?.commercial_name || (editingItem as CatalogItem)?.commercial_presentation || ""} required placeholder="Ej: Kit x 100 Det" />
               </div>
               <div>
                 <label className="form-label">Área *</label>
@@ -437,7 +437,7 @@ export default async function ConfiguracionPage({
                 </select>
               </div>
               <div>
-                <label className="form-label">Unidad de Compra</label>
+                <label className="form-label">Unidad de medida</label>
                 <input className="form-input" name="purchase_unit" defaultValue={(editingItem as CatalogItem)?.purchase_unit || "Unidad"} placeholder="Ej: Frasco x 500ml" />
               </div>
               <div>
@@ -456,6 +456,7 @@ export default async function ConfiguracionPage({
                 initial={editingItem as CatalogItem | null}
                 suppliers={(suppliers || []).filter(supplier => supplier.is_active !== false)}
                 supplierId={(editingItem as CatalogItem | null)?.supplier_id || ""}
+                configurationMode
               />
               <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Registrar"}

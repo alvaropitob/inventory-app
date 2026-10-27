@@ -750,6 +750,14 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 .config-form-compact { grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto; }
 .config-form-location { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
 .config-form-wide { grid-template-columns: repeat(4, minmax(0, 1fr)) auto; }
+.config-product-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+}
+.config-product-form > .config-product-fields { display: contents; }
+.config-product-form .config-product-fields textarea { min-height: 42px; }
+.config-product-form .config-product-note { grid-column: 1 / -1; margin: 0; }
+.config-product-form > button { grid-column: 1 / -1; justify-self: end; min-width: 140px; }
 .text-error { color: var(--error) !important; }
 
 /* =====================================================================
@@ -1484,6 +1492,7 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
   .detail-grid, .eq-detail-grid, .inventory-product-form-grid { grid-template-columns: minmax(0, 1fr); }
   .equipment-form, .provider-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .config-form-wide, .config-form-location { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .config-product-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .audit-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .inventory-stock-section .form-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -1509,6 +1518,7 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
   .evaluation-question-groups > div:first-child { grid-column: auto; }
   .inventory-movement-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: var(--sp-4); }
   .config-form-panel { grid-template-columns: minmax(0, 1fr); padding: var(--sp-4); }
+  .config-product-form { grid-template-columns: minmax(0, 1fr); }
 
   .form-card-header, .data-card-header, .card-section-header, .audit-panel-header,
   .checklist-card-header, .collapsible-trigger { padding-inline: var(--sp-4); }
@@ -1681,6 +1691,7 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
   .purchase-order-builder { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .purchase-order-product { grid-column: 1 / -1; }
   .purchase-order-add { grid-column: 1 / -1; width: 100%; }
+  .clinical-consumption-fields { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   .purchase-order-builder { grid-template-columns: minmax(0, 1fr); }

@@ -140,6 +140,7 @@ export const ComplianceService = {
         notes?: string;
         items: {
             catalog_item_id: string;
+            section_id: string;
             lot_number: string;
             expiration_date: string;
             quantity_received: number;
@@ -158,6 +159,7 @@ export const ComplianceService = {
             p_notes: data.notes ?? null,
             p_items: data.items.map(item => ({
                 catalog_item_id: item.catalog_item_id,
+                section_id: item.section_id,
                 lot_number: item.lot_number,
                 expiration_date: item.expiration_date,
                 quantity_received: item.quantity_received,

@@ -488,7 +488,7 @@ export default async function InventarioPage({
                   'Nombre Comercial': row.commercial_name || 'N/A',
                   'Área': row.sections?.name || 'Sin área',
                   'Stock Total': row.totalStock,
-                  'Unidad de Compra': row.purchase_unit || 'N/A',
+                  'Unidad de medida': row.purchase_unit || 'N/A',
                   'Stock Máximo': row.maximum_stock_threshold ?? 'Sin definir',
                   'Lotes Disponibles': row.itemBatches?.filter((b: Batch) => b.current_stock > 0 || (b.opened_units_remaining || 0) > 0).map((b: Batch) => `${b.batch_number}:${b.current_stock} empaques${(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ''}`).join(' | ') || 'Agotado',
                   'Estado': row.totalStock === 0 ? 'Agotado' : row.totalStock <= (row.minimum_stock_threshold || 10) ? 'Stock Bajo' : 'Óptimo'

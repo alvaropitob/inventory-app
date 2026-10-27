@@ -13,9 +13,10 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
   const { id } = await params;
 
   try {
-    const [order, locationsResponse] = await Promise.all([
+    const [order, locationsResponse, sectionsResponse] = await Promise.all([
       OrderService.getOrderById(id),
       CatalogService.getLocations(),
+      CatalogService.getSections(),
     ]);
 
     if (!order) {
@@ -55,6 +56,7 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
           <TechnicalReceptionForm
             order={formattedOrder}
             locations={(locationsResponse.data || []).filter(location => location.is_active !== false)}
+            sections={(sectionsResponse.data || []).filter(section => section.is_active)}
           />
         </div>
       </div>

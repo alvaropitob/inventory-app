@@ -16,6 +16,7 @@ export async function submitTechnicalReception(data: {
     notes?: string;
     items: {
         catalog_item_id: string;
+        section_id: string;
         lot_number: string;
         expiration_date: string;
         quantity_received: number;
@@ -27,24 +28,24 @@ export async function submitTechnicalReception(data: {
     if (!data.order_id || !Array.isArray(data.items) || data.items.length === 0 || data.items.length > 500 ||
         !Number.isFinite(data.reception_temperature) || !data.invoice_number?.trim() || data.items.some(item =>
           !item.catalog_item_id || !item.lot_number?.trim() || !Number.isSafeInteger(item.quantity_received) || item.quantity_received <= 0 ||
-          !item.location_id ||
+          !item.section_id || !item.location_id ||
           !Number.isFinite(item.unit_price) || item.unit_price < 0 || !/^\d{4}-\d{2}-\d{2}$/.test(item.expiration_date))) {
         throw new Error("Datos de recepción inválidos");
     }
     if (new Set(data.items.map(item => item.catalog_item_id)).size !== data.items.length) {
         throw new Error("Cada producto de la orden solo puede aparecer una vez por recepción.");
     }
-    const [order, { data: locations, error: locationsError }] = await Promise.all([
+    const [order, { data: locations, error: locationsError }, { data: sections, error: sectionsError }] = await Promise.all([
         OrderService.getOrderById(data.order_id),
         CatalogService.getLocations(),
+        CatalogService.getSections(),
     ]);
-    if (locationsError) throw new Error("No se pudieron validar las áreas y ubicaciones activas.");
+    if (locationsError || sectionsError) throw new Error("No se pudieron validar las áreas y ubicaciones activas.");
     for (const receivedItem of data.items) {
         const orderedItem = order.items?.find(item => item.item_id === receivedItem.catalog_item_id);
         const location = locations?.find(candidate => candidate.id === receivedItem.location_id && candidate.is_active);
-        const itemArea = orderedItem?.catalog_item;
-        if (!orderedItem || !location || !itemArea?.section_id || itemArea.sections?.is_active !== true ||
-            location.section_id !== itemArea.section_id || location.sections?.is_active !== true) {
+        const activeSection = sections?.find(section => section.id === receivedItem.section_id && section.is_active);
+        if (!orderedItem || !location || !activeSection || location.section_id !== activeSection.id || location.sections?.is_active !== true) {
             throw new Error("La ubicación debe estar asociada al área activa del producto.");
         }
     }
@@ -54,6 +55,7 @@ export async function submitTechnicalReception(data: {
         // Revalidar las rutas afectadas para que los cambios se vean de inmediato
         revalidatePath("/dashboard/recepcion");
         revalidatePath("/dashboard/inventario");
+        revalidatePath("/dashboard/configuracion");
         
         return result;
     } catch (error) {
