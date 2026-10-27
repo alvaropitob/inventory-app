@@ -1677,6 +1677,8 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 .reception-items-table th:nth-child(5), .reception-items-table td:nth-child(5) { width: 200px; min-width: 190px; }
 .reception-items-table td:nth-child(5) .table-input { width: 100%; min-width: 180px; }
 .reception-location-help { display: block; max-width: 210px; margin-top: var(--sp-1); color: var(--warning); font-size: var(--fs-xs); line-height: var(--lh-base); }
+.reception-location-help a { color: var(--primary-dark); font-weight: var(--fw-semibold); text-decoration: underline; text-underline-offset: 2px; }
+.reception-location-help a:hover { color: var(--primary); }
 .location-assignment-notice { margin: 0 var(--sp-5) var(--sp-3); padding: var(--sp-3) var(--sp-4); border: 1px solid var(--warning-border); border-radius: var(--radius-sm); background: var(--warning-bg); color: var(--warning); font-size: var(--fs-sm); }
 .reception-requested { color: var(--text-muted); font-weight: var(--fw-semibold); }
 .reception-quantity { width: 88px; text-align: center; }

@@ -78,9 +78,9 @@ function StatusPill({ active }: { active: boolean }) {
 export default async function ConfiguracionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; editId?: string }>;
+  searchParams: Promise<{ tab?: string; editId?: string; sectionId?: string }>;
 }) {
-  const { tab, editId } = await searchParams;
+  const { tab, editId, sectionId } = await searchParams;
   const user = await getCurrentUserProfile();
 
   if (!user || user.role !== "admin") {
@@ -343,7 +343,7 @@ export default async function ConfiguracionPage({
               </div>
               <div className="form-group">
                 <label className="form-label">Área *</label>
-                <select className="form-select" name="section_id" defaultValue={(editingItem as Location)?.section_id || ""} required>
+                <select className="form-select" name="section_id" defaultValue={(editingItem as Location)?.section_id || sectionId || ""} required>
                   <option value="" disabled>Seleccione un área...</option>
                   {sections?.filter(section => section.is_active).map(section => (
                     <option key={section.id} value={section.id}>{section.name}</option>

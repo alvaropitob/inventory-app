@@ -241,7 +241,11 @@ export default function TechnicalReceptionForm({ order, locations, sections }: {
                                             </option>
                                         ))}
                                     </select>
-                                    {itemData[item.catalog_item_id].section_id && locationsForArea(itemData[item.catalog_item_id].section_id).length === 0 && <small className="reception-location-help">Crea una ubicación para esta área en Configuración → Ubicaciones.</small>}
+                                    {itemData[item.catalog_item_id].section_id && locationsForArea(itemData[item.catalog_item_id].section_id).length === 0 && (
+                                        <small className="reception-location-help">
+                                            No hay ubicaciones para esta área. <a href={`/dashboard/configuracion?tab=ubicaciones&sectionId=${encodeURIComponent(itemData[item.catalog_item_id].section_id)}`} target="_blank" rel="noreferrer">Crear ubicación en Configuración</a>.
+                                        </small>
+                                    )}
                                 </td>
                                 <td>
                                     <input 

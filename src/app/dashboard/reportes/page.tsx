@@ -119,27 +119,27 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   const kardexExportData = movements.map((m) => ({
     Fecha: new Date(m.created_at).toLocaleString(),
     Producto: m.batch?.item?.technical_name || "N/A",
-    Codigo: m.batch?.item?.internal_code || "N/A",
+    "Código": m.batch?.item?.internal_code || "N/A",
     Lote: m.batch?.batch_number || "N/A",
     Vencimiento: m.batch?.expiration_date ? new Date(m.batch.expiration_date).toLocaleDateString() : "N/A",
-    TipoMovimiento: m.movement_type === "entry" ? "Entrada" : m.movement_type === "exit" ? "Salida" : "Ajuste/Descarte",
+    "Tipo de movimiento": m.movement_type === "entry" ? "Entrada" : m.movement_type === "exit" ? "Salida" : "Ajuste/Descarte",
     Cantidad: m.quantity,
     Unidad: m.batch?.item?.purchase_unit || "Unidad",
-    Ubicacion: m.batch?.location?.name || "N/A",
+    "Ubicación": m.batch?.location?.name || "N/A",
     Responsable: m.user?.full_name || m.user?.username || "Sistema",
-    Motivo_Equipo: m.reason || m.equipment_name || "N/A",
+    "Motivo / equipo": m.reason || m.equipment_name || "N/A",
   }));
 
   // Datos para exportación Vencimientos
   const vencimientosExportData = batchesWithDays.map((b) => ({
     Producto: b.item?.technical_name || "N/A",
-    Codigo: b.item?.internal_code || "N/A",
+    "Código": b.item?.internal_code || "N/A",
     Lote: b.batch_number,
-    FechaVencimiento: new Date(b.expiration_date).toLocaleDateString(),
-    DiasRestantes: b.diffDays,
-    StockActual: b.current_stock,
-    Ubicacion: b.location?.name || "N/A",
-    Semaforo: b.trafficLight,
+    "Fecha de vencimiento": new Date(b.expiration_date).toLocaleDateString(),
+    "Días restantes": b.diffDays,
+    "Stock actual": b.current_stock,
+    "Ubicación": b.location?.name || "N/A",
+    "Semáforo": b.trafficLight,
   }));
 
   // Datos para exportación Suficiencia / Habilitación Res. 3100
@@ -180,13 +180,36 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     };
   });
 
+  const suficienciaExportData = suficienciaData.map((item) => ({
+    "Código": item.Codigo,
+    "Producto": item.Producto,
+    "Sección": item.Seccion,
+    "Marca": item.Marca,
+    "Descripción": item.Descripcion,
+    "Serie": item.Serie,
+    "Principio activo": item.PrincipioActivo,
+    "Forma farmacéutica": item.FormaFarmaceutica,
+    "Concentración": item.Concentracion,
+    "Presentación comercial": item.PresentacionComercial,
+    "Unidad de medida": item.UnidadMedida,
+    "Registro INVIMA": item.RegistroInvima,
+    "Clasificación del riesgo": item.ClasificacionRiesgo,
+    "Vida útil": item.VidaUtil,
+    "Proveedor": item.Proveedor,
+    "Stock actual": item.StockActual,
+    "Stock mínimo": item.StockMinimo,
+    "Stock máximo": item.StockMaximo,
+    "Unidad": item.Unidad,
+    "Estado": item.Estado,
+  }));
+
   // Datos para exportación Reactivovigilancia
   const reactivoExportData = incidents.map((inc) => ({
     Fecha: new Date(inc.reported_at).toLocaleDateString(),
-    TipoIncidente: inc.incident_type,
+    "Tipo de incidente": inc.incident_type,
     Lote: inc.batch?.batch_number || "N/A",
-    Descripcion: inc.description || "N/A",
-    AccionCorrectiva: inc.action_taken || "Pendiente",
+    "Descripción": inc.description || "N/A",
+    "Acción correctiva": inc.action_taken || "Pendiente",
   }));
 
   // Datos para exportación Mermas
@@ -194,18 +217,18 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     Fecha: new Date(m.created_at).toLocaleDateString(),
     Producto: m.batch?.item?.technical_name || "N/A",
     Lote: m.batch?.batch_number || "N/A",
-    CantidadDescartada: m.quantity,
+    "Cantidad descartada": m.quantity,
     Motivo: m.reason || "Baja técnica",
     Responsable: m.user?.full_name || m.user?.username || "Sistema",
   }));
 
   // Datos para exportación Ambiental
   const ambientalExportData = logs.map((log) => ({
-    FechaHora: new Date(log.created_at).toLocaleString(),
-    Ubicacion: log.locations?.name || "N/A",
-    Temperatura_C: log.temperature,
-    Humedad_Porcentaje: log.humidity || "N/A",
-    AlertaFueraDeRango: log.is_out_of_range ? "SÍ" : "NO",
+    "Fecha y hora": new Date(log.created_at).toLocaleString(),
+    "Ubicación": log.locations?.name || "N/A",
+    "Temperatura (°C)": log.temperature,
+    "Humedad (%)": log.humidity || "N/A",
+    "Alerta fuera de rango": log.is_out_of_range ? "SÍ" : "NO",
   }));
 
   // Valorización del inventario y costos
@@ -240,13 +263,13 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     }, 0);
 
   const valorizacionExportData = valorizacionData.map((item) => ({
-    Codigo: item.Codigo,
+    "Código": item.Codigo,
     Producto: item.Producto,
-    Seccion: item.Seccion,
-    StockActual: item.StockActual,
+    "Sección": item.Seccion,
+    "Stock actual": item.StockActual,
     Unidad: item.Unidad,
-    CostoUnitario_COP: item.PrecioUnitario,
-    ValorTotalStock_COP: item.ValorTotal,
+    "Costo unitario (COP)": item.PrecioUnitario,
+    "Valor total del stock (COP)": item.ValorTotal,
   }));
 
   const navItems = [
@@ -262,7 +285,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             Suficiencia
           </h1>
           <p className="page-header-subtitle">
-            Existencias por producto y seccion, comparadas con los niveles minimos configurados.
+      Existencias por producto y sección, comparadas con los niveles mínimos configurados.
           </p>
         </div>
       </div>
@@ -409,7 +432,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                   <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)" }}>Evidencia de disponibilidad de stock para la cartera de servicios habilitada.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <ExportCSVButton data={suficienciaData} filename="SUFICIENCIA" label="Exportar a Excel / CSV" />
+                  <ExportCSVButton data={suficienciaExportData} filename="SUFICIENCIA" label="Exportar a Excel / CSV" />
                   <PrintReportButton reportTitle="Suficiencia" />
                 </div>
               </div>
@@ -462,7 +485,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <ExportCSVButton data={vencimientosExportData} filename="SEMAFORO_VENCIMIENTOS" label="Exportar a Excel / CSV" />
-                  <PrintReportButton reportTitle="Semaforo_Vencimientos" />
+                  <PrintReportButton reportTitle="Semáforo de vencimientos" />
                 </div>
               </div>
               <div style={{ overflowX: "auto" }}>
@@ -471,7 +494,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                     <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
                       <th>Producto</th>
                       <th>Lote</th>
-                      <th>Fecha Vencimiento</th>
+                      <th>Fecha de vencimiento</th>
                       <th style={{ textAlign: "center" }}>Días Restantes</th>
                       <th style={{ textAlign: "center" }}>Stock Disponible</th>
                       <th>Ubicación</th>

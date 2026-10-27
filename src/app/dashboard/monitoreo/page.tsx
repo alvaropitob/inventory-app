@@ -90,7 +90,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
 
             <div>
               <label className="form-label">Observaciones</label>
-              <textarea name="notes" rows={3} className="form-textarea" defaultValue="Temperatura acorde a los limites de almacenamiento establecidos por el fabricante" placeholder="Cualquier desviación o evento..." style={{ resize: 'none' }} />
+              <textarea name="notes" rows={3} className="form-textarea" defaultValue="Temperatura acorde a los límites de almacenamiento establecidos por el fabricante" placeholder="Cualquier desviación o evento..." style={{ resize: 'none' }} />
             </div>
 
             <label style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
