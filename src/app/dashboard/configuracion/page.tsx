@@ -425,21 +425,13 @@ export default async function ConfiguracionPage({
                 <label className="form-label">Nombre del Producto *</label>
                 <input className="form-input" name="technical_name" defaultValue={(editingItem as CatalogItem)?.technical_name || ""} required placeholder="Ej: Glucosa Oxidasa" />
               </div>
-              <div>
-                <label className="form-label">Presentación Comercial *</label>
-                <input className="form-input" name="commercial_presentation" defaultValue={(editingItem as CatalogItem)?.commercial_name || (editingItem as CatalogItem)?.commercial_presentation || ""} required placeholder="Ej: Kit x 100 Det" />
-              </div>
-              <div>
-                <label className="form-label">Área *</label>
-                <select className="form-select" name="section_id" defaultValue={(editingItem as CatalogItem)?.section_id || ""} required>
-                  <option value="">Seleccione...</option>
-                  {sections?.filter(section => section.is_active).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="form-label">Unidad de medida</label>
-                <input className="form-input" name="purchase_unit" defaultValue={(editingItem as CatalogItem)?.purchase_unit || "Unidad"} placeholder="Ej: Frasco x 500ml" />
-              </div>
+              <ProductTechnicalFields
+                initial={editingItem as CatalogItem | null}
+                suppliers={(suppliers || []).filter(supplier => supplier.is_active !== false)}
+                sections={(sections || []).filter(section => section.is_active)}
+                supplierId={(editingItem as CatalogItem | null)?.supplier_id || ""}
+                configurationMode
+              />
               <div>
                 <label className="form-label">Stock Mínimo</label>
                 <input className="form-input" type="number" min="0" step="1" name="minimum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.minimum_stock_threshold || 0} />
@@ -452,12 +444,6 @@ export default async function ConfiguracionPage({
                 <label className="form-label">P. Estimado ($)</label>
                 <input className="form-input" type="number" step="0.01" name="estimated_unit_price" defaultValue={(editingItem as CatalogItem)?.estimated_unit_price || 0} />
               </div>
-              <ProductTechnicalFields
-                initial={editingItem as CatalogItem | null}
-                suppliers={(suppliers || []).filter(supplier => supplier.is_active !== false)}
-                supplierId={(editingItem as CatalogItem | null)?.supplier_id || ""}
-                configurationMode
-              />
               <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Registrar"}
               </button>
