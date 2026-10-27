@@ -413,8 +413,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                   <PrintReportButton reportTitle="Suficiencia" />
                 </div>
               </div>
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
+              <div className="table-responsive sufficiency-report-wrap">
+                <table className="sufficiency-report-table" style={{ borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
                     <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
                       <th>Código</th>
@@ -422,14 +422,14 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                       <th>Sección</th>
                       <th style={{ textAlign: "center" }}>Stock Actual</th>
                       <th style={{ textAlign: "center" }}>Mínimo Requerido</th>
-                      <th style={{ textAlign: "center" }}>Stock MÃ¡ximo</th>
+                      <th style={{ textAlign: "center" }}>Stock Máximo</th>
                       <th style={{ textAlign: "center" }}>Estado de Suficiencia</th>
                     </tr>
                   </thead>
                   <tbody>
                     {suficienciaData.map((item) => (
                       <tr key={item.Codigo} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ color: "var(--text-muted)" }}>{item.Codigo}</td>
+                        <td className="sufficiency-code" style={{ color: "var(--text-muted)" }}>{item.Codigo}</td>
                         <td style={{ fontWeight: 600, color: "var(--navy)" }}>{item.Producto}</td>
                         <td>{item.Seccion}</td>
                         <td style={{ textAlign: "center", fontWeight: 600 }}>
@@ -438,7 +438,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                         <td style={{ textAlign: "center", color: "var(--text-muted)" }}>{item.StockMinimo}</td>
                         <td style={{ textAlign: "center", color: "var(--text-muted)" }}>{item.StockMaximo}</td>
                         <td style={{ textAlign: "center" }}>
-                          <span
+                          <span className="sufficiency-status-pill"
                             style={{ padding: "0.25rem 0.65rem", borderRadius: "999px", fontSize: 'var(--fs-xs)', fontWeight: 600, backgroundColor: item.StockActual === 0 || (typeof item.StockMaximo === "number" && item.StockActual > item.StockMaximo) ? "#fee2e2" : item.StockActual <= item.StockMinimo ? "#fef3c7" : "#dcfce7", color: item.StockActual === 0 || (typeof item.StockMaximo === "number" && item.StockActual > item.StockMaximo) ? "#991b1b" : item.StockActual <= item.StockMinimo ? "#b45309" : "#15803d" }}
                           >
                             {item.Estado}

@@ -98,14 +98,14 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
         <button type="button" className={`tab-link ${selectedSection === "all" ? "tab-link-active" : ""}`} onClick={() => setSelectedSection("all")}>Todas las áreas</button>
         {sections.map(section => <button type="button" key={section.id} className={`tab-link ${selectedSection === section.id ? "tab-link-active" : ""}`} onClick={() => setSelectedSection(section.id)}>{section.name}</button>)}
       </nav>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table className="inventory-stock-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
-            <th style={{ textAlign: 'left', width: '12%' }}>Código</th>
-            <th style={{ textAlign: 'left', width: '30%' }}>Producto</th>
-            <th style={{ textAlign: 'center', width: '15%' }}>Stock Total</th>
-            <th style={{ textAlign: 'center', width: '15%' }}>Lote / Desglose</th>
-            <th style={{ textAlign: 'center', width: '13%' }}>Estado</th>
+            <th style={{ textAlign: 'left' }}>Código</th>
+            <th style={{ textAlign: 'left' }}>Producto</th>
+            <th style={{ textAlign: 'center' }}>Stock Total</th>
+            <th style={{ textAlign: 'left' }}>Lote / Desglose</th>
+            <th style={{ textAlign: 'center' }}>Estado</th>
           </tr>
         </thead>
         <tbody>
@@ -116,7 +116,7 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
             
             return (
               <tr key={item.id} style={{ borderBottom: '1px solid var(--border)', background: isOutOfStock ? '#fff1f2' : 'transparent' }}>
-                <td style={{ color: 'var(--text-muted)' }}>{item.internal_code}</td>
+                <td className="inventory-stock-code" style={{ color: 'var(--text-muted)' }}>{item.internal_code}</td>
                 <td>
                   <div style={{ fontWeight: 600, color: 'var(--navy)', fontSize: 'var(--fs-base)' }}>{item.technical_name}</div>
                   <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{item.commercial_name}</div>
@@ -128,13 +128,19 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
                 </td>
                 <td>
                   {item.itemBatches.filter((b: Batch) => b.current_stock > 0 || (b.opened_units_remaining || 0) > 0).map((b: Batch) => (
-                    <div key={b.id} style={{ marginBottom: '0.4rem', padding: '0.4rem', background: 'rgba(0,0,0,0.02)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{b.batch_number}: <strong>{b.current_stock} empaques{(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ''}</strong></span>
-                      <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{b.location?.name || "Sin ubicación"} · Vence: {new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString()}</span>
+                    <div key={b.id} className="inventory-stock-batch">
+                      <div className="inventory-stock-batch-main">
+                        <span className="inventory-stock-batch-number">{b.batch_number}</span>
+                        <strong>{b.current_stock} empaques{(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ''}</strong>
+                      </div>
+                      <div className="inventory-stock-batch-meta">
+                        <span>{b.location?.name || "Sin ubicación"}</span>
+                        <span>Vence: {new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString("es-CO")}</span>
+                      </div>
                     </div>
                   ))}
                 </td>
-                <td style={{ textAlign: 'center' }}>
+                <td className="inventory-stock-status" style={{ textAlign: 'center' }}>
                     {isOutOfStock ? (
                       <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>AGOTADO</span>
                     ) : isOverStock ? (
