@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { parseGS1Barcode } from "@/lib/utils/gs1";
 import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
@@ -25,6 +25,8 @@ interface Batch {
   adjusted_expiration_date?: string | null;
   opening_date?: string | null;
   current_stock: number;
+  opened_units_remaining?: number;
+  opened_units_per_package?: number;
   status?: string;
   clinical_status?: string;
   item?: CatalogItem | null;
@@ -52,11 +54,20 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
   const [markAsOpened, setMarkAsOpened] = useState<boolean>(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
 
-  // Filtrar solo lotes activos y aceptados con stock disponible
+  useEffect(() => {
+    setQuantity(1);
+    setFractionalUnits(1);
+    const selectedBatch = batches.find((batch) => batch.id === selectedBatchId);
+    const product = selectedBatch?.item || selectedBatch?.catalog_items;
+    const packageUnits = selectedBatch?.opened_units_per_package || parseUnitsFromPresentation(product?.commercial_presentation);
+    setIsFractional(!!selectedBatch && (packageUnits || 0) > 1);
+  }, [selectedBatchId, batches]);
+
+  // Incluir empaques sin abrir y unidades que quedaron en un empaque abierto.
   const availableBatches = useMemo(() => {
     const today = getDateKeyInBusinessTimeZone(new Date());
     return batches.filter(
-      (b) => b.current_stock > 0
+      (b) => (b.current_stock > 0 || (b.opened_units_remaining || 0) > 0)
         && (b.clinical_status === "accepted" || !b.clinical_status)
         && (b.status === "accepted" || !b.status)
         && (b.adjusted_expiration_date || b.expiration_date) >= today
@@ -101,6 +112,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
 
   // Unidades por presentación comercial (ej. Kit x 100 -> 100)
   const unitsInPackage = useMemo(() => {
+    if ((currentBatch?.opened_units_per_package || 0) > 1) return currentBatch!.opened_units_per_package!;
     const pres = currentBatch?.item?.commercial_presentation || currentBatch?.catalog_items?.commercial_presentation;
     return parseUnitsFromPresentation(pres);
   }, [currentBatch]);
@@ -313,7 +325,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                 const locName = b.location?.name || b.locations?.name;
                 return (
                   <option key={b.id} value={b.id}>
-                    {isFirst ? "⭐ [SUGERIDO FEFO] " : ""}Lote: {b.batch_number} | Vence: {expDate} | Disp: {b.current_stock} unidades {locName ? `(${locName})` : ""}
+                    {isFirst ? "⭐ [SUGERIDO FEFO] " : ""}Lote: {b.batch_number} | Vence: {expDate} | Disp: {b.current_stock} empaques{(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ""} {locName ? `(${locName})` : ""}
                   </option>
                 );
               })}
@@ -372,7 +384,8 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               <div><strong>Producto:</strong> {currentBatch?.item?.technical_name || currentBatch?.catalog_items?.technical_name || "No aplica"}</div>
               <div><strong>Presentación:</strong> {currentBatch?.item?.commercial_presentation || currentBatch?.catalog_items?.commercial_presentation || "No aplica"}</div>
               <div><strong>Lote:</strong> {currentBatch?.batch_number || "No aplica"}</div>
-              <div><strong>Cantidad actual:</strong> {currentBatch?.current_stock || 0}</div>
+              <div><strong>Empaques sin abrir:</strong> {currentBatch?.current_stock || 0}</div>
+              {(currentBatch?.opened_units_remaining || 0) > 0 && <div><strong>Unidades del empaque abierto:</strong> {currentBatch?.opened_units_remaining}</div>}
               <div><strong>Unidad:</strong> {currentBatch?.item?.purchase_unit || currentBatch?.catalog_items?.purchase_unit || "No aplica"}</div>
               <div><strong>Área / ubicación:</strong> {currentBatch?.location?.name || currentBatch?.locations?.name || "No aplica"}</div>
             </div>
@@ -399,6 +412,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                   <div style={{ display: "flex", gap: "0.5rem" }}>
                     <button
                       type="button"
+                      disabled={(currentBatch?.current_stock || 0) <= 0}
                       onClick={() => {
                         setIsFractional(false);
                         setQuantity(1);
@@ -455,28 +469,8 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                      <label style={{ fontSize: "0.85rem", fontWeight: 700, color: "#166534" }}>
-                        Unidades / determinaciones a extraer del empaque:
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max={unitsInPackage}
-                        value={fractionalUnits}
-                        onChange={(e) => setFractionalUnits(Math.min(unitsInPackage, Math.max(1, Number(e.target.value))))}
-                        style={{
-                          width: "90px",
-                          padding: "0.35rem 0.6rem",
-                          borderRadius: "6px",
-                          border: "1px solid #86efac",
-                          fontWeight: 700,
-                          fontSize: "0.95rem",
-                          textAlign: "center",
-                          color: "#166534",
-                        }}
-                      />
                       <span style={{ fontSize: "0.8rem", color: "#15803d" }}>
-                        de <b>{unitsInPackage}</b> unidades del kit/caja ({unitsInPackage - (fractionalUnits || 0)} quedarán disponibles en el empaque abierto).
+                        Disponibles: <b>{(currentBatch?.current_stock || 0) * unitsInPackage + (currentBatch?.opened_units_remaining || 0)}</b> unidades en total. Quedarán {(currentBatch?.current_stock || 0) * unitsInPackage + (currentBatch?.opened_units_remaining || 0) - (fractionalUnits || 0)}.
                       </span>
                     </div>
                     <span style={{ fontSize: "0.75rem", color: "#166534" }}>
@@ -490,26 +484,35 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
-                  {isFractional ? "Cajas a destapar / consumir *" : "Cantidad a retirar *"}
+                  {isFractional ? "Unidades internas a retirar *" : "Empaques completos a retirar *"}
                 </label>
-                <input
-                  type="number"
-                  name="quantity"
-                  min="1"
-                  max={currentBatch?.current_stock || 9999}
-                  value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "0.375rem 0.75rem",
-                    borderRadius: "8px",
-                    border: "1px solid var(--border)",
-                    fontSize: "0.9rem",
-                  }}
-                />
+                {isFractional ? (
+                  <input
+                    type="number"
+                    min="1"
+                    max={(currentBatch?.current_stock || 0) * (unitsInPackage || 0) + (currentBatch?.opened_units_remaining || 0)}
+                    value={fractionalUnits}
+                    onChange={(e) => setFractionalUnits(Math.min((currentBatch?.current_stock || 0) * (unitsInPackage || 0) + (currentBatch?.opened_units_remaining || 0), Math.max(1, Number(e.target.value))))}
+                    required
+                    style={{ width: "100%", padding: "0.375rem 0.75rem", borderRadius: "8px", border: "1px solid var(--border)", fontSize: "0.9rem" }}
+                  />
+                ) : (
+                  <input
+                    type="number"
+                    name="quantity"
+                    min="1"
+                    max={currentBatch?.current_stock || 0}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    disabled={(currentBatch?.current_stock || 0) <= 0}
+                    required
+                    style={{ width: "100%", padding: "0.375rem 0.75rem", borderRadius: "8px", border: "1px solid var(--border)", fontSize: "0.9rem" }}
+                  />
+                )}
                 <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  Disponible: {currentBatch?.current_stock || 0} {currentBatch?.item?.purchase_unit || currentBatch?.catalog_items?.purchase_unit || "unidades"}
+                  {isFractional
+                    ? `Disponibles: ${(currentBatch?.current_stock || 0) * (unitsInPackage || 0) + (currentBatch?.opened_units_remaining || 0)} unidades internas`
+                    : `Disponibles: ${currentBatch?.current_stock || 0} ${currentBatch?.item?.purchase_unit || currentBatch?.catalog_items?.purchase_unit || "empaques"}`}
                 </span>
               </div>
 

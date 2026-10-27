@@ -142,25 +142,42 @@ export async function handleConsumeAction(formData: FormData) {
 
   try {
     const { user } = await requireRole(["admin", "operator"]);
-    if (!batchId || !Number.isSafeInteger(quantity) || quantity <= 0) throw new Error("Lote o cantidad no válidos");
-
-    if (fefoDeviation && (!justificationReason || justificationReason.trim() === "")) {
-      throw new Error("Norma ISO 15189: Debe ingresar una justificación técnica obligatoria para desviarse del lote sugerido por FEFO.");
-    }
+    if (!batchId) throw new Error("Lote no válido");
 
     const isFractional = formData.get("is_fractional") === "true";
     const fractionalUnits = Number(formData.get("fractional_units"));
     const presentationUnits = Number(formData.get("presentation_units"));
 
-    let effectiveReason = reason;
-    if (isFractional && Number.isSafeInteger(fractionalUnits) && fractionalUnits > 0) {
-      const unitsDetail = presentationUnits > 0 
-        ? `Consumo fraccionado: ${fractionalUnits} de ${presentationUnits} unidades/pruebas`
-        : `Consumo fraccionado: ${fractionalUnits} unidades/pruebas`;
-      effectiveReason = effectiveReason 
-        ? `${effectiveReason} (${unitsDetail})`
-        : unitsDetail;
+    if (fefoDeviation && (!justificationReason || justificationReason.trim() === "")) {
+      throw new Error("Norma ISO 15189: Debe ingresar una justificación técnica obligatoria para desviarse del lote sugerido por FEFO.");
     }
+
+    if (isFractional) {
+      if (!Number.isSafeInteger(fractionalUnits) || fractionalUnits <= 0 ||
+          !Number.isSafeInteger(presentationUnits) || presentationUnits <= 1) {
+        throw new Error("Indica una cantidad válida de unidades internas y una presentación fraccionable.");
+      }
+      const { error: fractionalError } = await StockService.consumeFractionalStock({
+        batch_id: batchId,
+        units: fractionalUnits,
+        units_per_package: presentationUnits,
+        consumed_by: user.id,
+        reason: reason?.trim() || "Consumo fraccionado de presentación comercial",
+        equipment,
+        fefo_deviation: fefoDeviation,
+        justification_reason: justificationReason?.trim() || undefined,
+      });
+      if (fractionalError) {
+        console.error("Fractional consume error:", fractionalError);
+        throw new Error(fractionalError.message || "Error al registrar el consumo fraccionado");
+      }
+      revalidatePath("/dashboard/inventario");
+      redirect("/dashboard/inventario?view=movimientos");
+    }
+
+    if (!Number.isSafeInteger(quantity) || quantity <= 0) throw new Error("Cantidad de empaques no válida");
+
+    const effectiveReason = reason;
 
     const { error: consumeError } = await StockService.consumeStock({
       batch_id: batchId,
@@ -168,7 +185,7 @@ export async function handleConsumeAction(formData: FormData) {
       consumed_by: user.id,
       reason: effectiveReason,
       equipment,
-      mark_as_opened: markAsOpened || isFractional,
+      mark_as_opened: markAsOpened,
       reconstituted,
       fefo_deviation: fefoDeviation,
       justification_reason: justificationReason?.trim() || undefined,

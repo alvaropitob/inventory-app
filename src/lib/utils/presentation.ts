@@ -20,6 +20,14 @@ export function parseUnitsFromPresentation(presentation?: string | null): number
   const clean = presentation.trim();
   if (!clean || clean.toLowerCase() === "no aplica") return null;
 
+  // Some catalog records store only the unit count (for example, "50") in
+  // the commercial-presentation field. Unit-bearing volumes such as "500 mL"
+  // do not match this exact numeric form.
+  if (/^\d+$/.test(clean)) {
+    const val = parseInt(clean, 10);
+    if (val > 1) return val;
+  }
+
   // Patrón 1: (x|por|*)\s*(\d+)  -> ej: "Kit x 100", "Caja por 50", "Insumo * 20"
   const matchX = clean.match(/(?:x|por|\*)\s*(\d+)/i);
   if (matchX && matchX[1]) {

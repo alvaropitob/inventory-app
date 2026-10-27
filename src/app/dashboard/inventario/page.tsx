@@ -12,6 +12,7 @@ import * as Actions from "./actions";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ClinicalOutputForm from "@/components/ClinicalOutputForm";
 import { getDateKeyInBusinessTimeZone, getDaysUntilDateKey } from "@/lib/dates";
+import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
 import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Boxes, ClipboardList, FileText, History, Package, PackagePlus, X } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -63,6 +64,8 @@ interface Batch {
   expiration_date: string;
   adjusted_expiration_date?: string | null;
   current_stock: number;
+  opened_units_remaining?: number;
+  opened_units_per_package?: number;
   location_id?: string | null;
   item?: CatalogItem | null;
   catalog_items?: CatalogItem | null;
@@ -130,7 +133,8 @@ export default async function InventarioPage({
     { data: suppliers },
     { data: locations },
     { data: allBatches },
-    { data: allMovements }
+    { data: allMovements },
+    { data: fractionalMovements }
   ] = await Promise.all([
     CatalogService.getCatalogItems(),
     CatalogService.getSections(),
@@ -138,7 +142,23 @@ export default async function InventarioPage({
     CatalogService.getLocations(),
     StockService.getAllBatches(),
     StockService.getAllMovements(),
+    StockService.getAllFractionalMovements(),
   ]);
+
+  const combinedMovements = [
+    ...(allMovements || []).filter((movement: StockMovement) => !movement.reason?.includes("[FRACCIONAL_PACKAGE_OPEN]")),
+    ...(fractionalMovements || []).map((movement: { id: string; batch_id: string; user_id: string; units_withdrawn: number; units_per_package: number; packages_opened: number; reason: string; equipment_name?: string | null; created_at: string; batch?: StockMovement["batch"]; user?: AuditUser | null }) => ({
+      id: `fractional-${movement.id}`,
+      movement_type: "exit",
+      created_at: movement.created_at,
+      quantity: movement.units_withdrawn,
+      reason: `${movement.reason} (salida fraccionada: ${movement.units_withdrawn} de ${movement.units_per_package} unidades internas${movement.packages_opened ? `; se abrieron ${movement.packages_opened} empaque(s)` : ""})`,
+      batch: movement.batch,
+      user_id: movement.user_id,
+      users: movement.user,
+      equipment_name: movement.equipment_name,
+    }))
+  ].sort((a, b) => b.created_at.localeCompare(a.created_at));
 
   const editingItem = editId ? catalogItems?.find(i => i.id === editId) : null;
   const sectionOrder = ["hematologia", "microbiologia", "quimica", "especiales", "sede norte", "inmunologia", "inmunologia manual", "insumos", "medicamentos", "repuestos", "riqas", "glicosiladas", "dispositivos medicos", "colorantes", "aseo", "especiales 2"];
@@ -160,7 +180,7 @@ export default async function InventarioPage({
   }
 
   const currentView = view === "bajas" ? "entradas" : (view || "entradas");
-  const filteredMovements = (allMovements || []).filter((movement: StockMovement) => {
+  const filteredMovements = combinedMovements.filter((movement: StockMovement) => {
     const movementDate = movement.created_at.slice(0, 10);
     return (!from || movementDate >= from)
       && (!to || movementDate <= to)
@@ -169,10 +189,10 @@ export default async function InventarioPage({
       && (!location || movement.batch?.location_id === location)
       && (!movementType || movement.movement_type === movementType);
   });
-  const movementUsers = Array.from(new Map((allMovements || [])
+  const movementUsers = Array.from(new Map(combinedMovements
     .filter((movement: StockMovement) => movement.user_id)
     .map((movement: StockMovement) => [movement.user_id!, getUserDisplayName(movement.users)])).entries());
-  const activeBatches = (allBatches || []).filter((batch: Batch) => batch.current_stock > 0);
+  const activeBatches = (allBatches || []).filter((batch: Batch) => batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0);
   const daysUntilExpiry = (batch: Batch) => getDaysUntilDateKey(batch.adjusted_expiration_date || batch.expiration_date);
   const criticalExpiryCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) <= 15).length;
   const warningExpiryCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) > 15 && daysUntilExpiry(batch) <= 45).length;
@@ -186,7 +206,10 @@ export default async function InventarioPage({
     const itemBatches = allBatches?.filter((b: Batch) => b.item_id === item.id) || [];
     const todayKey = getDateKeyInBusinessTimeZone(new Date());
     const usableBatches = itemBatches.filter((b: Batch) => b.clinical_status === 'accepted' && b.status !== 'expired' && (b.adjusted_expiration_date || b.expiration_date) >= todayKey);
-    const totalStock = usableBatches.reduce((acc: number, b: Batch) => acc + (b.current_stock || 0), 0);
+    const totalStock = usableBatches.reduce((acc: number, b: Batch) => {
+      const innerUnits = parseUnitsFromPresentation(item.commercial_presentation);
+      return acc + (b.current_stock || 0) + (innerUnits ? (b.opened_units_remaining || 0) / innerUnits : 0);
+    }, 0);
     return { ...item, itemBatches, totalStock };
   }).filter((item: CatalogItem & { totalStock: number, itemBatches: Batch[] }) =>
     item.totalStock > 0 || (item.itemBatches && item.itemBatches.length > 0)
@@ -467,7 +490,7 @@ export default async function InventarioPage({
                   'Stock Total': row.totalStock,
                   'Unidad de Compra': row.purchase_unit || 'N/A',
                   'Stock Máximo': row.maximum_stock_threshold ?? 'Sin definir',
-                  'Lotes Disponibles': row.itemBatches?.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => `${b.batch_number}:${b.current_stock}`).join(' | ') || 'Agotado',
+                  'Lotes Disponibles': row.itemBatches?.filter((b: Batch) => b.current_stock > 0 || (b.opened_units_remaining || 0) > 0).map((b: Batch) => `${b.batch_number}:${b.current_stock} empaques${(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ''}`).join(' | ') || 'Agotado',
                   'Estado': row.totalStock === 0 ? 'Agotado' : row.totalStock <= (row.minimum_stock_threshold || 10) ? 'Stock Bajo' : 'Óptimo'
                 }))}
               />
@@ -516,7 +539,7 @@ export default async function InventarioPage({
                         .filter((b: Batch) => b.current_stock > 0)
                         .map((b: Batch) => (
                           <option key={b.id} value={b.id}>
-                            {b.item?.technical_name || b.catalog_items?.technical_name} | {b.item?.commercial_presentation || b.catalog_items?.commercial_presentation || "No aplica"} | Stock: {b.current_stock} {b.item?.purchase_unit || b.catalog_items?.purchase_unit || "unidades"} | Ubicación: {b.location?.name || b.locations?.name || "Sin asignar"} | Vence: {new Date(b.expiration_date).toLocaleDateString("es-CO")}
+                            {b.item?.technical_name || b.catalog_items?.technical_name} | {b.item?.commercial_presentation || b.catalog_items?.commercial_presentation || "No aplica"} | Stock: {b.current_stock} {b.item?.purchase_unit || b.catalog_items?.purchase_unit || "empaques"}{(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ""} | Ubicación: {b.location?.name || b.locations?.name || "Sin asignar"} | Vence: {new Date(b.expiration_date).toLocaleDateString("es-CO")}
                           </option>
                         ))}
                     </select>

@@ -6,6 +6,7 @@ import { OrderService } from "@/lib/services/orders";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import Link from "next/link";
 import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ interface Batch {
   expiration_date: string;
   adjusted_expiration_date?: string | null;
   current_stock: number;
+  opened_units_remaining?: number;
   clinical_status?: 'accepted' | 'quarantine' | 'rejected' | string;
   item?: { technical_name: string };
   priority?: 'none' | 'medium' | 'high';
@@ -40,7 +42,10 @@ export default async function DashboardPage() {
     const itemBatches = (batches || []).filter(b => b.item_id === item.id);
     const todayKey = getDateKeyInBusinessTimeZone(new Date());
     const totalStock = itemBatches.filter(b => b.clinical_status === "accepted" && (b.adjusted_expiration_date || b.expiration_date) >= todayKey && b.status !== "expired")
-      .reduce((sum, b) => sum + b.current_stock, 0);
+      .reduce((sum, b) => {
+        const unitsPerPackage = parseUnitsFromPresentation(item.commercial_presentation);
+        return sum + b.current_stock + (unitsPerPackage ? (b.opened_units_remaining || 0) / unitsPerPackage : 0);
+      }, 0);
     const threshold = item.minimum_stock_threshold || 0;
 
     let priority: 'none' | 'low' | 'medium' | 'high' = 'none';
@@ -57,7 +62,7 @@ export default async function DashboardPage() {
   const now = new Date();
   const next30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  const expirationAlerts = (batches || []).filter(batch => batch.current_stock > 0 && batch.clinical_status === "accepted" && batch.status !== "expired").map(batch => {
+  const expirationAlerts = (batches || []).filter(batch => (batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0) && batch.clinical_status === "accepted" && batch.status !== "expired").map(batch => {
     const expDate = new Date(batch.adjusted_expiration_date || batch.expiration_date);
     let priority: 'none' | 'medium' | 'high' = 'none';
     if (expDate <= now) priority = 'high';
@@ -71,7 +76,10 @@ export default async function DashboardPage() {
 
   const totalInventoryValue = (items || []).reduce((acc, item) => {
     const itemBatches = (batches || []).filter(b => b.item_id === item.id && b.clinical_status === "accepted" && b.status !== "expired" && (b.adjusted_expiration_date || b.expiration_date) >= getDateKeyInBusinessTimeZone(new Date()));
-    const totalStock = itemBatches.reduce((sum, b) => sum + (b.current_stock || 0), 0);
+    const totalStock = itemBatches.reduce((sum, b) => {
+      const unitsPerPackage = parseUnitsFromPresentation(item.commercial_presentation);
+      return sum + (b.current_stock || 0) + (unitsPerPackage ? (b.opened_units_remaining || 0) / unitsPerPackage : 0);
+    }, 0);
     const price = Number(item.estimated_unit_price || 0);
     return acc + (totalStock * price);
   }, 0);

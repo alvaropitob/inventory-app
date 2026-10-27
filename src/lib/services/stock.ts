@@ -11,6 +11,8 @@ export interface InventoryBatch {
   expiration_date: string;
   initial_quantity: number;
   current_stock: number;
+  opened_units_remaining?: number;
+  opened_units_per_package?: number;
   received_by?: string | null;
   notes?: string | null;
 }
@@ -84,6 +86,31 @@ export class StockService {
     return { data: { success: true }, error: null };
   }
 
+  static async consumeFractionalStock(data: {
+    batch_id: string;
+    units: number;
+    units_per_package: number;
+    consumed_by: string;
+    reason: string;
+    equipment?: string;
+    fefo_deviation?: boolean;
+    justification_reason?: string;
+  }): Promise<{ data: { success: true } | null; error: PostgrestError | { message: string } | null }> {
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("fn_consume_fractional_inventory_batch", {
+      p_batch_id: data.batch_id,
+      p_units: data.units,
+      p_units_per_package: data.units_per_package,
+      p_consumed_by: data.consumed_by,
+      p_reason: data.reason,
+      p_equipment_name: data.equipment || null,
+      p_fefo_deviation: data.fefo_deviation || false,
+      p_justification_reason: data.justification_reason || null,
+    });
+    if (error) return { data: null, error };
+    return { data: { success: true }, error: null };
+  }
+
   static async transferStock(data: {
     batch_id: string;
     destination_location_id: string;
@@ -113,6 +140,25 @@ export class StockService {
           item_id,
           location_id,
           batch_number, 
+          expiration_date,
+          item:catalog_items(technical_name, commercial_name, internal_code),
+          location:locations(id, name)
+        ),
+        user:users(full_name, username)
+      `)
+      .order('created_at', { ascending: false });
+  }
+
+  static async getAllFractionalMovements() {
+    const supabase = await createClient();
+    return await supabase
+      .from('inventory_fractional_movements')
+      .select(`
+        *,
+        batch:inventory_batches(
+          item_id,
+          location_id,
+          batch_number,
           expiration_date,
           item:catalog_items(technical_name, commercial_name, internal_code),
           location:locations(id, name)

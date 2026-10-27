@@ -72,26 +72,32 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
         setError(null);
 
         try {
-            // Check if all items have lot and exp
-            const itemsToSubmit = order.items.filter(item => itemData[item.catalog_item_id].qty > 0).map(item => {
+            // Solo se registran los renglones que sí llegaron. Lote y vencimiento
+            // vacíos indican que el producto sigue pendiente en el pedido.
+            const itemsToSubmit = order.items.flatMap(item => {
                 const data = itemData[item.catalog_item_id];
                 const remaining = item.quantity_requested - item.quantity_received;
-                if (!data.lot || !data.exp) {
+                if (data.qty <= 0) return [];
+                if (data.qty > remaining) {
+                    throw new Error(`La cantidad recibida supera el saldo pendiente de ${item.catalog_item.technical_name}`);
+                }
+                if (!data.lot.trim() && !data.exp) return [];
+                if (!data.lot.trim() || !data.exp) {
                     throw new Error(`Faltan datos de lote/vencimiento para ${item.catalog_item.technical_name}`);
                 }
-                if (!data.location_id || data.qty > remaining) {
+                if (!data.location_id) {
                     throw new Error(`Revisa ubicación y cantidad pendiente de ${item.catalog_item.technical_name}`);
                 }
-                return {
+                return [{
                     catalog_item_id: item.catalog_item_id,
                     lot_number: data.lot,
                     expiration_date: data.exp,
                     quantity_received: Number(data.qty),
                     location_id: data.location_id,
                     unit_price: Number(data.price)
-                };
+                }];
             });
-            if (itemsToSubmit.length === 0) throw new Error("Ingresa al menos un producto recibido.");
+            if (itemsToSubmit.length === 0) throw new Error("Ingresa los datos de lote y vencimiento de al menos un producto recibido.");
 
             await submitTechnicalReception({
                 order_id: order.id,
@@ -218,8 +224,8 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                         value={itemData[item.catalog_item_id].lot}
                                         onChange={e => handleItemChange(item.catalog_item_id, 'lot', e.target.value)}
                                         className="table-input"
-                                        required={itemData[item.catalog_item_id].qty > 0}
                                     />
+                                    <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Deje lote y vencimiento vacíos si no llegó</small>
                                 </td>
                                 <td style={{ padding: '1rem' }}>
                                     <input 
@@ -227,7 +233,6 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                         value={itemData[item.catalog_item_id].exp}
                                         onChange={e => handleItemChange(item.catalog_item_id, 'exp', e.target.value)}
                                         className="table-input"
-                                        required={itemData[item.catalog_item_id].qty > 0}
                                     />
                                 </td>
                                 <td style={{ padding: '1rem' }}>

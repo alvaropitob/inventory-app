@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
 
 interface Batch {
   id: string;
@@ -11,7 +12,8 @@ interface Batch {
   expiration_date: string;
   adjusted_expiration_date?: string | null;
   current_stock: number;
-  item?: { technical_name: string; commercial_name: string; internal_code: string; minimum_stock_threshold?: number; maximum_stock_threshold?: number | null; section_id?: string; sections?: { name: string } | null } | null;
+  opened_units_remaining?: number;
+  item?: { technical_name: string; commercial_name: string; internal_code: string; commercial_presentation?: string | null; minimum_stock_threshold?: number; maximum_stock_threshold?: number | null; section_id?: string; sections?: { name: string } | null } | null;
   location?: { name: string; section_id?: string | null } | null;
   clinical_status?: string;
 }
@@ -78,7 +80,10 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
         itemBatches: []
       };
     }
-    if (batch.clinical_status === "accepted" && batch.current_stock > 0 && (batch.adjusted_expiration_date || batch.expiration_date) >= getDateKeyInBusinessTimeZone(new Date())) acc[itemId].totalStock += batch.current_stock;
+    if (batch.clinical_status === "accepted" && (batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0) && (batch.adjusted_expiration_date || batch.expiration_date) >= getDateKeyInBusinessTimeZone(new Date())) {
+      const packageUnits = parseUnitsFromPresentation(batch.item?.commercial_presentation);
+      acc[itemId].totalStock += batch.current_stock + (packageUnits ? (batch.opened_units_remaining || 0) / packageUnits : 0);
+    }
     acc[itemId].itemBatches.push(batch);
     return acc;
   }, {});
@@ -122,13 +127,13 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
                     fontWeight: '800', 
                     color: isOutOfStock || isOverStock ? 'var(--error)' : isLowStock ? 'var(--warning)' : 'var(--success)'
                   }}>
-                    {item.totalStock}
+                    {Number(item.totalStock.toFixed(2))}
                   </span>
                 </td>
                 <td style={{ padding: '1rem', fontSize: '0.75rem' }}>
-                  {item.itemBatches.filter((b: Batch) => b.current_stock > 0).map((b: Batch) => (
+                  {item.itemBatches.filter((b: Batch) => b.current_stock > 0 || (b.opened_units_remaining || 0) > 0).map((b: Batch) => (
                     <div key={b.id} style={{ marginBottom: '0.4rem', padding: '0.4rem', background: 'rgba(0,0,0,0.02)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{b.batch_number}: <strong>{b.current_stock}</strong></span>
+                      <span>{b.batch_number}: <strong>{b.current_stock} empaques{(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ''}</strong></span>
                       <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{b.location?.name || "Sin ubicación"} · Vence: {new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString()}</span>
                     </div>
                   ))}
