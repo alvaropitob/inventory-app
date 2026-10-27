@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterLocationsForSection } from "@/lib/utils/locations";
+import { filterLocationsForSection, getLocationsForSection } from "@/lib/utils/locations";
 
 describe("filterLocationsForSection", () => {
   const locations = [
@@ -18,5 +18,19 @@ describe("filterLocationsForSection", () => {
 
   it("keeps unassigned locations available only to legacy items without an area", () => {
     expect(filterLocationsForSection(locations, null)).toEqual([locations[2]]);
+  });
+
+  it("uses legacy unassigned locations only when the requested area has no mapped location", () => {
+    expect(getLocationsForSection(locations, "specials")).toEqual({
+      locations: [locations[2]],
+      usingUnassignedFallback: true,
+    });
+  });
+
+  it("prefers area-mapped locations when they exist", () => {
+    expect(getLocationsForSection(locations, "hematology")).toEqual({
+      locations: [locations[0]],
+      usingUnassignedFallback: false,
+    });
   });
 });

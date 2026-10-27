@@ -13,3 +13,16 @@ export function filterLocationsForSection<T extends AreaLocation>(
     : !location.section_id
   );
 }
+
+export function getLocationsForSection<T extends AreaLocation>(
+  locations: T[],
+  sectionId?: string | null,
+): { locations: T[]; usingUnassignedFallback: boolean } {
+  const related = filterLocationsForSection(locations, sectionId);
+  if (related.length || !sectionId) {
+    return { locations: related, usingUnassignedFallback: false };
+  }
+
+  const unassigned = locations.filter(location => !location.section_id);
+  return { locations: unassigned, usingUnassignedFallback: unassigned.length > 0 };
+}
