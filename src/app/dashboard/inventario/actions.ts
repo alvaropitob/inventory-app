@@ -2,6 +2,7 @@
 
 import { CatalogService } from "@/lib/services/catalog";
 import { StockService } from "@/lib/services/stock";
+import { dispositionCauses, disposalRoutes } from "@/lib/disposal-options";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -215,26 +216,29 @@ export async function handleDiscardAction(formData: FormData) {
   try {
     const { user } = await requireRole(["admin", "supervisor"]);
     const batchId = String(formData.get("batch_id") || "").trim();
+    const requestId = String(formData.get("request_id") || "").trim();
     const quantityPackages = Number(formData.get("quantity_packages"));
     const openedUnits = Number(formData.get("opened_units"));
     const dispositionMethod = String(formData.get("disposition_method") || "").trim();
     const disposalRoute = String(formData.get("disposal_route") || "").trim();
     const reason = String(formData.get("reason") || "").trim();
-    const validMethods = ["expired", "damaged", "quality_alert", "temperature_excursion", "contamination", "other"];
-    const validRoutes = ["biohazard_waste", "supplier_return", "post_consumer_program", "authorized_destruction", "other"];
 
     if (!/^[0-9a-f-]{36}$/i.test(batchId)) throw new Error("Selecciona un lote válido.");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)) {
+      throw new Error("La solicitud de baja no es válida. Recarga la página e inténtalo de nuevo.");
+    }
     if (!Number.isSafeInteger(quantityPackages) || quantityPackages < 0 ||
         !Number.isSafeInteger(openedUnits) || openedUnits < 0 ||
         quantityPackages + openedUnits <= 0) {
       throw new Error("Indica una cantidad válida de empaques o unidades abiertas para dar de baja.");
     }
-    if (!validMethods.includes(dispositionMethod)) throw new Error("Selecciona una causa válida para la baja.");
-    if (!validRoutes.includes(disposalRoute)) throw new Error("Selecciona un método válido de disposición final.");
+    if (!dispositionCauses.some(option => option.value === dispositionMethod)) throw new Error("Selecciona una causa válida para la baja.");
+    if (!disposalRoutes.some(option => option.value === disposalRoute)) throw new Error("Selecciona un método válido de disposición final.");
     if (reason.length < 8 || reason.length > 500) throw new Error("El detalle debe tener entre 8 y 500 caracteres.");
 
     const { error } = await StockService.discardStock({
       batch_id: batchId,
+      request_id: requestId,
       quantity_packages: quantityPackages,
       opened_units: openedUnits,
       disposed_by: user.id,

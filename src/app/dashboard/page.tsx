@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { CatalogService } from "@/lib/services/catalog";
 import { StockService } from "@/lib/services/stock";
+import { formatAmount } from "@/lib/formatters";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { OrderService } from "@/lib/services/orders";
 import { getCurrentUserProfile } from "@/lib/services/user";
@@ -303,7 +304,7 @@ export default async function DashboardPage() {
                           </div>
                         </td>
                         <td className="cell-secondary">{order.supplier?.name}</td>
-                        <td className="cell-right cell-value">${order.total_estimated_value?.toFixed(2)}</td>
+                        <td className="cell-right cell-value">${formatAmount(order.total_estimated_value)}</td>
                       </tr>
                     ))}
                   </tbody>

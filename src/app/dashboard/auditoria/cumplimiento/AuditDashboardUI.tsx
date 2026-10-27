@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
-import { Activity, AlertTriangle, ShieldCheck, Zap } from 'lucide-react';
+import { Activity, AlertTriangle, Clock3, Zap } from 'lucide-react';
 
 interface Equipment {
   id: string;
@@ -13,9 +13,11 @@ interface Equipment {
 interface Props {
   data: {
     totalEquipments: number;
-    equipmentsInMaintenance: number;
+    operationalEquipments: number;
     pendingQuality: number;
-    complianceIndex: number;
+    equipmentsWithCurrentMaintenance: number;
+    maintenanceCompliance: number | null;
+    equipmentDataAvailable: boolean;
     urgentMaintenance: Equipment[];
   };
 }
@@ -37,6 +39,11 @@ export default function AuditDashboardUI({ data }: Props) {
       transition: { type: "spring", stiffness: 100, damping: 12 }
     }
   };
+  const maintenanceAccent = data.maintenanceCompliance === null
+    ? "kpi-accent-primary"
+    : data.maintenanceCompliance >= 90
+      ? "kpi-accent-success"
+      : "kpi-accent-warning";
 
   return (
     <div className="dashboard-main">
@@ -58,7 +65,7 @@ export default function AuditDashboardUI({ data }: Props) {
         <motion.div variants={itemVariants} className="stat-card kpi-accent-primary">
           <div className="stat-icon stat-icon-primary"><Activity className="ui-icon" aria-hidden="true" /></div>
           <div className="stat-info">
-            <h3>{data.totalEquipments - data.equipmentsInMaintenance} / {data.totalEquipments}</h3>
+            <h3>{data.operationalEquipments} / {data.totalEquipments}</h3>
             <p>Equipos Operativos</p>
           </div>
         </motion.div>
@@ -71,11 +78,11 @@ export default function AuditDashboardUI({ data }: Props) {
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants} className="stat-card kpi-accent-success">
-          <div className="stat-icon stat-icon-success"><ShieldCheck className="ui-icon" aria-hidden="true" /></div>
+        <motion.div variants={itemVariants} className={`stat-card ${maintenanceAccent}`}>
+          <div className="stat-icon stat-icon-primary"><Clock3 className="ui-icon" aria-hidden="true" /></div>
           <div className="stat-info">
-            <h3>{data.complianceIndex}%</h3>
-            <p>Índice de Cumplimiento</p>
+            <h3>{data.maintenanceCompliance === null ? "N/D" : `${data.maintenanceCompliance.toFixed(1)}%`}</h3>
+            <p>Mantenimiento preventivo vigente</p>
           </div>
         </motion.div>
       </motion.div>
@@ -134,9 +141,13 @@ export default function AuditDashboardUI({ data }: Props) {
               <circle cx="12" cy="12" r="3" />
             </svg>
           </div>
-          <h2 className="sentinel-title">Estatus Audit-Ready</h2>
+          <h2 className="sentinel-title">Cobertura de mantenimiento preventivo</h2>
           <p className="sentinel-desc">
-            Su laboratorio cumple con el {data.complianceIndex}% de los puntos de control para Habilitación.
+            {data.maintenanceCompliance === null
+              ? data.equipmentDataAvailable
+                ? "No hay equipos registrados para calcular este indicador."
+                : "No se pudo consultar el registro de equipos; el indicador no está disponible."
+              : `${data.equipmentsWithCurrentMaintenance} de ${data.totalEquipments} equipos tienen estado activo y una fecha de mantenimiento preventivo vigente. El porcentaje se calcula sobre todos los equipos registrados; los que no tienen fecha vigente no cuentan como cubiertos.`}
           </p>
           <Link href="/dashboard/auditoria/checklist" className="btn-primary btn-block">
             Ver Checklist de Cumplimiento

@@ -14,6 +14,7 @@ import ClinicalOutputForm from "@/components/ClinicalOutputForm";
 import InventoryDispositionForm from "@/components/InventoryDispositionForm";
 import { getDateKeyInBusinessTimeZone, getDaysUntilDateKey } from "@/lib/dates";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
+import { getDispositionCauseLabel, getDisposalRouteLabel } from "@/lib/disposal-options";
 import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Boxes, ClipboardList, FileText, History, Package, PackagePlus, PackageX, Trash2, X } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -83,6 +84,8 @@ interface StockMovement {
   created_at: string;
   quantity: number;
   reason?: string | null;
+  disposition_cause?: string | null;
+  disposal_route?: string | null;
   batch?: Batch | null;
   batches?: Batch | null;
   user_id?: string | null;
@@ -151,12 +154,14 @@ export default async function InventarioPage({
 
   const combinedMovements = [
     ...(allMovements || []).filter((movement: StockMovement) => !movement.reason?.includes("[FRACCIONAL_PACKAGE_OPEN]")),
-    ...(fractionalMovements || []).map((movement: { id: string; batch_id: string; user_id: string; units_withdrawn: number; units_per_package: number; packages_opened: number; reason: string; movement_type?: string; equipment_name?: string | null; created_at: string; batch?: StockMovement["batch"]; user?: AuditUser | null }) => ({
+    ...(fractionalMovements || []).map((movement: { id: string; batch_id: string; user_id: string; units_withdrawn: number; units_per_package: number; packages_opened: number; reason: string; movement_type?: string; disposition_cause?: string | null; disposal_route?: string | null; equipment_name?: string | null; created_at: string; batch?: StockMovement["batch"]; user?: AuditUser | null }) => ({
       id: `fractional-${movement.id}`,
       movement_type: movement.movement_type || "exit",
       created_at: movement.created_at,
       quantity: movement.units_withdrawn,
       reason: `${movement.reason} (${movement.movement_type === "discard" ? "baja" : "salida"} fraccionada: ${movement.units_withdrawn} de ${movement.units_per_package} unidades internas${movement.packages_opened ? `; se abrieron ${movement.packages_opened} empaque(s)` : ""})`,
+      disposition_cause: movement.disposition_cause,
+      disposal_route: movement.disposal_route,
       batch: movement.batch,
       user_id: movement.user_id,
       users: movement.user,
@@ -652,6 +657,8 @@ export default async function InventarioPage({
                   'Vencimiento': row.batch?.expiration_date ? new Date(row.batch.expiration_date).toLocaleDateString() : 'N/A',
                   'Impacto': (row.movement_type === 'entry' ? '+' : '-') + (row.quantity || 0),
                   'Responsable': getUserDisplayName(row.users),
+                  'Causa de baja': row.disposition_cause ? getDispositionCauseLabel(row.disposition_cause) : null,
+                  'Método de disposición': row.disposal_route ? getDisposalRouteLabel(row.disposal_route) : null,
                   'Motivo': row.reason || null
                 }))}
               />
@@ -716,6 +723,11 @@ export default async function InventarioPage({
                         <div style={{ fontWeight: 600 }}>{getUserDisplayName(m.users)}</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                           <span className="cell-muted" style={{ fontStyle: 'italic' }}>{m.reason}</span>
+                          {m.movement_type === 'discard' && (
+                            <span className="cell-muted">
+                              Causa: {getDispositionCauseLabel(m.disposition_cause)} · Disposición: {getDisposalRouteLabel(m.disposal_route)}
+                            </span>
+                          )}
                           {m.equipment_name && (
                             <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--primary)', fontWeight: 600 }}>
                               Equipo: {m.equipment_name}

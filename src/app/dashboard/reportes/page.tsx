@@ -17,11 +17,13 @@ import {
 import ExportCSVButton from "@/components/ExportCSVButton";
 import PrintReportButton from "@/components/PrintReportButton";
 import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { formatAmount, formatNumber } from "@/lib/formatters";
+import { dispositionCauses, disposalRoutes, getDispositionCauseLabel, getDisposalRouteLabel } from "@/lib/disposal-options";
 
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Promise<{ type?: string; section?: string }>;
+  searchParams: Promise<{ type?: string; section?: string; cause?: string; route?: string }>;
 }
 
 export default async function ReportesPage({ searchParams }: PageProps) {
@@ -30,7 +32,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     redirect("/auth/login");
   }
 
-  const { type = "suficiencia" } = await searchParams;
+  const { type = "suficiencia", cause = "", route = "" } = await searchParams;
   const reportTypes = ["resumen", "kardex", "suficiencia", "vencimientos", "mermas", "reactivovigilancia", "ambiental", "valorizacion"] as const;
   const activeReportType = reportTypes.includes(type as (typeof reportTypes)[number]) ? type : "suficiencia";
 
@@ -46,6 +48,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   interface MovementItem {
     id: string;
     movement_type: string;
+    disposition_cause?: string | null;
+    disposal_route?: string | null;
     reason?: string | null;
     created_at: string;
     quantity: number;
@@ -63,6 +67,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   const fractionalMovements = (fractionalMovementsResponse.data || []) as Array<{
     id: string;
     movement_type?: string;
+    disposition_cause?: string | null;
+    disposal_route?: string | null;
     reason: string;
     created_at: string;
     units_withdrawn: number;
@@ -114,6 +120,10 @@ export default async function ReportesPage({ searchParams }: PageProps) {
       unit: "unidades internas",
     })));
   mermas.sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const filteredMermas = mermas.filter(m =>
+    (!cause || m.disposition_cause === cause) &&
+    (!route || m.disposal_route === route)
+  );
 
   // Semáforo de Lotes
   const today = new Date();
@@ -150,6 +160,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     Lote: m.batch?.batch_number || "N/A",
     Vencimiento: m.batch?.expiration_date ? new Date(m.batch.expiration_date).toLocaleDateString() : "N/A",
     "Tipo de movimiento": m.movement_type === "entry" ? "Entrada" : m.movement_type === "exit" ? "Salida" : "Ajuste/Descarte",
+    "Causa de baja": m.disposition_cause ? getDispositionCauseLabel(m.disposition_cause) : "",
+    "Método de disposición": m.disposal_route ? getDisposalRouteLabel(m.disposal_route) : "",
     Cantidad: m.quantity,
     Unidad: m.batch?.item?.purchase_unit || "Unidad",
     "Ubicación": m.batch?.location?.name || "N/A",
@@ -240,13 +252,15 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   }));
 
   // Datos para exportación Mermas
-  const mermasExportData = mermas.map((m) => ({
+  const mermasExportData = filteredMermas.map((m) => ({
     Fecha: new Date(m.created_at).toLocaleDateString(),
     Producto: m.batch?.item?.technical_name || "N/A",
     Lote: m.batch?.batch_number || "N/A",
     "Cantidad descartada": m.quantity,
     Unidad: m.unit,
-    Motivo: m.reason || "Baja técnica",
+    "Causa de baja": getDispositionCauseLabel(m.disposition_cause),
+    "Método de disposición": getDisposalRouteLabel(m.disposal_route),
+    "Detalle / justificación": m.reason || "Baja técnica",
     Responsable: m.user?.full_name || m.user?.username || "Sistema",
   }));
 
@@ -393,7 +407,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
                   <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)", fontWeight: 600 }}>BAJAS / MERMAS</p>
-                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: "var(--warning)", marginTop: "0.25rem" }}>{mermas.length}</p>
+                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: "var(--warning)", marginTop: "0.25rem" }}>{filteredMermas.length}</p>
                   <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Descartes registrados</p>
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
@@ -427,8 +441,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                   <PrintReportButton reportTitle="Trazabilidad_Movimientos" />
                 </div>
               </div>
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
+              <div className="table-responsive kardex-report-wrap">
+                <table className="kardex-report-table" style={{ textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
                     <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
                       <th>Fecha / Hora</th>
@@ -438,28 +452,35 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                       <th style={{ textAlign: "center" }}>Cantidad</th>
                       <th>Ubicación</th>
                       <th>Responsable</th>
-                      <th>Motivo / Destino</th>
+                      <th>Detalle / causa / disposición</th>
                     </tr>
                   </thead>
                   <tbody>
                     {movements.map((m) => (
                       <tr key={m.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ whiteSpace: "nowrap" }}>{new Date(m.created_at).toLocaleString()}</td>
+                        <td className="kardex-report-date">{new Date(m.created_at).toLocaleString()}</td>
                         <td style={{ fontWeight: 600, color: "var(--navy)" }}>{m.batch?.item?.technical_name || "N/A"}</td>
                         <td>{m.batch?.batch_number || "—"}</td>
                         <td>
                           <span
-                            style={{ padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: 'var(--fs-xs)', fontWeight: 600, backgroundColor: m.movement_type === "entry" ? "#dcfce7" : m.movement_type === "exit" ? "#fee2e2" : "#fef3c7", color: m.movement_type === "entry" ? "#15803d" : m.movement_type === "exit" ? "#991b1b" : "#b45309" }}
+                            style={{ padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: 'var(--fs-xs)', fontWeight: 600, whiteSpace: "nowrap", backgroundColor: m.movement_type === "entry" ? "#dcfce7" : m.movement_type === "exit" || m.movement_type === "discard" ? "#fee2e2" : "#fef3c7", color: m.movement_type === "entry" ? "#15803d" : m.movement_type === "exit" || m.movement_type === "discard" ? "#991b1b" : "#b45309" }}
                           >
-                            {m.movement_type === "entry" ? "Entrada" : m.movement_type === "exit" ? "Salida" : "Ajuste/Baja"}
+                            {m.movement_type === "entry" ? "Entrada" : m.movement_type === "exit" ? "Salida" : m.movement_type === "discard" ? "Baja" : "Ajuste"}
                           </span>
                         </td>
-                        <td style={{ textAlign: "center", fontWeight: 600 }}>
-                          {m.movement_type === "exit" ? `-${m.quantity}` : `+${m.quantity}`}
+                        <td className="kardex-report-quantity">
+                          {m.movement_type === "exit" || m.movement_type === "discard" ? `-${formatNumber(m.quantity)}` : `+${formatNumber(m.quantity)}`}
                         </td>
                         <td>{m.batch?.location?.name || "—"}</td>
                         <td>{m.user?.full_name || m.user?.username || "Sistema"}</td>
-                        <td style={{ color: "var(--text-muted)" }}>{m.reason || m.equipment_name || "—"}</td>
+                        <td style={{ color: "var(--text-muted)" }}>
+                          <div>{m.reason || m.equipment_name || "—"}</div>
+                          {m.movement_type === "discard" && (
+                            <div style={{ fontSize: 'var(--fs-xs)', marginTop: "0.25rem" }}>
+                              Causa: {getDispositionCauseLabel(m.disposition_cause)} · Disposición: {getDisposalRouteLabel(m.disposal_route)}
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -585,6 +606,27 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                   <PrintReportButton reportTitle="Bajas_Disposicion_Final" />
                 </div>
               </div>
+              <form method="get" className="disposal-report-filters">
+                <input type="hidden" name="type" value="mermas" />
+                <div>
+                  <label className="form-label" htmlFor="disposal-cause-filter">Causa de baja</label>
+                  <select id="disposal-cause-filter" name="cause" className="form-select" defaultValue={cause}>
+                    <option value="">Todas las causas</option>
+                    {dispositionCauses.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label" htmlFor="disposal-route-filter">Método de disposición</label>
+                  <select id="disposal-route-filter" name="route" className="form-select" defaultValue={route}>
+                    <option value="">Todos los métodos</option>
+                    {disposalRoutes.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                </div>
+                <div className="disposal-report-filter-actions">
+                  <button type="submit" className="btn-primary">Filtrar</button>
+                  <a href="?type=mermas" className="btn-secondary">Limpiar</a>
+                </div>
+              </form>
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
@@ -594,12 +636,14 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                       <th>Lote</th>
                       <th style={{ textAlign: "center" }}>Cantidad Dada de Baja</th>
                       <th>Unidad</th>
-                      <th>Motivo / Justificación</th>
+                      <th>Causa</th>
+                      <th>Método de disposición</th>
+                      <th>Detalle / Justificación</th>
                       <th>Responsable</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {mermas.map((m) => (
+                    {filteredMermas.map((m) => (
                       <tr key={m.id} style={{ borderBottom: "1px solid var(--border)" }}>
                         <td>{new Date(m.created_at).toLocaleDateString()}</td>
                         <td style={{ fontWeight: 600, color: "var(--navy)" }}>{m.batch?.item?.technical_name || "N/A"}</td>
@@ -608,14 +652,16 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                           -{m.quantity}
                         </td>
                         <td>{m.unit}</td>
+                        <td>{getDispositionCauseLabel(m.disposition_cause)}</td>
+                        <td>{getDisposalRouteLabel(m.disposal_route)}</td>
                         <td style={{ color: "var(--navy)" }}>{m.reason}</td>
                         <td>{m.user?.full_name || m.user?.username || "Sistema"}</td>
                       </tr>
                     ))}
-                    {mermas.length === 0 && (
+                    {filteredMermas.length === 0 && (
                       <tr>
-                        <td colSpan={7} style={{ textAlign: "center", color: "var(--text-muted)" }}>
-                          No se registran descartes o mermas en el período.
+                        <td colSpan={9} style={{ textAlign: "center", color: "var(--text-muted)" }}>
+                          No hay bajas que coincidan con los filtros seleccionados.
                         </td>
                       </tr>
                     )}
@@ -739,14 +785,14 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
                   <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase" }}>VALOR TOTAL EN STOCK</p>
                   <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: "var(--navy)", marginTop: "0.25rem" }}>
-                    ${valorTotalInventario.toLocaleString("es-CO")}
+                    ${formatAmount(valorTotalInventario)}
                   </p>
                   <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Capital activo en reactivos</p>
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
                   <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase" }}>CAPITAL EN RIESGO (≤30 DÍAS)</p>
                   <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: valorEnRiesgo > 0 ? "var(--warning)" : "var(--success)", marginTop: "0.25rem" }}>
-                    ${valorEnRiesgo.toLocaleString("es-CO")}
+                    ${formatAmount(valorEnRiesgo)}
                   </p>
                   <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Reactivos por vencer pronto</p>
                 </div>
@@ -781,10 +827,10 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                           {item.StockActual} {item.Unidad}
                         </td>
                         <td style={{ textAlign: "right", color: "var(--text-muted)" }}>
-                          {item.PrecioUnitario > 0 ? `$${item.PrecioUnitario.toLocaleString("es-CO")}` : "Sin precio"}
+                          {item.PrecioUnitario > 0 ? `$${formatAmount(item.PrecioUnitario)}` : "Sin precio"}
                         </td>
                         <td style={{ textAlign: "right", fontWeight: 600, color: "var(--navy)" }}>
-                          ${item.ValorTotal.toLocaleString("es-CO")}
+                          ${formatAmount(item.ValorTotal)}
                         </td>
                       </tr>
                     ))}

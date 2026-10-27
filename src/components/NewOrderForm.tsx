@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createPurchaseOrder } from "@/app/dashboard/pedidos/actions";
 import Link from "next/link";
 import SearchableProductSelect from "@/components/SearchableProductSelect";
+import { formatAmount, formatNumber } from "@/lib/formatters";
 
 interface Supplier { id: string; name: string; }
 interface CatalogItem { id: string; technical_name: string; commercial_name: string; internal_code: string; supplier_id: string; estimated_unit_price?: number | null; }
@@ -149,9 +150,9 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
                     <div className="purchase-order-item-name">{fullItem?.technical_name}</div>
                     <div className="cell-muted">{fullItem?.commercial_name}</div>
                   </td>
-                  <td className="cell-center">{oi.quantity}</td>
-                  <td className="cell-right">${oi.price.toFixed(2)}</td>
-                  <td className="cell-right purchase-order-subtotal">${(oi.quantity * oi.price).toFixed(2)}</td>
+                  <td className="cell-center">{formatNumber(oi.quantity)}</td>
+                  <td className="cell-right">${formatAmount(oi.price)}</td>
+                  <td className="cell-right purchase-order-subtotal">${formatAmount(oi.quantity * oi.price)}</td>
                   <td className="cell-center">
                     <button type="button" onClick={() => handleRemoveItem(oi.item_id)} className="purchase-order-remove" aria-label={`Quitar ${fullItem?.technical_name || 'producto'} del pedido`}>
                       &times;
@@ -164,7 +165,7 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
           <tfoot>
             <tr>
               <td colSpan={4} className="cell-right purchase-order-total-label">TOTAL ESTIMADO:</td>
-              <td className="cell-right purchase-order-total">${totalEstimated.toFixed(2)}</td>
+              <td className="cell-right purchase-order-total">${formatAmount(totalEstimated)}</td>
               <td></td>
             </tr>
           </tfoot>

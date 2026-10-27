@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatAmount } from "@/lib/formatters";
 import DeleteMasterButton from "./DeleteMasterButton";
 
 interface CatalogItem {
@@ -73,7 +74,7 @@ export default function ProductMaintenanceList({
                 <td style={{ fontWeight: 600, color: 'var(--navy)' }}>{i.technical_name}</td>
                 <td>{i.commercial_name || "-"}</td>
                 <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--primary)' }}>
-                  ${i.estimated_unit_price?.toFixed(2) || "0.00"}
+                  ${formatAmount(i.estimated_unit_price)}
                 </td>
                 <td style={{ textAlign: 'center' }}>
                   <span className={i.is_active ? 'badge badge-success' : 'badge badge-error'}>

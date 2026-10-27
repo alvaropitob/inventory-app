@@ -2,6 +2,7 @@ import { OrderService } from "@/lib/services/orders";
 import Link from "next/link";
 import { ArrowDownToLine, Send } from "lucide-react";
 import { notFound } from "next/navigation";
+import { formatAmount, formatNumber } from "@/lib/formatters";
 
 export const dynamic = "force-dynamic";
 
@@ -118,15 +119,15 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                       <div className="cell-primary">{item.catalog_item?.technical_name}</div>
                       <div className="cell-muted">{item.catalog_item?.commercial_name}</div>
                     </td>
-                    <td className="cell-center" style={{ fontWeight: 600 }}>{item.quantity_requested}</td>
+                    <td className="cell-center" style={{ fontWeight: 600 }}>{formatNumber(item.quantity_requested)}</td>
                     <td className="cell-center">
                       <span className={ReceivedQtyClass(item.quantity_received ?? 0, item.quantity_requested ?? 0)}>
-                        {item.quantity_received}
+                        {formatNumber(item.quantity_received)}
                       </span>
                     </td>
-                    <td className="cell-right">${item.estimated_unit_price?.toFixed(2)}</td>
+                    <td className="cell-right">${formatAmount(item.estimated_unit_price)}</td>
                     <td className="cell-right cell-value">
-                      ${((item.quantity_requested || 0) * (item.estimated_unit_price || 0)).toFixed(2)}
+                      ${formatAmount((item.quantity_requested || 0) * (item.estimated_unit_price || 0))}
                     </td>
                   </tr>
                 ))}
@@ -135,7 +136,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 <tr style={{ background: 'var(--bg-app)' }}>
                   <td colSpan={5} className="cell-right" style={{ fontWeight: 600 }}>TOTAL ESTIMADO:</td>
                   <td className="cell-right" style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                    ${order.total_estimated_value?.toFixed(2)}
+                    ${formatAmount(order.total_estimated_value)}
                   </td>
                 </tr>
               </tfoot>

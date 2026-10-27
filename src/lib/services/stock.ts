@@ -88,6 +88,7 @@ export class StockService {
 
   static async discardStock(data: {
     batch_id: string;
+    request_id: string;
     quantity_packages: number;
     opened_units: number;
     disposed_by: string;
@@ -98,6 +99,7 @@ export class StockService {
     const supabase = await createClient();
     const { data: batchId, error } = await supabase.rpc("fn_discard_inventory_batch", {
       p_batch_id: data.batch_id,
+      p_request_id: data.request_id,
       p_quantity_packages: data.quantity_packages,
       p_opened_units: data.opened_units,
       p_disposed_by: data.disposed_by,

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { PackageX, ShieldAlert } from "lucide-react";
+import { dispositionCauses, disposalRoutes } from "@/lib/disposal-options";
 
 interface DispositionBatch {
   id: string;
@@ -24,22 +25,6 @@ interface DispositionBatch {
   locations?: { name: string } | null;
 }
 
-const dispositionOptions = [
-  { value: "expired", label: "Vencimiento" },
-  { value: "damaged", label: "Daño o deterioro" },
-  { value: "quality_alert", label: "Alerta de calidad / retiro" },
-  { value: "temperature_excursion", label: "Desviación de temperatura" },
-  { value: "contamination", label: "Contaminación" },
-  { value: "other", label: "Otro" },
-];
-const disposalRoutes = [
-  { value: "biohazard_waste", label: "Gestor de residuos biosanitarios" },
-  { value: "supplier_return", label: "Devolución al proveedor" },
-  { value: "post_consumer_program", label: "Programa posconsumo" },
-  { value: "authorized_destruction", label: "Destrucción autorizada" },
-  { value: "other", label: "Otro método" },
-];
-
 function formatDate(value: string) {
   const date = new Date(`${value}T12:00:00`);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString("es-CO");
@@ -53,10 +38,16 @@ export default function InventoryDispositionForm({ batches, action }: {
   const [packageQuantity, setPackageQuantity] = useState(0);
   const [openedUnits, setOpenedUnits] = useState(0);
   const [clientError, setClientError] = useState("");
+  const [requestId, setRequestId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const batch = batches.find(item => item.id === selectedBatchId);
   const product = batch?.item || batch?.catalog_items;
   const packageUnit = product?.purchase_unit || "empaques";
   const location = batch?.location?.name || batch?.locations?.name || "Sin ubicación";
+
+  useEffect(() => {
+    setRequestId(crypto.randomUUID());
+  }, []);
 
   const handleBatchChange = (id: string) => {
     const selected = batches.find(item => item.id === id);
@@ -67,6 +58,10 @@ export default function InventoryDispositionForm({ batches, action }: {
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (submitting) {
+      event.preventDefault();
+      return;
+    }
     setClientError("");
     if (packageQuantity <= 0 && openedUnits <= 0) {
       event.preventDefault();
@@ -75,11 +70,14 @@ export default function InventoryDispositionForm({ batches, action }: {
     }
     if (batch && !window.confirm(`¿Confirmas la baja de ${product?.technical_name || "este producto"}, lote ${batch.batch_number}? Esta operación quedará registrada en la trazabilidad.`)) {
       event.preventDefault();
+      return;
     }
+    setSubmitting(true);
   };
 
   return (
     <form action={action} onSubmit={handleSubmit} className="form-body inventory-disposition-form">
+      <input type="hidden" name="request_id" value={requestId} />
       <div className="form-group form-field-full">
         <label className="form-label" htmlFor="disposition-batch">Producto y lote *</label>
         <select
@@ -157,7 +155,7 @@ export default function InventoryDispositionForm({ batches, action }: {
               <label className="form-label" htmlFor="disposition-method">Causa de la baja *</label>
               <select id="disposition-method" name="disposition_method" className="form-select" required defaultValue="">
                 <option value="" disabled>Seleccione una causa...</option>
-                {dispositionOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                {dispositionCauses.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </div>
             <div className="form-group">
@@ -193,7 +191,7 @@ export default function InventoryDispositionForm({ batches, action }: {
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="btn-danger" disabled={!batch}>
+        <button type="submit" className="btn-danger" disabled={!batch || !requestId || submitting}>
           <PackageX className="ui-icon" aria-hidden="true" /> Confirmar baja y disposición
         </button>
       </div>

@@ -1,6 +1,7 @@
 import { OrderService, OrderStatus } from "@/lib/services/orders";
 import Link from "next/link";
 import ExportCSVButton from "@/components/ExportCSVButton";
+import { formatAmount, formatNumber } from "@/lib/formatters";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +55,7 @@ export default async function PedidosPage({
               'Fecha': o.created_at ? new Date(o.created_at).toLocaleDateString('es-CO') : '',
               'Proveedor': o.supplier?.name || 'Desconocido',
               'Estado': o.status,
-              'Total Estimado': o.total_estimated_value ? `$${o.total_estimated_value}` : '$0.00',
+              'Total Estimado': `$${formatAmount(o.total_estimated_value)}`,
               'Creado por': o.creator?.full_name || 'Desconocido',
             }))}
           />
@@ -69,16 +70,16 @@ export default async function PedidosPage({
 
       <section className="workflow-metrics" aria-label="Resumen de pedidos">
         <article className="workflow-metric">
-          <span>Total de pedidos</span><strong>{allOrders.length}</strong><small>En todos los estados</small>
+          <span>Total de pedidos</span><strong>{formatNumber(allOrders.length)}</strong><small>En todos los estados</small>
         </article>
         <article className="workflow-metric workflow-metric-warning">
-          <span>Solicitados</span><strong>{requestedOrders.length}</strong><small>Pendientes de recepción</small>
+          <span>Solicitados</span><strong>{formatNumber(requestedOrders.length)}</strong><small>Pendientes de recepción</small>
         </article>
         <article className="workflow-metric workflow-metric-info">
-          <span>Recepción parcial</span><strong>{partialOrders.length}</strong><small>Pedidos con unidades pendientes</small>
+          <span>Recepción parcial</span><strong>{formatNumber(partialOrders.length)}</strong><small>Pedidos con unidades pendientes</small>
         </article>
         <article className="workflow-metric workflow-metric-success">
-          <span>Completados</span><strong>{completedOrders.length}</strong><small>Recepción finalizada</small>
+          <span>Completados</span><strong>{formatNumber(completedOrders.length)}</strong><small>Recepción finalizada</small>
         </article>
       </section>
 
@@ -113,7 +114,7 @@ export default async function PedidosPage({
                   <td>{order.created_at && new Date(order.created_at).toLocaleDateString('es-CO')}</td>
                   <td className="cell-secondary">{order.supplier?.name}</td>
                   <td><OrderStatusBadge status={order.status} /></td>
-                  <td className="cell-right cell-value">${order.total_estimated_value?.toFixed(2) || '0.00'}</td>
+                  <td className="cell-right cell-value">${formatAmount(order.total_estimated_value)}</td>
                   <td style={{ textAlign: 'center' }}>
                     <Link href={`/dashboard/pedidos/${order.id}`} className="cell-link">
                       Ver detalle →

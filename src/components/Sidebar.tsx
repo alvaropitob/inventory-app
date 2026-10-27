@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -39,7 +39,49 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
   const searchParams = useSearchParams();
   const fullPath = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
 
+  useEffect(() => {
+    try {
+      const savedState = window.localStorage.getItem("medicore-sidebar-expanded");
+      if (savedState === "true" || savedState === "false") {
+        setIsExpanded(savedState === "true");
+      }
+    } catch {
+      // Keep the in-memory state when browser storage is unavailable.
+    }
+  }, []);
+
+  const toggleSidebar = () => {
+    const next = !isExpanded;
+    setIsExpanded(next);
+    try {
+      window.localStorage.setItem("medicore-sidebar-expanded", String(next));
+    } catch {
+      // The menu still works for this session when browser storage is unavailable.
+    }
+  };
+
   const isAdmin = user.role === "admin";
+  const navOrder = [
+    "Dashboard",
+    "Inventario",
+    "Pedidos",
+    "Recepción Técnica",
+    "Proveedores",
+    "Gestión de Alertas",
+    "Monitoreo Ambiental",
+    "Equipos",
+    "Reportes",
+    "Auditoría",
+    "Usuarios",
+    "Configuración",
+  ];
+  const sectionLabels: Record<string, string> = {
+    Dashboard: "INICIO",
+    Inventario: "OPERACIÓN",
+    "Gestión de Alertas": "SEGUIMIENTO",
+    Reportes: "ANÁLISIS",
+    Auditoría: "ADMINISTRACIÓN",
+  };
 
   const navItems = [
     {
@@ -185,7 +227,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
       ),
-      show: isAdmin,
+      show: isAdmin || user.role === "auditor",
       subItems: [
         { name: "Logs de Auditoría", href: "/dashboard/auditoria" },
         { name: "Checklist de Cumplimiento", href: "/dashboard/auditoria/checklist" },
@@ -216,6 +258,10 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
     }));
   };
 
+  const visibleNavItems = navItems
+    .filter(item => item.show)
+    .sort((a, b) => navOrder.indexOf(a.name) - navOrder.indexOf(b.name));
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -239,7 +285,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
         <div className="sidebar-header">
           <button 
             className="sidebar-toggle desktop-only"
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={toggleSidebar}
             aria-label={isExpanded ? "Contraer menú" : "Expandir menú"}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -266,13 +312,16 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
         </div>
 
         <nav className="sidebar-nav">
-          {navItems.filter(item => item.show).map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = pathname === item.href || (item.subItems?.some(s => pathname === s.href.split('?')[0]));
             const hasSubItems = item.subItems && item.subItems.length > 0;
             const isOpen = openMenus[item.name] || (isActive && openMenus[item.name] === undefined);
             
             return (
               <div key={item.href}>
+                {(isExpanded || isMobileOpen) && sectionLabels[item.name] && (
+                  <div className="sidebar-section-label">{sectionLabels[item.name]}</div>
+                )}
                 <div className="nav-item-wrap">
                   <Link
                     href={item.href}
