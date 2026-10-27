@@ -17,7 +17,7 @@ export default async function RecepcionPage() {
     return (
       <div className="dashboard-main">
         <div className="page-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="reception-page-heading">
             <div>
               <h1 className="page-header-title">Recepción Técnica y Trazabilidad</h1>
               <p className="page-header-subtitle">Inspecciona y registra los reactivos que llegan al laboratorio.</p>
@@ -56,7 +56,7 @@ export default async function RecepcionPage() {
                     <th>No. Pedido</th>
                     <th>Proveedor</th>
                     <th>Fecha Esperada</th>
-                    <th style={{ textAlign: 'center' }}>Estado</th>
+                    <th className="cell-center">Estado</th>
                     <th className="cell-right">Acción</th>
                   </tr>
                 </thead>
@@ -67,7 +67,7 @@ export default async function RecepcionPage() {
                         <td className="cell-primary">{order.order_number}</td>
                         <td>{order.supplier?.name || "Sin proveedor asignado"}</td>
                         <td>{order.expected_delivery_date ? new Date(order.expected_delivery_date).toLocaleDateString('es-CO') : 'No definida'}</td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td className="cell-center">
                           <span className={`pill-badge ${order.status === 'requested' ? 'pill-blue' : 'pill-amber'}`}>
                             {order.status === 'requested' ? 'Solicitado' : 'Rec. Parcial'}
                           </span>
@@ -75,8 +75,7 @@ export default async function RecepcionPage() {
                         <td className="cell-right">
                           <Link
                             href={`/dashboard/recepcion/${order.id}`}
-                            className="btn-primary"
-                            style={{ textDecoration: 'none' }}
+                            className="btn-primary reception-start-link"
                           >
                             Iniciar Inspección
                           </Link>
@@ -101,15 +100,15 @@ export default async function RecepcionPage() {
     console.error("Error rendering RecepcionPage:", error);
     return (
       <div className="dashboard-main">
-        <div className="page-header" style={{ borderBottom: '2px solid var(--error)' }}>
+        <div className="page-header reception-error-header">
           <div>
-            <h1 className="page-header-title" style={{ color: 'var(--error)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertTriangle className="ui-icon" aria-hidden="true" /> Error al cargar recepciones</h1>
+            <h1 className="page-header-title reception-error-title"><AlertTriangle className="ui-icon" aria-hidden="true" /> Error al cargar recepciones</h1>
             <p className="page-header-subtitle">Hubo un problema al conectar con el servicio de órdenes.</p>
           </div>
         </div>
-        <div className="table-card" style={{ padding: '2rem', textAlign: 'center' }}>
-          <p className="card-section-subtitle" style={{ marginBottom: '1.5rem' }}>Por favor, intenta recargar la página o volver al inicio.</p>
-          <Link href="/dashboard/recepcion" className="btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>
+        <div className="table-card reception-error-card">
+          <p className="card-section-subtitle">Por favor, intenta recargar la página o volver al inicio.</p>
+          <Link href="/dashboard/recepcion" className="btn-primary reception-start-link">
             Reintentar Carga
           </Link>
         </div>

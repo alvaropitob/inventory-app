@@ -29,7 +29,14 @@ export interface PurchaseOrderItem {
   estimated_unit_price?: number;
   
   // joined relations
-  catalog_item?: { id: string; internal_code: string; technical_name: string; commercial_name: string; section_id?: string | null };
+  catalog_item?: {
+    id: string;
+    internal_code: string;
+    technical_name: string;
+    commercial_name: string;
+    section_id?: string | null;
+    sections?: { name: string } | null;
+  };
 }
 
 export const OrderService = {
@@ -66,7 +73,7 @@ export const OrderService = {
         creator:users!purchase_orders_created_by_fkey(id, full_name, email),
         items:purchase_order_items(
           *,
-          catalog_item:catalog_items(id, internal_code, technical_name, commercial_name, section_id)
+          catalog_item:catalog_items(id, internal_code, technical_name, commercial_name, section_id, sections(name))
         )
       `)
       .eq("id", id)

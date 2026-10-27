@@ -120,8 +120,9 @@ export default async function ConfiguracionPage({
 
   const tabs = [
     { key: 'secciones', label: 'Áreas' },
-    { key: 'proveedores', label: 'Proveedores'                   },
-    { key: 'productos',   label: 'Productos'                     },
+    { key: 'categorias', label: 'Categorías' },
+    { key: 'proveedores', label: 'Proveedores' },
+    { key: 'productos', label: 'Productos' },
     { key: 'ubicaciones', label: 'Ubicaciones de Almacenamiento' },
   ];
 
@@ -147,9 +148,9 @@ export default async function ConfiguracionPage({
           <div className="form-card">
             <div className="card-section-header">
               <h2 className="card-section-title">{editingItem ? "Editar área" : "Áreas"}</h2>
-              {editingItem && <a href="?tab=secciones" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
+              {editingItem && <a href="?tab=secciones" className="cell-link text-error">Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleSectionAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
+            <form action={Actions.handleSectionAction} className="config-form-panel config-form-compact">
               <input type="hidden" name="id" value={(editingItem as Section)?.id || ""} />
               <div className="form-group">
                 <label className="form-label">Nombre del área</label>
@@ -205,9 +206,9 @@ export default async function ConfiguracionPage({
           <div className="form-card">
             <div className="card-section-header">
               <h2 className="card-section-title">{editingItem ? "Editar Proveedor" : "Registro de Proveedores"}</h2>
-              {editingItem && <a href="?tab=proveedores" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
+              {editingItem && <a href="?tab=proveedores" className="cell-link text-error">Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleSupplierAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr auto' }}>
+            <form action={Actions.handleSupplierAction} className="config-form-panel config-form-wide">
               <input type="hidden" name="id" value={(editingItem as Supplier)?.id || ""} />
               <div className="form-group">
                 <label className="form-label">Nombre Proveedor</label>
@@ -274,9 +275,9 @@ export default async function ConfiguracionPage({
           <div className="form-card">
             <div className="card-section-header">
               <h2 className="card-section-title">{editingItem ? "Editar Categoría Maestra" : "Categorías Maestras (Nivel Superior)"}</h2>
-              {editingItem && <a href="?tab=categorias" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
+              {editingItem && <a href="?tab=categorias" className="cell-link text-error">Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleCategoryAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
+            <form action={Actions.handleCategoryAction} className="config-form-panel config-form-compact">
               <input type="hidden" name="id" value={(editingItem as Category)?.id || ""} />
               <div className="form-group">
                 <label className="form-label">Nombre Categoría</label>
@@ -332,18 +333,18 @@ export default async function ConfiguracionPage({
           <div className="form-card">
             <div className="card-section-header">
               <h2 className="card-section-title">{editingItem ? "Editar Ubicación" : "Ubicaciones de Almacenamiento"}</h2>
-              {editingItem && <a href="?tab=ubicaciones" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
+              {editingItem && <a href="?tab=ubicaciones" className="cell-link text-error">Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleLocationAction} className="config-form-panel" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
+            <form action={Actions.handleLocationAction} className="config-form-panel config-form-location">
               <input type="hidden" name="id" value={(editingItem as Location)?.id || ""} />
               <div className="form-group">
                 <label className="form-label">Nombre Ubicación</label>
                 <input className="form-input" name="name" defaultValue={(editingItem as Location)?.name || ""} required placeholder="Ej: Nevera 1 - Estante A" />
               </div>
               <div className="form-group">
-                <label className="form-label">Área asociada</label>
-                <select className="form-select" name="section_id" defaultValue={(editingItem as Location)?.section_id || ""}>
-                  <option value="">Sin área asociada</option>
+                <label className="form-label">Área *</label>
+                <select className="form-select" name="section_id" defaultValue={(editingItem as Location)?.section_id || ""} required>
+                  <option value="" disabled>Seleccione un área...</option>
                   {sections?.filter(section => section.is_active || section.id === (editingItem as Location)?.section_id).map(section => (
                     <option key={section.id} value={section.id}>{section.name}</option>
                   ))}
@@ -361,6 +362,11 @@ export default async function ConfiguracionPage({
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
             </form>
+            {locations?.some(location => !location.section_id) && (
+              <p className="location-assignment-notice" role="status">
+                Hay ubicaciones sin área asignada. Edítalas para que puedan aparecer al recibir productos de su área.
+              </p>
+            )}
             <div className="table-responsive">
               <table className="data-table">
                 <thead>
@@ -375,7 +381,11 @@ export default async function ConfiguracionPage({
                   {locations?.map((l: Location) => (
                     <tr key={l.id}>
                       <td className="cell-primary">{l.name}</td>
-                      <td className="cell-secondary">{l.sections?.name || "Sin área"}</td>
+                      <td>
+                        {l.sections?.name
+                          ? <span className="pill-badge pill-blue">{l.sections.name}</span>
+                          : <span className="pill-badge pill-amber">Sin área asignada</span>}
+                      </td>
                       <td><StatusPill active={l.is_active} /></td>
                       <td>
                         <div className="action-group">
@@ -403,9 +413,9 @@ export default async function ConfiguracionPage({
           <div className="form-card">
             <div className="card-section-header">
               <h2 className="card-section-title">{editingItem ? "Editar Producto" : "Mantenimiento de Productos"}</h2>
-              {editingItem && <a href="?tab=productos" className="cell-link" style={{ color: 'var(--error)' }}>Cancelar Edición</a>}
+              {editingItem && <a href="?tab=productos" className="cell-link text-error">Cancelar Edición</a>}
             </div>
-            <form action={Actions.handleCatalogAction} className="config-form-panel" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+            <form action={Actions.handleCatalogAction} className="config-form-panel config-product-form">
               <input type="hidden" name="id" value={(editingItem as CatalogItem)?.id || ""} />
               <div>
                 <label className="form-label">Código / Referencia *</label>

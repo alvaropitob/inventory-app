@@ -87,8 +87,8 @@ export default async function EvaluacionProveedoresPage() {
           </div>
         </div>
 
-        <div className="form-card" style={{ borderColor: "var(--primary-light)" }}>
-          <div className="form-card-header"><h2 className="form-card-title" style={{ color: "var(--primary)" }}>Nueva evaluación</h2></div>
+        <div className="form-card supplier-evaluation-form-card">
+          <div className="form-card-header"><h2 className="form-card-title supplier-evaluation-form-title">Nueva evaluación</h2></div>
           <form action={Actions.submitSupplierEvaluation} className="form-card-body form-fields evaluation-form">
             <SupplierEvaluationFields suppliers={suppliers.data?.map(s => ({ id: s.id, name: s.name, contact_email: s.contact_email })) || []} />
             <div className="form-grid-2">
@@ -107,7 +107,7 @@ export default async function EvaluacionProveedoresPage() {
                   <h3 className="form-section-title">{group.title}</h3>
                   {group.questions.map(question => {
                     questionNumber += 1;
-                    return <div key={question} className="form-group" style={{ marginTop: ".75rem" }}>
+                    return <div key={question} className="form-group evaluation-question">
                       <label className="form-label">{questionNumber}. {question}</label>
                       <select name={`question_${questionNumber}`} required defaultValue="" className="form-select">
                         <option value="" disabled>Seleccione una respuesta...</option>

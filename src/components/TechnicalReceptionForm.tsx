@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { submitTechnicalReception } from "@/app/dashboard/recepcion/actions";
 import ContextualHelp from "./ContextualHelp";
 import { parseGS1Barcode } from "@/lib/utils/gs1";
+import { filterLocationsForSection } from "@/lib/utils/locations";
 
 interface OrderItem {
     catalog_item_id: string;
@@ -13,6 +14,7 @@ interface OrderItem {
         technical_name: string;
         commercial_name: string;
         section_id?: string | null;
+        section_name?: string | null;
     };
     quantity_requested: number;
     quantity_received: number;
@@ -41,9 +43,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
     const [notes, setNotes] = useState("");
     const [invoiceNumber, setInvoiceNumber] = useState("");
 
-    const locationsForItem = (item: OrderItem) => locations.filter(location =>
-        !item.catalog_item.section_id || !location.section_id || location.section_id === item.catalog_item.section_id
-    );
+    const locationsForItem = (item: OrderItem) => filterLocationsForSection(locations, item.catalog_item.section_id);
 
     // Items states (lot, expiration, qty, price per item)
     const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string, qty: number, price: number, location_id: string }>>(
@@ -122,7 +122,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
         <form onSubmit={handleSubmit} className="form-container">
             {error && <div className="error-message">{error}</div>}
 
-            <div className="form-row" style={{ marginBottom: '2rem' }}>
+            <div className="form-row reception-summary-fields">
                 <div className="form-group">
                     <label>Condiciones de empaque, envase y etiqueta</label>
                     <select value={packagingStatus} onChange={e => setPackagingStatus(e.target.value)}>
@@ -151,12 +151,12 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                 </div>
             </div>
 
-            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+            <div className="form-group reception-invoice-field">
                 <label>Número de factura</label>
                 <input value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} placeholder="Factura del proveedor" required />
             </div>
 
-            <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 className="reception-section-title">
                 Detalle de Ítems y Lotes
                 <ContextualHelp content={{
                     title: "Inspección de Lotes",
@@ -171,29 +171,30 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                 }} />
             </h3>
             
-            <div className="table-responsive" style={{ marginBottom: '2rem' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead style={{ background: 'var(--bg-app)' }}>
+            <div className="table-responsive reception-items-table-wrap">
+                <table className="data-table reception-items-table">
+                    <thead>
                         <tr>
-                            <th style={{ textAlign: 'left' }}>Producto</th>
-                            <th style={{ textAlign: 'center' }}>Solicitado</th>
-                            <th style={{ textAlign: 'center' }}>Pendiente</th>
-                            <th className="fulfillment-header" style={{ textAlign: 'center' }}>Recibido</th>
-                            <th className="fulfillment-header" style={{ textAlign: 'left' }}>Ubicación</th>
-                            <th className="fulfillment-header" style={{ textAlign: 'left' }}>Número de Lote</th>
-                            <th className="fulfillment-header" style={{ textAlign: 'left' }}>Vencimiento</th>
-                            <th className="fulfillment-header" style={{ textAlign: 'left', minWidth: '180px' }}>Escanear GS1-128</th>
+                            <th>Producto</th>
+                            <th className="cell-center">Solicitado</th>
+                            <th className="cell-center">Pendiente</th>
+                            <th className="fulfillment-header cell-center">Recibido</th>
+                            <th className="fulfillment-header">Ubicación</th>
+                            <th className="fulfillment-header">Número de Lote</th>
+                            <th className="fulfillment-header">Vencimiento</th>
+                            <th className="fulfillment-header reception-scan-column">Escanear GS1-128</th>
                         </tr>
                     </thead>
                     <tbody>
                         {order.items.map((item) => (
-                            <tr key={item.catalog_item_id} style={{ borderBottom: '1px solid var(--border)' }}>
+                            <tr key={item.catalog_item_id}>
                                 <td>
-                                    <div style={{ fontWeight: 600 }}>{item.catalog_item.technical_name}</div>
-                                    <div style={{ fontSize: 'var(--fs-base)', color: 'var(--text-muted)' }}>{item.catalog_item.commercial_name} ({item.catalog_item.internal_code})</div>
+                                    <div className="reception-product-name">{item.catalog_item.technical_name}</div>
+                                    <div className="cell-muted">{item.catalog_item.commercial_name} ({item.catalog_item.internal_code})</div>
+                                    <div className="reception-product-area">Área: {item.catalog_item.section_name || "Sin área asignada"}</div>
                                 </td>
-                                <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)' }}>{item.quantity_requested}</td>
-                                <td style={{ textAlign: 'center' }}>{Math.max(0, item.quantity_requested - item.quantity_received)}</td>
+                                <td className="cell-center reception-requested">{item.quantity_requested}</td>
+                                <td className="cell-center">{Math.max(0, item.quantity_requested - item.quantity_received)}</td>
                                 <td>
                                     <input 
                                         type="number" 
@@ -202,20 +203,20 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                         disabled={item.quantity_requested <= item.quantity_received}
                                         value={itemData[item.catalog_item_id].qty}
                                         onChange={e => handleItemChange(item.catalog_item_id, 'qty', Number(e.target.value))}
-                                        className="table-input"
-                                        style={{ width: '100px', textAlign: 'center' }}
+                                        className="table-input reception-quantity"
                                         required
                                     />
                                 </td>
                                 <td>
-                                    <select value={itemData[item.catalog_item_id].location_id} onChange={e => handleItemChange(item.catalog_item_id, 'location_id', e.target.value)} className="table-input" required={itemData[item.catalog_item_id].qty > 0} disabled={item.quantity_requested <= item.quantity_received}>
-                                        <option value="">Seleccione...</option>
+                                    <select value={itemData[item.catalog_item_id].location_id} onChange={e => handleItemChange(item.catalog_item_id, 'location_id', e.target.value)} className="table-input" required={itemData[item.catalog_item_id].qty > 0 && Boolean(itemData[item.catalog_item_id].lot.trim()) && Boolean(itemData[item.catalog_item_id].exp)} disabled={item.quantity_requested <= item.quantity_received}>
+                                        <option value="">{locationsForItem(item).length ? "Seleccione ubicación..." : "Sin ubicaciones para esta área"}</option>
                                         {locationsForItem(item).map(location => (
                                             <option key={location.id} value={location.id}>
                                                 {location.sections?.name ? `${location.sections.name} — ${location.name}` : location.name}
                                             </option>
                                         ))}
                                     </select>
+                                    {locationsForItem(item).length === 0 && <small className="reception-location-help">Asigne una ubicación a esta área desde Configuración → Ubicaciones.</small>}
                                 </td>
                                 <td>
                                     <input 
@@ -225,7 +226,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                         onChange={e => handleItemChange(item.catalog_item_id, 'lot', e.target.value)}
                                         className="table-input"
                                     />
-                                    <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Deje lote y vencimiento vacíos si no llegó</small>
+                                    <small className="reception-pending-help">Si no llegó, indique 0 en Recibido y deje lote y vencimiento vacíos. El saldo seguirá pendiente en el pedido.</small>
                                 </td>
                                 <td>
                                     <input 
@@ -268,7 +269,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                 <div className="error-message">No hay ubicaciones activas. Asigna una ubicación a un área en Configuración antes de confirmar la recepción.</div>
             )}
 
-            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+            <div className="form-group reception-notes-field">
                 <label>Notas de la Inspección</label>
                 <textarea 
                     rows={3} 
@@ -278,7 +279,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                 />
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <div className="form-actions reception-actions">
                 <button 
                     type="button" 
                     onClick={() => router.back()} 

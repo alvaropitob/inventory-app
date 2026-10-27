@@ -48,15 +48,20 @@ export async function handleCategoryAction(formData: FormData) {
 
 export async function handleLocationAction(formData: FormData) {
   await requireRole(["admin"]);
+  const sectionId = String(formData.get("section_id") || "").trim();
+  if (!sectionId) throw new Error("Selecciona el área a la que pertenece esta ubicación.");
   const data = {
     id: (formData.get("id") as string) || undefined,
     name: formData.get("name") as string,
     description: formData.get("description") as string,
-    section_id: String(formData.get("section_id") || "").trim() || null,
+    section_id: sectionId,
     location_type: formData.get("location_type") as string,
   };
-  await CatalogService.upsertLocation(data);
+  const { error } = await CatalogService.upsertLocation(data);
+  if (error) throw new Error(`No se pudo guardar la ubicación: ${error.message}`);
   revalidatePath("/dashboard/configuracion");
+  revalidatePath("/dashboard/recepcion");
+  revalidatePath("/dashboard/inventario");
   if (data.id) redirect(`/dashboard/configuracion?tab=ubicaciones`);
 }
 

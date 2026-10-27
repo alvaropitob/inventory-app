@@ -27,11 +27,11 @@ export default function MaintenanceRegistryForm({ equipmentId }: MaintenanceRegi
 
   return (
     <div className="form-container">
-      <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Nueva Intervención Técnica</h3>
-      <form id="maintenance-form" action={handleSubmit}>
+      <h3 className="maintenance-form-heading">Nueva Intervención Técnica</h3>
+      <form id="maintenance-form" action={handleSubmit} className="form-fields maintenance-form">
         <input type="hidden" name="equipment_id" value={equipmentId} />
         
-        <div className="form-row" style={{ marginBottom: '1.5rem' }}>
+        <div className="form-row">
           <div className="form-group">
             <label>Tipo de Actividad</label>
             <select name="type" required>
@@ -47,22 +47,22 @@ export default function MaintenanceRegistryForm({ equipmentId }: MaintenanceRegi
           </div>
         </div>
 
-        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+        <div className="form-group">
             <label>Fecha de mantenimiento (programada) *</label>
             <input type="date" name="scheduled_date" required />
         </div>
 
-        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+        <div className="form-group">
           <label>Técnico / Empresa Responsable</label>
           <input type="text" name="provider_name" placeholder="Ej: Servicio Técnico Abbott o Bioing. Juan Pérez" required />
         </div>
 
-        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+        <div className="form-group">
           <label>Descripción de la Intervención</label>
           <textarea name="description" rows={3} placeholder="Detalle las tareas realizadas..." />
         </div>
 
-        <div className="form-row" style={{ marginBottom: '2rem' }}>
+        <div className="form-row">
           <div className="form-group">
             <label>Resultado Final</label>
             <input type="text" name="result" placeholder="Ej: Operativo / Calibrado" required />
@@ -74,8 +74,8 @@ export default function MaintenanceRegistryForm({ equipmentId }: MaintenanceRegi
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button type="submit" disabled={loading} className="btn-primary" style={{ minWidth: '200px' }}>
+        <div className="maintenance-form-actions">
+          <button type="submit" disabled={loading} className="btn-primary maintenance-submit">
             {loading ? "Registrando..." : "Confirmar Registro Técnico"}
           </button>
         </div>

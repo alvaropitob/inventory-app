@@ -75,11 +75,11 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
   };
 
   return (
-    <form onSubmit={handleSubmit} className="entry-form">
+    <form onSubmit={handleSubmit} className="entry-form purchase-order-form">
       {error && <div className="error-message">{error}</div>}
       
-      <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-        <label style={{ display: 'block' }}>Proveedor Responsable</label>
+      <div className="form-group purchase-order-supplier">
+        <label>Proveedor Responsable</label>
         <select value={supplierId} onChange={e => { setSupplierId(e.target.value); setOrderItems([]); setSelectedItem(""); setSelectedPrice(0); }} required>
           <option value="">-- Seleccionar Proveedor --</option>
           {suppliers.map(s => (
@@ -88,20 +88,20 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
         </select>
       </div>
 
-      <div className="form-row" style={{ gap: '2rem', marginBottom: '2rem' }}>
+      <div className="form-row purchase-order-notes">
         <div className="form-group">
-          <label style={{ display: 'block' }}>Notas Adicionales</label>
+          <label>Notas Adicionales</label>
           <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Ej. Urgente, refrigerado..." />
         </div>
       </div>
 
-      <h3 style={{ paddingBottom: '0.5rem', borderBottom: '2px solid var(--primary-light)', color: 'var(--navy)' }}>
+      <h3 className="purchase-order-section-title">
         Productos Requeridos
       </h3>
       
-      <div className="form-row" style={{ alignItems: 'flex-end', marginBottom: '1.5rem', background: '#f8fafc', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-        <div className="form-group" style={{ flex: 2 }}>
-          <label style={{ display: 'block' }}>Producto a Pedir</label>
+      <div className="form-row purchase-order-builder">
+        <div className="form-group purchase-order-product">
+          <label>Producto a Pedir</label>
           <SearchableProductSelect 
             items={supplierItems}
             onSelect={(item) => {
@@ -112,47 +112,48 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
           />
           {supplierId && supplierItems.length === 0 && <p role="status" className="cell-muted">Este proveedor aún no tiene productos activos asociados. Asócialos desde Configuración.</p>}
         </div>
-        <div className="form-group" style={{ flex: 1 }}>
-          <label style={{ display: 'block' }}>Cantidad</label>
+        <div className="form-group">
+          <label>Cantidad</label>
           <input type="number" min="1" value={selectedQty} onChange={e => setSelectedQty(Number(e.target.value))} />
         </div>
-        <div className="form-group" style={{ flex: 1 }}>
-          <label style={{ display: 'block' }}>Precio Unit. Est. ($)</label>
+        <div className="form-group">
+          <label>Precio Unit. Est. ($)</label>
           <input type="number" step="0.01" min="0" value={selectedPrice} onChange={e => setSelectedPrice(Number(e.target.value))} />
           {selectedItem && selectedCatalogItem?.estimated_unit_price == null && <p role="status" className="cell-muted">No hay precio estimado configurado para este producto; ingresa el valor de referencia del pedido.</p>}
         </div>
-        <button type="button" onClick={handleAddItem} className="btn-secondary">
+        <button type="button" onClick={handleAddItem} className="btn-secondary purchase-order-add">
           Agregar
         </button>
       </div>
 
       {orderItems.length > 0 ? (
-        <table style={{ width: '100%', marginBottom: '2rem', borderCollapse: 'collapse' }}>
-          <thead style={{ background: 'var(--bg-app)' }}>
+        <div className="table-responsive purchase-order-table-wrap">
+        <table className="data-table purchase-order-table">
+          <thead>
             <tr>
-              <th style={{ textAlign: 'left' }}>Código</th>
-              <th style={{ textAlign: 'left' }}>Producto</th>
-              <th style={{ textAlign: 'center' }}>Cant.</th>
-              <th style={{ textAlign: 'right' }}>P.Unit</th>
-              <th style={{ textAlign: 'right' }}>Subtotal</th>
-              <th style={{ textAlign: 'center' }}>Quitar</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th className="cell-center">Cant.</th>
+              <th className="cell-right">P.Unit</th>
+              <th className="cell-right">Subtotal</th>
+              <th className="cell-center">Quitar</th>
             </tr>
           </thead>
           <tbody>
             {orderItems.map((oi, i) => {
               const fullItem = items.find(x => x.id === oi.item_id);
               return (
-                <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                <tr key={i}>
                   <td>{fullItem?.internal_code}</td>
-                  <td style={{ fontWeight: '500' }}>
-                    <div style={{ fontWeight: '600' }}>{fullItem?.technical_name}</div>
-                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{fullItem?.commercial_name}</div>
+                  <td>
+                    <div className="purchase-order-item-name">{fullItem?.technical_name}</div>
+                    <div className="cell-muted">{fullItem?.commercial_name}</div>
                   </td>
-                  <td style={{ textAlign: 'center' }}>{oi.quantity}</td>
-                  <td style={{ textAlign: 'right' }}>${oi.price.toFixed(2)}</td>
-                  <td style={{ textAlign: 'right', fontWeight: '600' }}>${(oi.quantity * oi.price).toFixed(2)}</td>
-                  <td style={{ textAlign: 'center' }}>
-                    <button type="button" onClick={() => handleRemoveItem(oi.item_id)} style={{ color: 'var(--error)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-md)' }}>
+                  <td className="cell-center">{oi.quantity}</td>
+                  <td className="cell-right">${oi.price.toFixed(2)}</td>
+                  <td className="cell-right purchase-order-subtotal">${(oi.quantity * oi.price).toFixed(2)}</td>
+                  <td className="cell-center">
+                    <button type="button" onClick={() => handleRemoveItem(oi.item_id)} className="purchase-order-remove" aria-label={`Quitar ${fullItem?.technical_name || 'producto'} del pedido`}>
                       &times;
                     </button>
                   </td>
@@ -162,19 +163,20 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={4} style={{ textAlign: 'right', fontWeight: 600 }}>TOTAL ESTIMADO:</td>
-              <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--primary)' }}>${totalEstimated.toFixed(2)}</td>
+              <td colSpan={4} className="cell-right purchase-order-total-label">TOTAL ESTIMADO:</td>
+              <td className="cell-right purchase-order-total">${totalEstimated.toFixed(2)}</td>
               <td></td>
             </tr>
           </tfoot>
         </table>
+        </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '2rem', background: '#f8fafc', borderRadius: '8px', color: 'var(--text-muted)', marginBottom: '2rem' }}>
+        <div className="purchase-order-empty">
           Aún no has agregado productos al pedido.
         </div>
       )}
 
-      <div className="form-actions" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+      <div className="form-actions purchase-order-actions">
         <Link href="/dashboard/pedidos" className="btn-secondary">
           Cancelar
         </Link>

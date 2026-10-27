@@ -10,55 +10,55 @@ interface MaintenanceHistoryProps {
 export default function MaintenanceHistory({ records }: MaintenanceHistoryProps) {
   if (!records || records.length === 0) {
     return (
-      <div className="card shadow-glass text-center p-8">
-        <p className="text-navy-light italic">No hay registros de mantenimiento para este equipo.</p>
+      <div className="table-card maintenance-empty">
+        <p className="cell-muted">No hay registros de mantenimiento para este equipo.</p>
       </div>
     );
   }
 
   return (
-    <div className="card shadow-glass overflow-hidden" style={{ padding: '0' }}>
-      <div className="p-6 border-b border-navy/5 bg-navy/5">
-        <h3 className="text-xl font-black text-navy">Historial Ténico</h3>
+    <div className="table-card maintenance-history">
+      <div className="card-section-header">
+        <h3 className="card-section-title">Historial Técnico</h3>
       </div>
       <div className="table-responsive">
-        <table className="w-full text-left">
-          <thead className="bg-navy/5 border-b border-navy/10 text-[10px] font-black uppercase text-navy-light tracking-widest">
+        <table className="data-table">
+          <thead>
             <tr>
-              <th className="px-6 py-4">Fecha de mantenimiento</th>
-              <th className="px-6 py-4">Fecha de realización</th>
-              <th className="px-6 py-4">Tipo</th>
-              <th className="px-6 py-4">Responsable</th>
-              <th className="px-6 py-4">Resultado</th>
-              <th className="px-6 py-4">Próxima fecha</th>
+              <th>Fecha programada</th>
+              <th>Fecha de realización</th>
+              <th>Tipo</th>
+              <th>Responsable</th>
+              <th>Resultado</th>
+              <th>Próxima fecha</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-navy/5">
             {records.map((record) => (
-              <tr key={record.id} className="hover:bg-navy/5 transition-colors">
-                <td className="px-6 py-4 text-sm text-navy-light">
+              <tr key={record.id}>
+                <td className="cell-muted">
                   {formatDateKeyInBusinessTimeZone(record.scheduled_date)}
                 </td>
-                <td className="px-6 py-4 text-sm font-bold text-navy">
+                <td className="cell-primary">
                   {formatDateKeyInBusinessTimeZone(record.execution_date)}
                 </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${
-                    record.type === 'preventive' ? 'bg-primary/10 text-primary' :
-                    record.type === 'calibration' ? 'bg-success/10 text-success' :
-                    'bg-warning/10 text-warning'
+                <td>
+                  <span className={`pill-badge ${
+                    record.type === 'preventive' ? 'pill-blue' :
+                    record.type === 'calibration' ? 'pill-green' :
+                    'pill-amber'
                   }`}>
                     {record.type === 'preventive' ? 'Preventivo' : 
                      record.type === 'calibration' ? 'Calibración' : 'Correctivo'}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-navy-light">
+                <td className="cell-muted">
                   {record.provider_name || record.performed_by || "—"}
                 </td>
-                <td className="px-6 py-4 text-sm font-semibold text-navy">
+                <td className="cell-primary">
                   {record.result}
                 </td>
-                <td className="px-6 py-4 text-sm text-navy-light">
+                <td className="cell-muted">
                   {formatDateKeyInBusinessTimeZone(record.next_due_date)}
                 </td>
               </tr>
