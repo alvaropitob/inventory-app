@@ -79,7 +79,7 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
       {error && <div className="error-message">{error}</div>}
       
       <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.75rem' }}>Proveedor Responsable</label>
+        <label style={{ display: 'block' }}>Proveedor Responsable</label>
         <select value={supplierId} onChange={e => { setSupplierId(e.target.value); setOrderItems([]); setSelectedItem(""); setSelectedPrice(0); }} required>
           <option value="">-- Seleccionar Proveedor --</option>
           {suppliers.map(s => (
@@ -90,18 +90,18 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
 
       <div className="form-row" style={{ gap: '2rem', marginBottom: '2rem' }}>
         <div className="form-group">
-          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Notas Adicionales</label>
+          <label style={{ display: 'block' }}>Notas Adicionales</label>
           <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Ej. Urgente, refrigerado..." />
         </div>
       </div>
 
-      <h3 style={{ marginTop: '2.5rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '2px solid var(--primary-light)', color: 'var(--navy)' }}>
+      <h3 style={{ paddingBottom: '0.5rem', borderBottom: '2px solid var(--primary-light)', color: 'var(--navy)' }}>
         Productos Requeridos
       </h3>
       
       <div className="form-row" style={{ alignItems: 'flex-end', marginBottom: '1.5rem', background: '#f8fafc', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
         <div className="form-group" style={{ flex: 2 }}>
-          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Producto a Pedir</label>
+          <label style={{ display: 'block' }}>Producto a Pedir</label>
           <SearchableProductSelect 
             items={supplierItems}
             onSelect={(item) => {
@@ -113,11 +113,11 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
           {supplierId && supplierItems.length === 0 && <p role="status" className="cell-muted">Este proveedor aún no tiene productos activos asociados. Asócialos desde Configuración.</p>}
         </div>
         <div className="form-group" style={{ flex: 1 }}>
-          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Cantidad</label>
+          <label style={{ display: 'block' }}>Cantidad</label>
           <input type="number" min="1" value={selectedQty} onChange={e => setSelectedQty(Number(e.target.value))} />
         </div>
         <div className="form-group" style={{ flex: 1 }}>
-          <label style={{ display: 'block', marginBottom: '0.75rem' }}>Precio Unit. Est. ($)</label>
+          <label style={{ display: 'block' }}>Precio Unit. Est. ($)</label>
           <input type="number" step="0.01" min="0" value={selectedPrice} onChange={e => setSelectedPrice(Number(e.target.value))} />
           {selectedItem && selectedCatalogItem?.estimated_unit_price == null && <p role="status" className="cell-muted">No hay precio estimado configurado para este producto; ingresa el valor de referencia del pedido.</p>}
         </div>
@@ -130,12 +130,12 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
         <table style={{ width: '100%', marginBottom: '2rem', borderCollapse: 'collapse' }}>
           <thead style={{ background: 'var(--bg-app)' }}>
             <tr>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: 'bold' }}>Código</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: 'bold' }}>Producto</th>
-              <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 'bold' }}>Cant.</th>
-              <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'bold' }}>P.Unit</th>
-              <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 'bold' }}>Subtotal</th>
-              <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 'bold' }}>Quitar</th>
+              <th style={{ textAlign: 'left' }}>Código</th>
+              <th style={{ textAlign: 'left' }}>Producto</th>
+              <th style={{ textAlign: 'center' }}>Cant.</th>
+              <th style={{ textAlign: 'right' }}>P.Unit</th>
+              <th style={{ textAlign: 'right' }}>Subtotal</th>
+              <th style={{ textAlign: 'center' }}>Quitar</th>
             </tr>
           </thead>
           <tbody>
@@ -143,16 +143,16 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
               const fullItem = items.find(x => x.id === oi.item_id);
               return (
                 <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '0.75rem', fontSize: '0.85rem' }}>{fullItem?.internal_code}</td>
-                  <td style={{ padding: '0.75rem', fontWeight: '500' }}>
+                  <td>{fullItem?.internal_code}</td>
+                  <td style={{ fontWeight: '500' }}>
                     <div style={{ fontWeight: '600' }}>{fullItem?.technical_name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{fullItem?.commercial_name}</div>
+                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{fullItem?.commercial_name}</div>
                   </td>
-                  <td style={{ padding: '0.75rem', textAlign: 'center' }}>{oi.quantity}</td>
-                  <td style={{ padding: '0.75rem', textAlign: 'right' }}>${oi.price.toFixed(2)}</td>
-                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600' }}>${(oi.quantity * oi.price).toFixed(2)}</td>
-                  <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                    <button type="button" onClick={() => handleRemoveItem(oi.item_id)} style={{ color: 'var(--error)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>
+                  <td style={{ textAlign: 'center' }}>{oi.quantity}</td>
+                  <td style={{ textAlign: 'right' }}>${oi.price.toFixed(2)}</td>
+                  <td style={{ textAlign: 'right', fontWeight: '600' }}>${(oi.quantity * oi.price).toFixed(2)}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button type="button" onClick={() => handleRemoveItem(oi.item_id)} style={{ color: 'var(--error)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-md)' }}>
                       &times;
                     </button>
                   </td>
@@ -162,8 +162,8 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={4} style={{ padding: '1rem', textAlign: 'right', fontWeight: '700', fontSize: '1rem' }}>TOTAL ESTIMADO:</td>
-              <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '700', fontSize: '1rem', color: 'var(--primary)' }}>${totalEstimated.toFixed(2)}</td>
+              <td colSpan={4} style={{ textAlign: 'right', fontWeight: 600 }}>TOTAL ESTIMADO:</td>
+              <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--primary)' }}>${totalEstimated.toFixed(2)}</td>
               <td></td>
             </tr>
           </tfoot>

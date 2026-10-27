@@ -92,7 +92,7 @@ export default async function AuditoriaPage({ searchParams }: { searchParams: Pr
               ))}
               {(!logs || logs.length === 0) && (
                 <tr>
-                  <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                     {error ? `Error al cargar logs: ${error.message}` : "No hay registros de auditoría disponibles."}
                   </td>
                 </tr>

@@ -57,38 +57,13 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
         <div className="page-header-actions">
           <Link
             href="/dashboard/proveedores/evaluacion"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.6rem 1.25rem",
-              borderRadius: "var(--radius)",
-              backgroundColor: "var(--white)",
-              color: "var(--primary-dark)",
-              border: "1px solid var(--border)",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-              textDecoration: "none",
-              boxShadow: "var(--shadow-sm)",
-            }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.25rem", borderRadius: "var(--radius)", backgroundColor: "var(--white)", color: "var(--primary-dark)", border: "1px solid var(--border)", fontWeight: 600, fontSize: 'var(--fs-base)', textDecoration: "none", boxShadow: "var(--shadow-sm)" }}
           >
             <Star className="ui-icon" aria-hidden="true" /> Ver Evaluaciones
           </Link>
           <a
             href="#formulario-proveedor"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.6rem 1.25rem",
-              borderRadius: "var(--radius)",
-              backgroundColor: "var(--primary)",
-              color: "#ffffff",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-              textDecoration: "none",
-              boxShadow: "var(--shadow-md)",
-            }}
+            style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.25rem", borderRadius: "var(--radius)", backgroundColor: "var(--primary)", color: "#ffffff", fontWeight: 600, fontSize: 'var(--fs-base)', textDecoration: "none", boxShadow: "var(--shadow-md)" }}
           >
             + Nuevo Proveedor
           </a>
@@ -98,36 +73,14 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
       {/* FEEDBACK BANNERS */}
       {error && (
         <div
-          style={{
-            padding: "1rem 1.25rem",
-            borderRadius: "var(--radius)",
-            backgroundColor: "#fee2e2",
-            border: "1px solid #fca5a5",
-            color: "#991b1b",
-            marginBottom: "1.5rem",
-            fontSize: "0.9rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
+          style={{ padding: "1rem 1.25rem", borderRadius: "var(--radius)", backgroundColor: "#fee2e2", border: "1px solid #fca5a5", color: "#991b1b", marginBottom: "1.5rem", fontSize: 'var(--fs-base)', display: "flex", alignItems: "center", gap: "0.5rem" }}
         >
           <AlertTriangle className="ui-icon" aria-hidden="true" /> {decodeURIComponent(error)}
         </div>
       )}
       {success && (
         <div
-          style={{
-            padding: "1rem 1.25rem",
-            borderRadius: "var(--radius)",
-            backgroundColor: "#d1fae5",
-            border: "1px solid #86efac",
-            color: "#065f46",
-            marginBottom: "1.5rem",
-            fontSize: "0.9rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
+          style={{ padding: "1rem 1.25rem", borderRadius: "var(--radius)", backgroundColor: "#d1fae5", border: "1px solid #86efac", color: "#065f46", marginBottom: "1.5rem", fontSize: 'var(--fs-base)', display: "flex", alignItems: "center", gap: "0.5rem" }}
         >
           <CheckCircle2 className="ui-icon" aria-hidden="true" /> Operación realizada exitosamente.
         </div>
@@ -156,7 +109,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
         {/* LISTADO Y BÚSQUEDA */}
         <div className="providers-list-card" style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
           <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-            <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--navy)" }}>
+            <h2 style={{ color: "var(--navy)" }}>
               Lista de Proveedores Registrados ({filteredSuppliers.length})
             </h2>
             <form method="get" className="providers-search">
@@ -165,26 +118,11 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                 name="search"
                 defaultValue={search || ""}
                 placeholder="Buscar por nombre, NIT..."
-                style={{
-                  padding: "0.5rem 0.85rem",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  fontSize: "0.875rem",
-                  width: "240px",
-                }}
+                style={{ width: "240px" }}
               />
               <button
                 type="submit"
-                style={{
-                  padding: "0.5rem 0.9rem",
-                  borderRadius: "8px",
-                  backgroundColor: "var(--navy)",
-                  color: "#fff",
-                  fontSize: "0.875rem",
-                  border: "none",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
+                style={{ padding: "0.5rem 0.9rem", borderRadius: "8px", backgroundColor: "var(--navy)", color: "#fff", fontSize: 'var(--fs-base)', border: "none", cursor: "pointer", fontWeight: 600 }}
               >
                 Buscar
               </button>
@@ -192,69 +130,54 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
           </div>
 
           <div style={{ overflowX: "auto" }}>
-            <table className="providers-table" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.875rem" }}>
+            <table className="providers-table" style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
               <thead>
-                <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: "0.75rem", letterSpacing: "0.05em" }}>
-                  <th style={{ padding: "0.85rem 1.25rem" }}>Razón Social / Proveedor</th>
-                  <th style={{ padding: "0.85rem 1.25rem" }}>NIT / RUT</th>
-                  <th style={{ padding: "0.85rem 1.25rem" }}>Contacto</th>
-                  <th style={{ padding: "0.85rem 1.25rem" }}>Teléfono</th>
-                  <th style={{ padding: "0.85rem 1.25rem", textAlign: "center" }}>Estado</th>
-                  <th style={{ padding: "0.85rem 1.25rem", textAlign: "right" }}>Acciones</th>
+                <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
+                  <th>Razón Social / Proveedor</th>
+                  <th>NIT / RUT</th>
+                  <th>Contacto</th>
+                  <th>Teléfono</th>
+                  <th style={{ textAlign: "center" }}>Estado</th>
+                  <th style={{ textAlign: "right" }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredSuppliers.map((s) => (
                   <tr key={s.id} style={{ borderBottom: "1px solid var(--border)", transition: "background 0.15s" }}>
-                    <td style={{ padding: "1rem 1.25rem", fontWeight: 600, color: "var(--navy)" }}>
+                    <td style={{ fontWeight: 600, color: "var(--navy)" }}>
                       <div>{s.name}</div>
                       {s.address && (
-                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 400, marginTop: "2px" }}>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", fontWeight: 400, marginTop: "2px" }}>
                           <MapPin className="ui-icon" aria-hidden="true" /> {s.address}
                         </div>
                       )}
                     </td>
-                    <td style={{ padding: "1rem 1.25rem", color: "var(--text-main)", fontFamily: "monospace" }}>
+                    <td style={{ color: "var(--text-main)" }}>
                       {s.tax_id || "—"}
                     </td>
-                    <td style={{ padding: "1rem 1.25rem", color: "var(--text-main)" }}>
+                    <td style={{ color: "var(--text-main)" }}>
                       <div>{s.contact_name || "—"}</div>
                       {s.contact_email && (
-                        <div style={{ fontSize: "0.75rem", color: "var(--primary-dark)" }}>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: "var(--primary-dark)" }}>
                           <Mail className="ui-icon" aria-hidden="true" /> {s.contact_email}
                         </div>
                       )}
                     </td>
-                    <td style={{ padding: "1rem 1.25rem", color: "var(--text-main)" }}>
+                    <td style={{ color: "var(--text-main)" }}>
                       {s.contact_phone || "—"}
                     </td>
-                    <td style={{ padding: "1rem 1.25rem", textAlign: "center" }}>
+                    <td style={{ textAlign: "center" }}>
                       <span
-                        style={{
-                          padding: "0.25rem 0.65rem",
-                          borderRadius: "999px",
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          backgroundColor: s.is_active ? "#dcfce7" : "#f1f5f9",
-                          color: s.is_active ? "#15803d" : "#64748b",
-                        }}
+                        style={{ padding: "0.25rem 0.65rem", borderRadius: "999px", fontSize: 'var(--fs-xs)', fontWeight: 600, backgroundColor: s.is_active ? "#dcfce7" : "#f1f5f9", color: s.is_active ? "#15803d" : "#64748b" }}
                       >
                         {s.is_active ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
+                    <td style={{ textAlign: "right" }}>
                       <div style={{ display: "inline-flex", gap: "0.5rem" }}>
                         <Link
                           href={`/dashboard/proveedores?editId=${s.id}#formulario-proveedor`}
-                          style={{
-                            padding: "0.35rem 0.65rem",
-                            borderRadius: "6px",
-                            backgroundColor: "var(--primary-light)",
-                            color: "var(--primary-dark)",
-                            fontSize: "0.75rem",
-                            fontWeight: 600,
-                            textDecoration: "none",
-                          }}
+                          style={{ padding: "0.35rem 0.65rem", borderRadius: "6px", backgroundColor: "var(--primary-light)", color: "var(--primary-dark)", fontSize: 'var(--fs-xs)', fontWeight: 600, textDecoration: "none" }}
                         >
                           Editar
                         </Link>
@@ -267,15 +190,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                         >
                           <button
                             type="submit"
-                            style={{
-                              padding: "0.35rem 0.65rem",
-                              borderRadius: "6px",
-                              backgroundColor: "#f8fafc",
-                              border: "1px solid var(--border)",
-                              color: "var(--text-muted)",
-                              fontSize: "0.75rem",
-                              cursor: "pointer",
-                            }}
+                            style={{ padding: "0.35rem 0.65rem", borderRadius: "6px", backgroundColor: "#f8fafc", border: "1px solid var(--border)", color: "var(--text-muted)", fontSize: 'var(--fs-xs)', cursor: "pointer" }}
                           >
                             {s.is_active ? "Desactivar" : "Activar"}
                           </button>
@@ -286,7 +201,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                 ))}
                 {filteredSuppliers.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                    <td colSpan={6} style={{ textAlign: "center", color: "var(--text-muted)" }}>
                       No se encontraron proveedores que coincidan con la búsqueda.
                     </td>
                   </tr>
@@ -302,11 +217,11 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
           id="formulario-proveedor"
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.75rem" }}>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--navy)" }}>
+            <h3 style={{ color: "var(--navy)" }}>
               {editingSupplier ? "Editar Proveedor" : "Registrar Proveedor"}
             </h3>
             {editingSupplier && (
-              <Link href="/dashboard/proveedores" style={{ fontSize: "0.8rem", color: "var(--text-muted)", textDecoration: "underline" }}>
+              <Link href="/dashboard/proveedores" style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)", textDecoration: "underline" }}>
                 Cancelar
               </Link>
             )}
@@ -316,7 +231,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
             {editingSupplier && <input type="hidden" name="id" value={editingSupplier.id} />}
 
             <div>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--navy)", marginBottom: "0.35rem" }}>
+              <label style={{ display: "block", color: "var(--navy)" }}>
                 Razón Social / Nombre Comercial *
               </label>
               <input
@@ -325,18 +240,12 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                 required
                 defaultValue={editingSupplier?.name || ""}
                 placeholder="Ej: Abbott Laboratories, Roche..."
-                style={{
-                  width: "100%",
-                  padding: "0.6rem 0.85rem",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  fontSize: "0.875rem",
-                }}
+                style={{ width: "100%" }}
               />
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--navy)", marginBottom: "0.35rem" }}>
+              <label style={{ display: "block", color: "var(--navy)" }}>
                 NIT / Identificación Fiscal
               </label>
               <input
@@ -344,18 +253,12 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                 name="tax_id"
                 defaultValue={editingSupplier?.tax_id || ""}
                 placeholder="Ej: 900.123.456-7"
-                style={{
-                  width: "100%",
-                  padding: "0.6rem 0.85rem",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  fontSize: "0.875rem",
-                }}
+                style={{ width: "100%" }}
               />
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--navy)", marginBottom: "0.35rem" }}>
+              <label style={{ display: "block", color: "var(--navy)" }}>
                 Persona de Contacto
               </label>
               <input
@@ -363,19 +266,13 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                 name="contact_name"
                 defaultValue={editingSupplier?.contact_name || ""}
                 placeholder="Ej: Dr. Carlos Pérez"
-                style={{
-                  width: "100%",
-                  padding: "0.6rem 0.85rem",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  fontSize: "0.875rem",
-                }}
+                style={{ width: "100%" }}
               />
             </div>
 
             <div className="provider-contact-grid">
               <div>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--navy)", marginBottom: "0.35rem" }}>
+                <label style={{ display: "block", color: "var(--navy)" }}>
                   Teléfono
                 </label>
                 <input
@@ -383,17 +280,11 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                   name="contact_phone"
                   defaultValue={editingSupplier?.contact_phone || ""}
                   placeholder="Ej: 310 123 4567"
-                  style={{
-                    width: "100%",
-                    padding: "0.6rem 0.85rem",
-                    borderRadius: "8px",
-                    border: "1px solid var(--border)",
-                    fontSize: "0.875rem",
-                  }}
+                  style={{ width: "100%" }}
                 />
               </div>
               <div>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--navy)", marginBottom: "0.35rem" }}>
+                <label style={{ display: "block", color: "var(--navy)" }}>
                   Correo Electrónico
                 </label>
                 <input
@@ -401,19 +292,13 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                   name="contact_email"
                   defaultValue={editingSupplier?.contact_email || ""}
                   placeholder="ventas@proveedor.com"
-                  style={{
-                    width: "100%",
-                    padding: "0.6rem 0.85rem",
-                    borderRadius: "8px",
-                    border: "1px solid var(--border)",
-                    fontSize: "0.875rem",
-                  }}
+                  style={{ width: "100%" }}
                 />
               </div>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--navy)", marginBottom: "0.35rem" }}>
+              <label style={{ display: "block", color: "var(--navy)" }}>
                 Dirección Física
               </label>
               <input
@@ -421,30 +306,13 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                 name="address"
                 defaultValue={editingSupplier?.address || ""}
                 placeholder="Calle / Carrera / Ciudad"
-                style={{
-                  width: "100%",
-                  padding: "0.6rem 0.85rem",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  fontSize: "0.875rem",
-                }}
+                style={{ width: "100%" }}
               />
             </div>
 
             <button
               type="submit"
-              style={{
-                marginTop: "0.5rem",
-                padding: "0.75rem",
-                borderRadius: "8px",
-                backgroundColor: "var(--primary)",
-                color: "#ffffff",
-                border: "none",
-                fontWeight: 700,
-                fontSize: "0.9rem",
-                cursor: "pointer",
-                boxShadow: "var(--shadow-md)",
-              }}
+              style={{ marginTop: "0.5rem", padding: "0.75rem", borderRadius: "8px", backgroundColor: "var(--primary)", color: "#ffffff", border: "none", fontWeight: 600, fontSize: 'var(--fs-base)', cursor: "pointer", boxShadow: "var(--shadow-md)" }}
             >
               {editingSupplier ? "Actualizar Proveedor" : "Guardar Proveedor"}
             </button>

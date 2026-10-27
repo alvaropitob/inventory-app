@@ -19,26 +19,26 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
       <input type="hidden" name="verification_seal" value={seal} />
       
       <div>
-        <label style={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.25rem' }}>
+        <label style={{ display: 'flex', alignItems: 'center' }}>
           Resultado de Prueba *
           <ContextualHelp 
             content="Según ISO 15189, la liberación técnica requiere que los controles de calidad estén dentro de los rangos establecidos. 'Pasar' moverá el lote de Cuarentena a Aceptado." 
           />
         </label>
-        <select name="result" required style={{ width: '100%', padding: '0.375rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
+        <select name="result" required style={{ width: '100%' }}>
           <option value="pass">Aprobado (Liberar para uso)</option>
           <option value="fail">Fallido (Rechazar lote)</option>
         </select>
       </div>
 
       <div>
-        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.25rem' }}>Lote de Control Usado</label>
-        <input type="text" name="control_lot" placeholder="Ej: CTRL-2024-X" style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border)' }} />
+        <label style={{ display: 'block' }}>Lote de Control Usado</label>
+        <input type="text" name="control_lot" placeholder="Ej: CTRL-2024-X" style={{ width: '100%' }} />
       </div>
 
       <div>
-        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '0.25rem' }}>Observaciones</label>
-        <textarea name="observations" rows={2} style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid var(--border)', resize: 'none' }}></textarea>
+        <label style={{ display: 'block' }}>Observaciones</label>
+        <textarea name="observations" rows={2} style={{ width: '100%', resize: 'none' }}></textarea>
       </div>
 
       <DigitalSignature 
@@ -55,17 +55,11 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
         type="submit" 
         disabled={!seal}
         className="btn-primary" 
-        style={{ 
-          width: '100%', 
-          justifyContent: 'center', 
-          padding: '0.75rem',
-          opacity: seal ? 1 : 0.5,
-          cursor: seal ? 'pointer' : 'not-allowed'
-        }}
+        style={{ width: '100%', justifyContent: 'center', opacity: seal ? 1 : 0.5, cursor: seal ? 'pointer' : 'not-allowed' }}
       >
         Guardar Verificación
       </button>
-      {!seal && <p style={{ fontSize: '0.65rem', color: 'red', textAlign: 'center' }}>Debe firmar digitalmente para habilitar el guardado.</p>}
+      {!seal && <p style={{ fontSize: 'var(--fs-xs)', color: 'red', textAlign: 'center' }}>Debe firmar digitalmente para habilitar el guardado.</p>}
     </form>
   );
 }

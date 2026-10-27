@@ -34,16 +34,7 @@ export default function DeleteMasterButton({
       onClick={handleClick}
       disabled={isDeleting}
       type="button"
-      style={{
-        padding: '0.4rem 0.8rem',
-        fontSize: '0.75rem',
-        background: 'var(--error)',
-        border: 'none',
-        borderRadius: '6px',
-        color: 'white',
-        cursor: isDeleting ? 'not-allowed' : 'pointer',
-        opacity: isDeleting ? 0.7 : 1
-      }}
+      style={{ padding: '0.4rem 0.8rem', fontSize: 'var(--fs-xs)', background: 'var(--error)', border: 'none', borderRadius: '6px', color: 'white', cursor: isDeleting ? 'not-allowed' : 'pointer', opacity: isDeleting ? 0.7 : 1 }}
     >
       {isDeleting ? "Eliminando..." : label}
     </button>

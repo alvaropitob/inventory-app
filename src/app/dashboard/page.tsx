@@ -145,7 +145,7 @@ export default async function DashboardPage() {
               </svg>
             </div>
           </div>
-          <div className="kpi-value" style={{ fontSize: '1.45rem' }}>
+          <div className="kpi-value" style={{ fontSize: 'var(--fs-lg)' }}>
             ${totalInventoryValue.toLocaleString('es-CO')}
           </div>
           <p className="kpi-meta kpi-meta-success">Capital activo en stock</p>

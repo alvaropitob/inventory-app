@@ -156,7 +156,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                 <input value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} placeholder="Factura del proveedor" required />
             </div>
 
-            <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 Detalle de Ítems y Lotes
                 <ContextualHelp content={{
                     title: "Inspección de Lotes",
@@ -175,26 +175,26 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ background: 'var(--bg-app)' }}>
                         <tr>
-                            <th style={{ padding: '1rem', textAlign: 'left' }}>Producto</th>
-                            <th style={{ padding: '1rem', textAlign: 'center' }}>Solicitado</th>
-                            <th style={{ padding: '1rem', textAlign: 'center' }}>Pendiente</th>
-                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'center' }}>Recibido</th>
-                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Ubicación</th>
-                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Número de Lote</th>
-                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left' }}>Vencimiento</th>
-                            <th className="fulfillment-header" style={{ padding: '1rem', textAlign: 'left', minWidth: '180px' }}>Escanear GS1-128</th>
+                            <th style={{ textAlign: 'left' }}>Producto</th>
+                            <th style={{ textAlign: 'center' }}>Solicitado</th>
+                            <th style={{ textAlign: 'center' }}>Pendiente</th>
+                            <th className="fulfillment-header" style={{ textAlign: 'center' }}>Recibido</th>
+                            <th className="fulfillment-header" style={{ textAlign: 'left' }}>Ubicación</th>
+                            <th className="fulfillment-header" style={{ textAlign: 'left' }}>Número de Lote</th>
+                            <th className="fulfillment-header" style={{ textAlign: 'left' }}>Vencimiento</th>
+                            <th className="fulfillment-header" style={{ textAlign: 'left', minWidth: '180px' }}>Escanear GS1-128</th>
                         </tr>
                     </thead>
                     <tbody>
                         {order.items.map((item) => (
                             <tr key={item.catalog_item_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                <td style={{ padding: '1rem' }}>
-                                    <div style={{ fontWeight: '700' }}>{item.catalog_item.technical_name}</div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.catalog_item.commercial_name} ({item.catalog_item.internal_code})</div>
+                                <td>
+                                    <div style={{ fontWeight: 600 }}>{item.catalog_item.technical_name}</div>
+                                    <div style={{ fontSize: 'var(--fs-base)', color: 'var(--text-muted)' }}>{item.catalog_item.commercial_name} ({item.catalog_item.internal_code})</div>
                                 </td>
-                                <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 'bold', color: 'var(--text-muted)' }}>{item.quantity_requested}</td>
-                                <td style={{ padding: '1rem', textAlign: 'center' }}>{Math.max(0, item.quantity_requested - item.quantity_received)}</td>
-                                <td style={{ padding: '1rem' }}>
+                                <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)' }}>{item.quantity_requested}</td>
+                                <td style={{ textAlign: 'center' }}>{Math.max(0, item.quantity_requested - item.quantity_received)}</td>
+                                <td>
                                     <input 
                                         type="number" 
                                         min="0"
@@ -207,7 +207,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                         required
                                     />
                                 </td>
-                                <td style={{ padding: '1rem' }}>
+                                <td>
                                     <select value={itemData[item.catalog_item_id].location_id} onChange={e => handleItemChange(item.catalog_item_id, 'location_id', e.target.value)} className="table-input" required={itemData[item.catalog_item_id].qty > 0} disabled={item.quantity_requested <= item.quantity_received}>
                                         <option value="">Seleccione...</option>
                                         {locationsForItem(item).map(location => (
@@ -217,7 +217,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                         ))}
                                     </select>
                                 </td>
-                                <td style={{ padding: '1rem' }}>
+                                <td>
                                     <input 
                                         type="text" 
                                         placeholder="LOTE-XXXX"
@@ -227,7 +227,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                     />
                                     <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Deje lote y vencimiento vacíos si no llegó</small>
                                 </td>
-                                <td style={{ padding: '1rem' }}>
+                                <td>
                                     <input 
                                         type="date"
                                         value={itemData[item.catalog_item_id].exp}
@@ -235,12 +235,12 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                         className="table-input"
                                     />
                                 </td>
-                                <td style={{ padding: '1rem' }}>
+                                <td>
                                     <input
                                         type="text"
                                         placeholder="Escanee código aquí..."
                                         className="table-input"
-                                        style={{ fontSize: '0.75rem', backgroundColor: '#f8fafc' }}
+
                                         onChange={(e) => {
                                             const val = e.target.value;
                                             if (val && val.length > 5) {

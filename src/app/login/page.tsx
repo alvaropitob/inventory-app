@@ -85,15 +85,7 @@ export default function LoginPage() {
         </div>
 
         {errorMsg && (
-          <div style={{
-            background: "#fee2e2",
-            border: "1px solid #ef4444",
-            color: "#991b1b",
-            padding: "0.75rem 1rem",
-            borderRadius: "8px",
-            fontSize: "0.875rem",
-            marginBottom: "1rem"
-          }}>
+          <div style={{ background: "#fee2e2", border: "1px solid #ef4444", color: "#991b1b", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: 'var(--fs-base)', marginBottom: "1rem" }}>
             {errorMsg}
           </div>
         )}
@@ -132,7 +124,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={{ textAlign: "center", margin: "1.5rem 0", color: "var(--text-muted)", fontSize: "0.875rem", display: "flex", alignItems: "center" }}>
+        <div style={{ textAlign: "center", margin: "1.5rem 0", color: "var(--text-muted)", fontSize: 'var(--fs-base)', display: "flex", alignItems: "center" }}>
           <div style={{ flex: 1, height: "1px", background: "var(--border)" }}></div>
           <span style={{ padding: "0 10px" }}>O continúa con</span>
           <div style={{ flex: 1, height: "1px", background: "var(--border)" }}></div>

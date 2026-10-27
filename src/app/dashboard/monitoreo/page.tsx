@@ -144,7 +144,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
                 return <text key={day} x={x} y="202" textAnchor="middle" fontSize="10" fill="#64748b">{new Date(`${day}T12:00:00Z`).toLocaleDateString('es-CO', { timeZone: "UTC", day: '2-digit', month: '2-digit' })}</text>;
               })}
             </svg>
-            <p className="cell-secondary"><span style={{ color: "#0f766e", fontWeight: 700 }}>AM</span> · <span style={{ color: "#2563eb", fontWeight: 700 }}>PM</span>. Se grafica la ubicación seleccionada.</p>
+            <p className="cell-secondary"><span style={{ color: "#0f766e", fontWeight: 600 }}>AM</span> · <span style={{ color: "#2563eb", fontWeight: 600 }}>PM</span>. Se grafica la ubicación seleccionada.</p>
           </div> : <p className="cell-secondary" style={{ padding: '0 1.5rem' }}>Registra lecturas de mañana y tarde para ver la tendencia.</p>}
           {selectedLocationId && <p className="cell-secondary" style={{ padding: "0 1.5rem 1rem" }}>
             {pendingShifts.length
@@ -176,7 +176,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
                     <td className="cell-primary">{log.locations?.name}</td>
                     <td>{log.reading_type?.toUpperCase() || "AM"}</td>
                     <td className="cell-center">
-                      <span style={{ fontWeight: 800, fontSize: '1rem', color: log.temperature > 30 || log.temperature < 15 ? 'var(--error)' : 'var(--success)' }}>
+                      <span style={{ fontWeight: 600, fontSize: 'var(--fs-md)', color: log.temperature > 30 || log.temperature < 15 ? 'var(--error)' : 'var(--success)' }}>
                         {log.temperature}°C
                       </span>
                     </td>

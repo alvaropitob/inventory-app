@@ -27,7 +27,7 @@ export default function MaintenanceRegistryForm({ equipmentId }: MaintenanceRegi
 
   return (
     <div className="form-container">
-      <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Nueva Intervención Técnica</h3>
+      <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Nueva Intervención Técnica</h3>
       <form id="maintenance-form" action={handleSubmit}>
         <input type="hidden" name="equipment_id" value={equipmentId} />
         

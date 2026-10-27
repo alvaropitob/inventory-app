@@ -134,7 +134,7 @@ export default async function UsuariosPage() {
                             <option key={r.id} value={r.id}>{r.name.toUpperCase()}</option>
                           ))}
                         </select>
-                        <button type="submit" className="btn-primary" style={{ padding: '0.625rem 1rem', fontSize: '0.75rem' }}>
+                        <button type="submit" className="btn-primary">
                           Actualizar
                         </button>
                       </form>

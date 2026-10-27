@@ -292,7 +292,7 @@ export default async function InventarioPage({
                     {editingItem ? "Editar Producto" : "Datos del producto"}
                   </h2>
                   {editingItem && (
-                    <a href="?view=entradas" style={{ fontSize: '0.875rem', color: 'var(--error)', textDecoration: 'none' }}>
+                    <a href="?view=entradas" style={{ fontSize: 'var(--fs-base)', color: 'var(--error)', textDecoration: 'none' }}>
                       Cancelar Edición
                     </a>
                   )}
@@ -437,9 +437,9 @@ export default async function InventarioPage({
                               <div className="cell-primary">{i.technical_name}</div>
                               <div className="cell-muted">{i.commercial_name}</div>
                             </td>
-                            <td style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.85rem' }}>{i.sections?.name}</td>
+                            <td style={{ color: 'var(--primary)', fontWeight: 600 }}>{i.sections?.name}</td>
                             <td>{i.purchase_unit}</td>
-                            <td style={{ fontWeight: 700 }}>{i.minimum_stock_threshold}</td>
+                            <td style={{ fontWeight: 600 }}>{i.minimum_stock_threshold}</td>
                             <td>
                               <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <a href={`?view=entradas&editId=${i.id}`} className="action-btn-edit">Editar</a>
@@ -584,20 +584,7 @@ export default async function InventarioPage({
                 <div className="form-actions-center" style={{ marginTop: '1.5rem' }}>
                   <button
                     type="submit"
-                    style={{
-                      padding: '0.75rem 2rem',
-                      borderRadius: '8px',
-                      backgroundColor: 'var(--navy)',
-                      color: '#ffffff',
-                      border: 'none',
-                      fontWeight: 700,
-                      fontSize: '0.925rem',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      boxShadow: 'var(--shadow-md)',
-                    }}
+                    style={{ padding: '0.75rem 2rem', borderRadius: '8px', backgroundColor: 'var(--navy)', color: '#ffffff', border: 'none', fontWeight: 600, fontSize: 'var(--fs-base)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', boxShadow: 'var(--shadow-md)' }}
                   >
                     <ArrowLeftRight className="ui-icon" aria-hidden="true" /> Confirmar Traslado de Inventario
                   </button>
@@ -691,7 +678,7 @@ export default async function InventarioPage({
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                           <span className="cell-muted" style={{ fontStyle: 'italic' }}>{m.reason}</span>
                           {m.equipment_name && (
-                            <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 700 }}>
+                            <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--primary)', fontWeight: 600 }}>
                               Equipo: {m.equipment_name}
                             </span>
                           )}

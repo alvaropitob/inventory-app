@@ -51,15 +51,7 @@ export default function SearchableProductSelect({ items, onSelect, placeholder =
           setIsOpen(true);
         }}
         onFocus={() => setIsOpen(true)}
-        style={{ 
-          width: '100%', 
-          padding: '0.75rem', 
-          borderRadius: '8px', 
-          border: '1px solid var(--border)',
-          fontSize: '0.925rem',
-          outline: 'none',
-          background: 'white'
-        }}
+        style={{ width: '100%' }}
       />
       
       {isOpen && searchTerm.length > 0 && (
@@ -92,14 +84,14 @@ export default function SearchableProductSelect({ items, onSelect, placeholder =
                 }}
                 className="product-suggestion"
               >
-                <div style={{ fontWeight: '600', color: 'var(--navy)', fontSize: '0.9rem' }}>{item.technical_name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  {item.commercial_name} <span style={{ marginLeft: '0.5rem', fontWeight: 'bold' }}>[{item.internal_code}]</span>
+                <div style={{ fontWeight: '600', color: 'var(--navy)', fontSize: 'var(--fs-base)' }}>{item.technical_name}</div>
+                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
+                  {item.commercial_name} <span style={{ marginLeft: '0.5rem', fontWeight: 600 }}>[{item.internal_code}]</span>
                 </div>
               </div>
             ))
           ) : (
-            <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--fs-base)' }}>
               No se encontraron productos
             </div>
           )}

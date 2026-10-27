@@ -76,7 +76,7 @@ export default async function RecepcionPage() {
                           <Link
                             href={`/dashboard/recepcion/${order.id}`}
                             className="btn-primary"
-                            style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', textDecoration: 'none' }}
+                            style={{ textDecoration: 'none' }}
                           >
                             Iniciar Inspección
                           </Link>

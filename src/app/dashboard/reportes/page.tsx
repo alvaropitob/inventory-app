@@ -270,7 +270,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
       <div className="reports-layout" style={{ display: "grid", gap: "1rem", alignItems: "start" }}>
         {/* NAVEGACIÓN LATERAL DE REPORTES */}
         <div className="reports-nav-card" style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", padding: "1.25rem", boxShadow: "var(--shadow-sm)" }}>
-          <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.75rem" }}>
+          <h2 style={{ color: "var(--text-muted)", textTransform: "uppercase" }}>
             Suficiencia
           </h2>
           <nav style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
@@ -300,10 +300,10 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             <div style={{ padding: "1.75rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--navy)" }}>
+                  <h2 style={{ color: "var(--navy)" }}>
                     Estado General de Cumplimiento Normativo
                   </h2>
-                  <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: "2px" }}>
+                  <p style={{ fontSize: 'var(--fs-base)', color: "var(--text-muted)", marginTop: "2px" }}>
                     Resumen técnico consolidado para visitas de Habilitación y Certificación de Calidad.
                   </p>
                 </div>
@@ -312,31 +312,31 @@ export default async function ReportesPage({ searchParams }: PageProps) {
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.75rem" }}>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>MOVIMIENTOS TOTALES</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--navy)", marginTop: "0.25rem" }}>{movements.length}</p>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>Trazabilidad registrada</p>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)", fontWeight: 600 }}>MOVIMIENTOS TOTALES</p>
+                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: "var(--navy)", marginTop: "0.25rem" }}>{movements.length}</p>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Trazabilidad registrada</p>
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>LOTES EN RIESGO / CRÍTICOS</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 800, color: batchesWithDays.filter((b) => b.diffDays <= 30).length > 0 ? "var(--error)" : "var(--success)", marginTop: "0.25rem" }}>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)", fontWeight: 600 }}>LOTES EN RIESGO / CRÍTICOS</p>
+                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: batchesWithDays.filter((b) => b.diffDays <= 30).length > 0 ? "var(--error)" : "var(--success)", marginTop: "0.25rem" }}>
                     {batchesWithDays.filter((b) => b.diffDays <= 30).length}
                   </p>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>Vencimiento en ≤ 30 días</p>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Vencimiento en ≤ 30 días</p>
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>BAJAS / MERMAS</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--warning)", marginTop: "0.25rem" }}>{mermas.length}</p>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>Descartes registrados</p>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)", fontWeight: 600 }}>BAJAS / MERMAS</p>
+                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: "var(--warning)", marginTop: "0.25rem" }}>{mermas.length}</p>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Descartes registrados</p>
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>INCIDENTES INVIMA</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 800, color: incidents.length > 0 ? "var(--error)" : "var(--success)", marginTop: "0.25rem" }}>{incidents.length}</p>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>Reactivovigilancia</p>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)", fontWeight: 600 }}>INCIDENTES INVIMA</p>
+                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: incidents.length > 0 ? "var(--error)" : "var(--success)", marginTop: "0.25rem" }}>{incidents.length}</p>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Reactivovigilancia</p>
                 </div>
               </div>
 
-              <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontSize: "0.875rem", lineHeight: "1.6" }}>
-                <h4 style={{ fontWeight: 700, marginBottom: "0.35rem", display: "flex", alignItems: "center", gap: "0.4rem" }}><BookmarkCheck className="ui-icon" aria-hidden="true" /> Guía de Preparación para Visitas de Auditoría:</h4>
+              <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#eff6ff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontSize: 'var(--fs-base)' }}>
+                <h4 style={{ marginBottom: "0.35rem", display: "flex", alignItems: "center", gap: "0.4rem" }}><BookmarkCheck className="ui-icon" aria-hidden="true" /> Guía de Preparación para Visitas de Auditoría:</h4>
                 <ul style={{ paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                   <li>Para <b>Habilitación (Resolución 3100)</b>: descargue el reporte de <i>Suficiencia de Insumos</i> y la <i>Bitácora de Red de Frío</i> del último mes.</li>
                   <li>Para <b>Inspección INVIMA</b>: presente el reporte oficial de <i>Reactivovigilancia</i> junto con las actas de <i>Bajas y Disposición Final</i>.</li>
@@ -351,8 +351,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Trazabilidad de Movimientos</h2>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Historial cronológico inmutable de entradas, salidas y descartes.</p>
+                  <h2 style={{ color: "var(--navy)" }}>Trazabilidad de Movimientos</h2>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)" }}>Historial cronológico inmutable de entradas, salidas y descartes.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <ExportCSVButton data={kardexExportData} filename="KARDEX_MOVIMIENTOS" label="Exportar a Excel / CSV" />
@@ -360,45 +360,38 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 </div>
               </div>
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
-                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: "0.725rem" }}>
-                      <th style={{ padding: "0.75rem 1rem" }}>Fecha / Hora</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Producto</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Lote</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Tipo</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Cantidad</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Ubicación</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Responsable</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Motivo / Destino</th>
+                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
+                      <th>Fecha / Hora</th>
+                      <th>Producto</th>
+                      <th>Lote</th>
+                      <th>Tipo</th>
+                      <th style={{ textAlign: "center" }}>Cantidad</th>
+                      <th>Ubicación</th>
+                      <th>Responsable</th>
+                      <th>Motivo / Destino</th>
                     </tr>
                   </thead>
                   <tbody>
                     {movements.map((m) => (
                       <tr key={m.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ padding: "0.75rem 1rem", whiteSpace: "nowrap" }}>{new Date(m.created_at).toLocaleString()}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontWeight: 600, color: "var(--navy)" }}>{m.batch?.item?.technical_name || "N/A"}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontFamily: "monospace" }}>{m.batch?.batch_number || "—"}</td>
-                        <td style={{ padding: "0.75rem 1rem" }}>
+                        <td style={{ whiteSpace: "nowrap" }}>{new Date(m.created_at).toLocaleString()}</td>
+                        <td style={{ fontWeight: 600, color: "var(--navy)" }}>{m.batch?.item?.technical_name || "N/A"}</td>
+                        <td>{m.batch?.batch_number || "—"}</td>
+                        <td>
                           <span
-                            style={{
-                              padding: "0.2rem 0.5rem",
-                              borderRadius: "4px",
-                              fontSize: "0.725rem",
-                              fontWeight: 700,
-                              backgroundColor: m.movement_type === "entry" ? "#dcfce7" : m.movement_type === "exit" ? "#fee2e2" : "#fef3c7",
-                              color: m.movement_type === "entry" ? "#15803d" : m.movement_type === "exit" ? "#991b1b" : "#b45309",
-                            }}
+                            style={{ padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: 'var(--fs-xs)', fontWeight: 600, backgroundColor: m.movement_type === "entry" ? "#dcfce7" : m.movement_type === "exit" ? "#fee2e2" : "#fef3c7", color: m.movement_type === "entry" ? "#15803d" : m.movement_type === "exit" ? "#991b1b" : "#b45309" }}
                           >
                             {m.movement_type === "entry" ? "Entrada" : m.movement_type === "exit" ? "Salida" : "Ajuste/Baja"}
                           </span>
                         </td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", fontWeight: 700 }}>
+                        <td style={{ textAlign: "center", fontWeight: 600 }}>
                           {m.movement_type === "exit" ? `-${m.quantity}` : `+${m.quantity}`}
                         </td>
-                        <td style={{ padding: "0.75rem 1rem" }}>{m.batch?.location?.name || "—"}</td>
-                        <td style={{ padding: "0.75rem 1rem" }}>{m.user?.full_name || m.user?.username || "Sistema"}</td>
-                        <td style={{ padding: "0.75rem 1rem", color: "var(--text-muted)" }}>{m.reason || m.equipment_name || "—"}</td>
+                        <td>{m.batch?.location?.name || "—"}</td>
+                        <td>{m.user?.full_name || m.user?.username || "Sistema"}</td>
+                        <td style={{ color: "var(--text-muted)" }}>{m.reason || m.equipment_name || "—"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -412,8 +405,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Suficiencia</h2>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Evidencia de disponibilidad de stock para la cartera de servicios habilitada.</p>
+                  <h2 style={{ color: "var(--navy)" }}>Suficiencia</h2>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)" }}>Evidencia de disponibilidad de stock para la cartera de servicios habilitada.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <ExportCSVButton data={suficienciaData} filename="SUFICIENCIA" label="Exportar a Excel / CSV" />
@@ -421,39 +414,32 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 </div>
               </div>
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
-                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: "0.725rem" }}>
-                      <th style={{ padding: "0.75rem 1rem" }}>Código</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Reactivo / Dispositivo</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Sección</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Stock Actual</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Mínimo Requerido</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Stock MÃ¡ximo</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Estado de Suficiencia</th>
+                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
+                      <th>Código</th>
+                      <th>Reactivo / Dispositivo</th>
+                      <th>Sección</th>
+                      <th style={{ textAlign: "center" }}>Stock Actual</th>
+                      <th style={{ textAlign: "center" }}>Mínimo Requerido</th>
+                      <th style={{ textAlign: "center" }}>Stock MÃ¡ximo</th>
+                      <th style={{ textAlign: "center" }}>Estado de Suficiencia</th>
                     </tr>
                   </thead>
                   <tbody>
                     {suficienciaData.map((item) => (
                       <tr key={item.Codigo} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ padding: "0.75rem 1rem", fontFamily: "monospace", color: "var(--text-muted)" }}>{item.Codigo}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontWeight: 600, color: "var(--navy)" }}>{item.Producto}</td>
-                        <td style={{ padding: "0.75rem 1rem" }}>{item.Seccion}</td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", fontWeight: 700 }}>
+                        <td style={{ color: "var(--text-muted)" }}>{item.Codigo}</td>
+                        <td style={{ fontWeight: 600, color: "var(--navy)" }}>{item.Producto}</td>
+                        <td>{item.Seccion}</td>
+                        <td style={{ textAlign: "center", fontWeight: 600 }}>
                           {item.StockActual} {item.Unidad}
                         </td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", color: "var(--text-muted)" }}>{item.StockMinimo}</td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", color: "var(--text-muted)" }}>{item.StockMaximo}</td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center" }}>
+                        <td style={{ textAlign: "center", color: "var(--text-muted)" }}>{item.StockMinimo}</td>
+                        <td style={{ textAlign: "center", color: "var(--text-muted)" }}>{item.StockMaximo}</td>
+                        <td style={{ textAlign: "center" }}>
                           <span
-                            style={{
-                              padding: "0.25rem 0.65rem",
-                              borderRadius: "999px",
-                              fontSize: "0.725rem",
-                              fontWeight: 700,
-                              backgroundColor: item.StockActual === 0 || (typeof item.StockMaximo === "number" && item.StockActual > item.StockMaximo) ? "#fee2e2" : item.StockActual <= item.StockMinimo ? "#fef3c7" : "#dcfce7",
-                              color: item.StockActual === 0 || (typeof item.StockMaximo === "number" && item.StockActual > item.StockMaximo) ? "#991b1b" : item.StockActual <= item.StockMinimo ? "#b45309" : "#15803d",
-                            }}
+                            style={{ padding: "0.25rem 0.65rem", borderRadius: "999px", fontSize: 'var(--fs-xs)', fontWeight: 600, backgroundColor: item.StockActual === 0 || (typeof item.StockMaximo === "number" && item.StockActual > item.StockMaximo) ? "#fee2e2" : item.StockActual <= item.StockMinimo ? "#fef3c7" : "#dcfce7", color: item.StockActual === 0 || (typeof item.StockMaximo === "number" && item.StockActual > item.StockMaximo) ? "#991b1b" : item.StockActual <= item.StockMinimo ? "#b45309" : "#15803d" }}
                           >
                             {item.Estado}
                           </span>
@@ -471,8 +457,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Semáforo de Vencimientos de Lotes</h2>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Control estricto de fechas de expiración para evitar uso de material no apto.</p>
+                  <h2 style={{ color: "var(--navy)" }}>Semáforo de Vencimientos de Lotes</h2>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)" }}>Control estricto de fechas de expiración para evitar uso de material no apto.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <ExportCSVButton data={vencimientosExportData} filename="SEMAFORO_VENCIMIENTOS" label="Exportar a Excel / CSV" />
@@ -480,40 +466,32 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 </div>
               </div>
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
-                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: "0.725rem" }}>
-                      <th style={{ padding: "0.75rem 1rem" }}>Producto</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Lote</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Fecha Vencimiento</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Días Restantes</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Stock Disponible</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Ubicación</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Semáforo</th>
+                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
+                      <th>Producto</th>
+                      <th>Lote</th>
+                      <th>Fecha Vencimiento</th>
+                      <th style={{ textAlign: "center" }}>Días Restantes</th>
+                      <th style={{ textAlign: "center" }}>Stock Disponible</th>
+                      <th>Ubicación</th>
+                      <th style={{ textAlign: "center" }}>Semáforo</th>
                     </tr>
                   </thead>
                   <tbody>
                     {batchesWithDays.map((b) => (
                       <tr key={b.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ padding: "0.75rem 1rem", fontWeight: 600, color: "var(--navy)" }}>{b.item?.technical_name || "N/A"}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontFamily: "monospace" }}>{b.batch_number}</td>
-                        <td style={{ padding: "0.75rem 1rem" }}>{new Date(b.expiration_date).toLocaleDateString()}</td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", fontWeight: 700, color: b.trafficColor }}>
+                        <td style={{ fontWeight: 600, color: "var(--navy)" }}>{b.item?.technical_name || "N/A"}</td>
+                        <td>{b.batch_number}</td>
+                        <td>{new Date(b.expiration_date).toLocaleDateString()}</td>
+                        <td style={{ textAlign: "center", fontWeight: 600, color: b.trafficColor }}>
                           {b.diffDays <= 0 ? "VENCIDO" : `${b.diffDays} días`}
                         </td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", fontWeight: 600 }}>{b.current_stock}</td>
-                        <td style={{ padding: "0.75rem 1rem" }}>{b.location?.name || "—"}</td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center" }}>
+                        <td style={{ textAlign: "center", fontWeight: 600 }}>{b.current_stock}</td>
+                        <td>{b.location?.name || "—"}</td>
+                        <td style={{ textAlign: "center" }}>
                           <span
-                            style={{
-                              padding: "0.25rem 0.65rem",
-                              borderRadius: "999px",
-                              fontSize: "0.725rem",
-                              fontWeight: 700,
-                              backgroundColor: `${b.trafficColor}20`,
-                              color: b.trafficColor,
-                              border: `1px solid ${b.trafficColor}60`,
-                            }}
+                            style={{ padding: "0.25rem 0.65rem", borderRadius: "999px", fontSize: 'var(--fs-xs)', fontWeight: 600, backgroundColor: `${b.trafficColor}20`, color: b.trafficColor, border: `1px solid ${b.trafficColor}60` }}
                           >
                             {b.trafficLight}
                           </span>
@@ -531,8 +509,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Registro de Bajas y Disposición Final</h2>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Control de residuos, pérdidas, reactivos vencidos y bajas técnicas justificadas.</p>
+                  <h2 style={{ color: "var(--navy)" }}>Registro de Bajas y Disposición Final</h2>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)" }}>Control de residuos, pérdidas, reactivos vencidos y bajas técnicas justificadas.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <ExportCSVButton data={mermasExportData} filename="BAJAS_DISPOSICION_FINAL" label="Exportar a Excel / CSV" />
@@ -540,33 +518,33 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 </div>
               </div>
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
-                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: "0.725rem" }}>
-                      <th style={{ padding: "0.75rem 1rem" }}>Fecha de Baja</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Producto</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Lote</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Cantidad Dada de Baja</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Motivo / Justificación</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Responsable</th>
+                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
+                      <th>Fecha de Baja</th>
+                      <th>Producto</th>
+                      <th>Lote</th>
+                      <th style={{ textAlign: "center" }}>Cantidad Dada de Baja</th>
+                      <th>Motivo / Justificación</th>
+                      <th>Responsable</th>
                     </tr>
                   </thead>
                   <tbody>
                     {mermas.map((m) => (
                       <tr key={m.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ padding: "0.75rem 1rem" }}>{new Date(m.created_at).toLocaleDateString()}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontWeight: 600, color: "var(--navy)" }}>{m.batch?.item?.technical_name || "N/A"}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontFamily: "monospace" }}>{m.batch?.batch_number || "—"}</td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", color: "#991b1b", fontWeight: 700 }}>
+                        <td>{new Date(m.created_at).toLocaleDateString()}</td>
+                        <td style={{ fontWeight: 600, color: "var(--navy)" }}>{m.batch?.item?.technical_name || "N/A"}</td>
+                        <td>{m.batch?.batch_number || "—"}</td>
+                        <td style={{ textAlign: "center", color: "#991b1b", fontWeight: 600 }}>
                           -{m.quantity}
                         </td>
-                        <td style={{ padding: "0.75rem 1rem", color: "var(--navy)" }}>{m.reason}</td>
-                        <td style={{ padding: "0.75rem 1rem" }}>{m.user?.full_name || m.user?.username || "Sistema"}</td>
+                        <td style={{ color: "var(--navy)" }}>{m.reason}</td>
+                        <td>{m.user?.full_name || m.user?.username || "Sistema"}</td>
                       </tr>
                     ))}
                     {mermas.length === 0 && (
                       <tr>
-                        <td colSpan={6} style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                        <td colSpan={6} style={{ textAlign: "center", color: "var(--text-muted)" }}>
                           No se registran descartes o mermas en el período.
                         </td>
                       </tr>
@@ -582,8 +560,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Bitácora de Reactivovigilancia (INVIMA)</h2>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Reportes de defectos de calidad, eventos adversos e incidentes con reactivos de diagnóstico.</p>
+                  <h2 style={{ color: "var(--navy)" }}>Bitácora de Reactivovigilancia (INVIMA)</h2>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)" }}>Reportes de defectos de calidad, eventos adversos e incidentes con reactivos de diagnóstico.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <ExportCSVButton data={reactivoExportData} filename="REACTIVOVIGILANCIA_INVIMA" label="Exportar a Excel / CSV" />
@@ -591,29 +569,29 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 </div>
               </div>
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
-                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: "0.725rem" }}>
-                      <th style={{ padding: "0.75rem 1rem" }}>Fecha Notificación</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Tipo de Incidente</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Lote Afectado</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Descripción del Defecto</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Acción Correctiva</th>
+                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
+                      <th>Fecha Notificación</th>
+                      <th>Tipo de Incidente</th>
+                      <th>Lote Afectado</th>
+                      <th>Descripción del Defecto</th>
+                      <th>Acción Correctiva</th>
                     </tr>
                   </thead>
                   <tbody>
                     {incidents.map((inc) => (
                       <tr key={inc.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ padding: "0.75rem 1rem" }}>{new Date(inc.reported_at).toLocaleDateString()}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontWeight: 600, color: "var(--primary-dark)" }}>{inc.incident_type}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontFamily: "monospace" }}>{inc.batch?.batch_number || "—"}</td>
-                        <td style={{ padding: "0.75rem 1rem", color: "var(--navy)" }}>{inc.description}</td>
-                        <td style={{ padding: "0.75rem 1rem" }}>{inc.action_taken || "En investigación"}</td>
+                        <td>{new Date(inc.reported_at).toLocaleDateString()}</td>
+                        <td style={{ fontWeight: 600, color: "var(--primary-dark)" }}>{inc.incident_type}</td>
+                        <td>{inc.batch?.batch_number || "—"}</td>
+                        <td style={{ color: "var(--navy)" }}>{inc.description}</td>
+                        <td>{inc.action_taken || "En investigación"}</td>
                       </tr>
                     ))}
                     {incidents.length === 0 && (
                       <tr>
-                        <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                        <td colSpan={5} style={{ textAlign: "center", color: "var(--text-muted)" }}>
                           No hay incidentes reportados en la bitácora de reactivovigilancia.
                         </td>
                       </tr>
@@ -629,8 +607,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Bitácora de Monitoreo Térmico (Red de Frío)</h2>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Lecturas AM/PM de temperatura y humedad en neveras, cuartos fríos y estantes.</p>
+                  <h2 style={{ color: "var(--navy)" }}>Bitácora de Monitoreo Térmico (Red de Frío)</h2>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)" }}>Lecturas AM/PM de temperatura y humedad en neveras, cuartos fríos y estantes.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <ExportCSVButton data={ambientalExportData} filename="RED_FRIO_TEMPERATURAS" label="Exportar a Excel / CSV" />
@@ -638,35 +616,28 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 </div>
               </div>
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
-                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: "0.725rem" }}>
-                      <th style={{ padding: "0.75rem 1rem" }}>Fecha y Hora</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Ubicación / Equipo de Frío</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Temperatura (°C)</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Humedad (%)</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Estado de Rango</th>
+                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
+                      <th>Fecha y Hora</th>
+                      <th>Ubicación / Equipo de Frío</th>
+                      <th style={{ textAlign: "center" }}>Temperatura (°C)</th>
+                      <th style={{ textAlign: "center" }}>Humedad (%)</th>
+                      <th style={{ textAlign: "center" }}>Estado de Rango</th>
                     </tr>
                   </thead>
                   <tbody>
                     {logs.map((log) => (
                       <tr key={log.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ padding: "0.75rem 1rem" }}>{new Date(log.created_at).toLocaleString()}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontWeight: 600, color: "var(--navy)" }}>{log.locations?.name || "N/A"}</td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", fontWeight: 700, color: log.is_out_of_range ? "#dc2626" : "var(--navy)" }}>
+                        <td>{new Date(log.created_at).toLocaleString()}</td>
+                        <td style={{ fontWeight: 600, color: "var(--navy)" }}>{log.locations?.name || "N/A"}</td>
+                        <td style={{ textAlign: "center", fontWeight: 600, color: log.is_out_of_range ? "#dc2626" : "var(--navy)" }}>
                           {log.temperature} °C
                         </td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center" }}>{log.humidity ? `${log.humidity}%` : "—"}</td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center" }}>
+                        <td style={{ textAlign: "center" }}>{log.humidity ? `${log.humidity}%` : "—"}</td>
+                        <td style={{ textAlign: "center" }}>
                           <span
-                            style={{
-                              padding: "0.2rem 0.5rem",
-                              borderRadius: "4px",
-                              fontSize: "0.725rem",
-                              fontWeight: 700,
-                              backgroundColor: log.is_out_of_range ? "#fee2e2" : "#dcfce7",
-                              color: log.is_out_of_range ? "#991b1b" : "#15803d",
-                            }}
+                            style={{ padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: 'var(--fs-xs)', fontWeight: 600, backgroundColor: log.is_out_of_range ? "#fee2e2" : "#dcfce7", color: log.is_out_of_range ? "#991b1b" : "#15803d" }}
                           >
                             {log.is_out_of_range ? <><AlertTriangle className="ui-icon" aria-hidden="true" /> FUERA DE RANGO</> : "En Rango"}
                           </span>
@@ -684,8 +655,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
             <div>
               <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                 <div>
-                  <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--navy)" }}>Valorización Económica del Inventario</h2>
-                  <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Control financiero de reactivos en stock, costos operativos y capital en riesgo.</p>
+                  <h2 style={{ color: "var(--navy)" }}>Valorización Económica del Inventario</h2>
+                  <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)" }}>Control financiero de reactivos en stock, costos operativos y capital en riesgo.</p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <ExportCSVButton data={valorizacionExportData} filename="VALORIZACION_INVENTARIO_COSTOS" label="Exportar a Excel / CSV" />
@@ -696,60 +667,60 @@ export default async function ReportesPage({ searchParams }: PageProps) {
               {/* KPIS FINANCIEROS */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem", padding: "1.25rem 1.5rem 0.5rem" }}>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}>VALOR TOTAL EN STOCK</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--navy)", marginTop: "0.25rem" }}>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase" }}>VALOR TOTAL EN STOCK</p>
+                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: "var(--navy)", marginTop: "0.25rem" }}>
                     ${valorTotalInventario.toLocaleString("es-CO")}
                   </p>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>Capital activo en reactivos</p>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Capital activo en reactivos</p>
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}>CAPITAL EN RIESGO (≤30 DÍAS)</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 800, color: valorEnRiesgo > 0 ? "var(--warning)" : "var(--success)", marginTop: "0.25rem" }}>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase" }}>CAPITAL EN RIESGO (≤30 DÍAS)</p>
+                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: valorEnRiesgo > 0 ? "var(--warning)" : "var(--success)", marginTop: "0.25rem" }}>
                     ${valorEnRiesgo.toLocaleString("es-CO")}
                   </p>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>Reactivos por vencer pronto</p>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Reactivos por vencer pronto</p>
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}>ÍTEMS VALORIZADOS</p>
-                  <p style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--primary-dark)", marginTop: "0.25rem" }}>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase" }}>ÍTEMS VALORIZADOS</p>
+                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: "var(--primary-dark)", marginTop: "0.25rem" }}>
                     {valorizacionData.length}
                   </p>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>Con precio o stock activo</p>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Con precio o stock activo</p>
                 </div>
               </div>
 
               <div style={{ overflowX: "auto", padding: "1rem 0" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.85rem" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 'var(--fs-base)' }}>
                   <thead>
-                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: "0.725rem" }}>
-                      <th style={{ padding: "0.75rem 1rem" }}>Código</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Producto / Reactivo</th>
-                      <th style={{ padding: "0.75rem 1rem" }}>Sección</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "center" }}>Stock Actual</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Costo Unitario</th>
-                      <th style={{ padding: "0.75rem 1rem", textAlign: "right" }}>Valor Total Stock</th>
+                    <tr style={{ backgroundColor: "#f8fafc", borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textTransform: "uppercase", fontSize: 'var(--fs-xs)' }}>
+                      <th>Código</th>
+                      <th>Producto / Reactivo</th>
+                      <th>Sección</th>
+                      <th style={{ textAlign: "center" }}>Stock Actual</th>
+                      <th style={{ textAlign: "right" }}>Costo Unitario</th>
+                      <th style={{ textAlign: "right" }}>Valor Total Stock</th>
                     </tr>
                   </thead>
                   <tbody>
                     {valorizacionData.map((item) => (
                       <tr key={item.Codigo} style={{ borderBottom: "1px solid var(--border)" }}>
-                        <td style={{ padding: "0.75rem 1rem", fontFamily: "monospace", color: "var(--text-muted)" }}>{item.Codigo}</td>
-                        <td style={{ padding: "0.75rem 1rem", fontWeight: 600, color: "var(--navy)" }}>{item.Producto}</td>
-                        <td style={{ padding: "0.75rem 1rem" }}>{item.Seccion}</td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "center", fontWeight: 600 }}>
+                        <td style={{ color: "var(--text-muted)" }}>{item.Codigo}</td>
+                        <td style={{ fontWeight: 600, color: "var(--navy)" }}>{item.Producto}</td>
+                        <td>{item.Seccion}</td>
+                        <td style={{ textAlign: "center", fontWeight: 600 }}>
                           {item.StockActual} {item.Unidad}
                         </td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "right", color: "var(--text-muted)" }}>
+                        <td style={{ textAlign: "right", color: "var(--text-muted)" }}>
                           {item.PrecioUnitario > 0 ? `$${item.PrecioUnitario.toLocaleString("es-CO")}` : "Sin precio"}
                         </td>
-                        <td style={{ padding: "0.75rem 1rem", textAlign: "right", fontWeight: 700, color: "var(--navy)" }}>
+                        <td style={{ textAlign: "right", fontWeight: 600, color: "var(--navy)" }}>
                           ${item.ValorTotal.toLocaleString("es-CO")}
                         </td>
                       </tr>
                     ))}
                     {valorizacionData.length === 0 && (
                       <tr>
-                        <td colSpan={6} style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                        <td colSpan={6} style={{ textAlign: "center", color: "var(--text-muted)" }}>
                           No hay productos con stock o precios registrados en el catálogo.
                         </td>
                       </tr>

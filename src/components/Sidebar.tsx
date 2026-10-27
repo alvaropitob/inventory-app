@@ -272,7 +272,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
             
             return (
               <div key={item.href}>
-                <div style={{ position: 'relative' }}>
+                <div className="nav-item-wrap">
                   <Link
                     href={item.href}
                     className={`nav-item ${hasSubItems ? "nav-item-parent" : ""} ${isActive ? "active" : ""}`}
@@ -293,26 +293,11 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
                       aria-label={`${isOpen ? "Contraer" : "Expandir"} ${item.name}`}
                       aria-expanded={isOpen}
                       aria-controls={`sidebar-submenu-${item.href.replace(/[/?=]/g, "-")}`}
-                      style={{
-                        position: 'absolute',
-                        right: '8px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'inherit',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'transform 0.2s'
-                      }}
                     >
                       <svg 
                         width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                        strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                        style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}
+                        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}
                       >
                         <path d="m6 9 6 6 6-6" />
                       </svg>
@@ -388,33 +373,6 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           </form>
         </div>
       </motion.aside>
-      <style jsx>{`
-        .sub-nav {
-          padding-left: 2rem;
-          margin-top: 0.25rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-        .sidebar:not(.sidebar-expanded):not(.sidebar-mobile-open) .sub-nav {
-          display: none;
-        }
-        .sub-nav-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.5rem 1rem;
-          color: var(--navy-light);
-          text-decoration: none;
-          font-size: 0.8125rem;
-          border-radius: 6px;
-          transition: all 0.2s;
-        }
-        .sub-nav-item:hover {
-          background: var(--bg-app);
-          color: var(--primary);
-        }
-      `}</style>
     </>
   );
 }

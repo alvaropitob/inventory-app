@@ -123,7 +123,7 @@ export default async function PedidosPage({
               ))}
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                     No hay pedidos que coincidan con los filtros actuales.
                   </td>
                 </tr>

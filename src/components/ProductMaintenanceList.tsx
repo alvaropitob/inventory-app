@@ -49,7 +49,7 @@ export default function ProductMaintenanceList({
             placeholder="Buscar por nombre, código o presentación..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ paddingLeft: '3rem' }}
+
           />
         </div>
       </div>
@@ -69,10 +69,10 @@ export default function ProductMaintenanceList({
           <tbody>
             {displayItems.map(i => (
               <tr key={i.id}>
-                <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{i.internal_code}</td>
-                <td style={{ fontWeight: '700', color: 'var(--navy)' }}>{i.technical_name}</td>
+                <td style={{ color: 'var(--text-muted)' }}>{i.internal_code}</td>
+                <td style={{ fontWeight: 600, color: 'var(--navy)' }}>{i.technical_name}</td>
                 <td>{i.commercial_name || "-"}</td>
-                <td style={{ textAlign: 'right', fontWeight: '700', color: 'var(--primary)' }}>
+                <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--primary)' }}>
                   ${i.estimated_unit_price?.toFixed(2) || "0.00"}
                 </td>
                 <td style={{ textAlign: 'center' }}>
@@ -82,11 +82,11 @@ export default function ProductMaintenanceList({
                 </td>
                 <td style={{ textAlign: 'center' }}>
                   <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                    <a href={`?tab=productos&editId=${i.id}`} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}>Editar</a>
+                    <a href={`?tab=productos&editId=${i.id}`} className="btn-secondary">Editar</a>
                     <form action={async () => {
                       await toggleStatusAction(i.id, !!i.is_active, 'product');
                     }}>
-                      <button type="submit" className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', color: i.is_active ? 'var(--error)' : 'var(--success)' }}>
+                      <button type="submit" className="btn-secondary" style={{ color: i.is_active ? 'var(--error)' : 'var(--success)' }}>
                         {i.is_active ? 'Inactivar' : 'Activar'}
                       </button>
                     </form>
@@ -100,7 +100,7 @@ export default function ProductMaintenanceList({
               </tr>
             ))}
             {displayItems.length === 0 && (
-              <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>No se encontraron productos que coincidan con la búsqueda.</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No se encontraron productos que coincidan con la búsqueda.</td></tr>
             )}
           </tbody>
         </table>

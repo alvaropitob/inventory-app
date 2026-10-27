@@ -21,20 +21,7 @@ export default function PrintReportButton({ label = "Imprimir / Guardar PDF", re
     <button
       onClick={handlePrint}
       type="button"
-      style={{
-        padding: "0.5rem 1rem",
-        background: "var(--navy)",
-        color: "#ffffff",
-        border: "none",
-        borderRadius: "8px",
-        fontWeight: 600,
-        fontSize: "0.875rem",
-        cursor: "pointer",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "0.5rem",
-        boxShadow: "var(--shadow-sm)",
-      }}
+      style={{ padding: "0.5rem 1rem", background: "var(--navy)", color: "#ffffff", border: "none", borderRadius: "8px", fontWeight: 600, fontSize: 'var(--fs-base)', cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.5rem", boxShadow: "var(--shadow-sm)" }}
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="6 9 6 2 18 2 18 9" />

@@ -30,7 +30,7 @@ export default function EquipmentList({ equipments }: { equipments: Equipment[] 
         <tbody>
           {equipments.length === 0 ? (
             <tr>
-              <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                 No hay equipos registrados.
               </td>
             </tr>
@@ -38,23 +38,23 @@ export default function EquipmentList({ equipments }: { equipments: Equipment[] 
             equipments.map((eq) => (
               <tr key={eq.id}>
                 <td>
-                  <div style={{ fontWeight: '700', color: 'var(--navy)' }}>{eq.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Inventario: {eq.inventory_number || "N/A"}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Vencimiento INVIMA: {formatDateKeyInBusinessTimeZone(eq.invima_expiration_date)}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{eq.brand} {eq.model} • SN: {eq.serial_number}</div>
+                  <div style={{ fontWeight: 600, color: 'var(--navy)' }}>{eq.name}</div>
+                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Inventario: {eq.inventory_number || "N/A"}</div>
+                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Vencimiento INVIMA: {formatDateKeyInBusinessTimeZone(eq.invima_expiration_date)}</div>
+                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{eq.brand} {eq.model} • SN: {eq.serial_number}</div>
                 </td>
                 <td>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{eq.section?.name || "?rea sin asignar"}</div>
-                  <div style={{ fontSize: '0.75rem' }}>{eq.location?.name || "Ubicaci?n no asignada"}</div>
+                  <div style={{ fontSize: 'var(--fs-base)', fontWeight: 600 }}>{eq.section?.name || "?rea sin asignar"}</div>
+                  <div style={{ fontSize: 'var(--fs-xs)' }}>{eq.location?.name || "Ubicaci?n no asignada"}</div>
                 </td>
                 <td style={{ textAlign: 'center' }}>{getStatusBadge(eq.status)}</td>
-                <td style={{ fontSize: '0.8rem' }}>Fecha de realización: {formatDateKeyInBusinessTimeZone(eq.last_preventive_maintenance)}<br />Próxima fecha: {formatDateKeyInBusinessTimeZone(eq.next_preventive_maintenance)}</td>
-                <td style={{ fontSize: '0.8rem' }}>Realizada: {formatDateKeyInBusinessTimeZone(eq.last_calibration)}<br />Próxima calibración: {formatDateKeyInBusinessTimeZone(eq.next_calibration)}</td>
+                <td>Fecha de realización: {formatDateKeyInBusinessTimeZone(eq.last_preventive_maintenance)}<br />Próxima fecha: {formatDateKeyInBusinessTimeZone(eq.next_preventive_maintenance)}</td>
+                <td>Realizada: {formatDateKeyInBusinessTimeZone(eq.last_calibration)}<br />Próxima calibración: {formatDateKeyInBusinessTimeZone(eq.next_calibration)}</td>
                 <td style={{ textAlign: 'right' }}>
                   <Link 
                     href={`/dashboard/equipos/${eq.id}`}
                     className="btn-secondary"
-                    style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+
                   >
                     Ver Hoja de Vida
                   </Link>

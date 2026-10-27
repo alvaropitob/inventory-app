@@ -101,11 +101,11 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
-            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', width: '12%' }}>Código</th>
-            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', width: '30%' }}>Producto</th>
-            <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', width: '15%' }}>Stock Total</th>
-            <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', width: '15%' }}>Lote / Desglose</th>
-            <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', width: '13%' }}>Estado</th>
+            <th style={{ textAlign: 'left', width: '12%' }}>Código</th>
+            <th style={{ textAlign: 'left', width: '30%' }}>Producto</th>
+            <th style={{ textAlign: 'center', width: '15%' }}>Stock Total</th>
+            <th style={{ textAlign: 'center', width: '15%' }}>Lote / Desglose</th>
+            <th style={{ textAlign: 'center', width: '13%' }}>Estado</th>
           </tr>
         </thead>
         <tbody>
@@ -116,37 +116,33 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
             
             return (
               <tr key={item.id} style={{ borderBottom: '1px solid var(--border)', background: isOutOfStock ? '#fff1f2' : 'transparent' }}>
-                <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.internal_code}</td>
-                <td style={{ padding: '1rem' }}>
-                  <div style={{ fontWeight: '700', color: 'var(--navy)', fontSize: '0.9rem' }}>{item.technical_name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.commercial_name}</div>
+                <td style={{ color: 'var(--text-muted)' }}>{item.internal_code}</td>
+                <td>
+                  <div style={{ fontWeight: 600, color: 'var(--navy)', fontSize: 'var(--fs-base)' }}>{item.technical_name}</div>
+                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{item.commercial_name}</div>
                 </td>
-                <td style={{ padding: '1rem', textAlign: 'center' }}>
-                  <span style={{ 
-                    fontSize: '1.25rem', 
-                    fontWeight: '800', 
-                    color: isOutOfStock || isOverStock ? 'var(--error)' : isLowStock ? 'var(--warning)' : 'var(--success)'
-                  }}>
+                <td style={{ textAlign: 'center' }}>
+                  <span style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: isOutOfStock || isOverStock ? 'var(--error)' : isLowStock ? 'var(--warning)' : 'var(--success)' }}>
                     {Number(item.totalStock.toFixed(2))}
                   </span>
                 </td>
-                <td style={{ padding: '1rem', fontSize: '0.75rem' }}>
+                <td>
                   {item.itemBatches.filter((b: Batch) => b.current_stock > 0 || (b.opened_units_remaining || 0) > 0).map((b: Batch) => (
                     <div key={b.id} style={{ marginBottom: '0.4rem', padding: '0.4rem', background: 'rgba(0,0,0,0.02)', borderRadius: '6px', display: 'flex', justifyContent: 'space-between' }}>
                       <span>{b.batch_number}: <strong>{b.current_stock} empaques{(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ''}</strong></span>
-                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{b.location?.name || "Sin ubicación"} · Vence: {new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString()}</span>
+                      <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{b.location?.name || "Sin ubicación"} · Vence: {new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString()}</span>
                     </div>
                   ))}
                 </td>
-                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                <td style={{ textAlign: 'center' }}>
                     {isOutOfStock ? (
-                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fee2e2', color: '#991b1b' }}>AGOTADO</span>
+                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>AGOTADO</span>
                     ) : isOverStock ? (
-                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fee2e2', color: '#991b1b' }}>SOBRE MÁXIMO</span>
+                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>SOBRE MÁXIMO</span>
                     ) : isLowStock ? (
-                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#fef3c7', color: '#92400e' }}>BAJO</span>
+                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 600, background: '#fef3c7', color: '#92400e' }}>BAJO</span>
                     ) : (
-                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '700', background: '#dcfce7', color: '#166534' }}>ÓPTIMO</span>
+                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 600, background: '#dcfce7', color: '#166534' }}>ÓPTIMO</span>
                     )}
                 </td>
               </tr>
@@ -154,7 +150,7 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
           })}
         </tbody>
       </table>
-      <div style={{ padding: '0.5rem', fontSize: '0.65rem', color: 'var(--success)', textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
+      <div style={{ padding: '0.5rem', fontSize: 'var(--fs-xs)', color: 'var(--success)', textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
         <span style={{ width: '6px', height: '6px', background: 'var(--success)', borderRadius: '50%', display: 'inline-block' }}></span>
         Monitoreo en tiempo real activo
       </div>

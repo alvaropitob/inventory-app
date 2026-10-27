@@ -51,22 +51,7 @@ export default function ExportCSVButton({ data, filename, label = "Exportar a CS
     <button
       onClick={handleExport}
       disabled={isExporting || !data || data.length === 0}
-      style={{
-        padding: '0.5rem 1rem',
-        background: 'white',
-        color: 'var(--navy)',
-        border: '1px solid var(--border)',
-        borderRadius: '8px',
-        fontWeight: '600',
-        fontSize: '0.875rem',
-        cursor: (isExporting || !data || data.length === 0) ? 'not-allowed' : 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        opacity: (isExporting || !data || data.length === 0) ? 0.6 : 1,
-        transition: 'all 0.2s',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-      }}
+      style={{ padding: '0.5rem 1rem', background: 'white', color: 'var(--navy)', border: '1px solid var(--border)', borderRadius: '8px', fontWeight: '600', fontSize: 'var(--fs-base)', cursor: (isExporting || !data || data.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: (isExporting || !data || data.length === 0) ? 0.6 : 1, transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

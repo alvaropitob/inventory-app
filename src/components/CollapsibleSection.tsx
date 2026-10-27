@@ -24,45 +24,36 @@ export default function CollapsibleSection({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className={`stat-card collapsible-section ${className}`.trim()} style={{ width: '100%', flexDirection: 'column', alignItems: 'stretch', marginBottom: '2rem', overflow: 'hidden' }}>
+    <div className={`collapsible-section ${className}`.trim()}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '1.5rem',
-          background: 'transparent',
-          border: 'none',
-          borderBottom: isOpen ? '1px solid var(--border)' : 'none',
-          cursor: 'pointer',
-          textAlign: 'left'
-        }}
+        className="collapsible-trigger"
+        aria-expanded={isOpen}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {icon && <div style={{ color: 'var(--primary)' }}>{icon}</div>}
+        <div className="collapsible-heading">
+          {icon && <div className="collapsible-icon">{icon}</div>}
           <div>
-            <h2 style={{ fontSize: '1.25rem', color: 'var(--navy)', margin: 0 }}>{title}</h2>
-            {subtitle && <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>{subtitle}</p>}
+            <h2 className="collapsible-title">{title}</h2>
+            {subtitle && <p className="collapsible-subtitle">{subtitle}</p>}
           </div>
         </div>
         <motion.div
           animate={{ rotate: isOpen ? 0 : -90 }}
           transition={{ duration: 0.2 }}
-          style={{ color: 'var(--text-muted)' }}
+          className="collapsible-chevron"
         >
           <ChevronDown className="ui-icon" aria-hidden="true" />
         </motion.div>
       </button>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
           >
             {children}
           </motion.div>

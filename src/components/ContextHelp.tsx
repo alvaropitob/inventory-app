@@ -82,7 +82,7 @@ export function ContextHelp({ title, content }: HelpProps) {
                   </button>
                 </div>
 
-                <div className="text-[13px] text-gray-600 leading-relaxed font-normal" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+                <div className="text-[13px] text-gray-600 leading-relaxed font-normal">
                   {content}
                 </div>
 

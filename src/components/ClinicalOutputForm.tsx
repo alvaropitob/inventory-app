@@ -185,7 +185,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <ScanLine className="ui-icon" aria-hidden="true" />
-          <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--navy)" }}>
+          <span style={{ fontSize: 'var(--fs-base)', fontWeight: 600, color: "var(--navy)" }}>
             Lector de Código de Barras GS1-128 / Búsqueda Rápida
           </span>
         </div>
@@ -201,34 +201,18 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               }
             }}
             placeholder="Escanee con pistola o escriba código GS1: ej. (01)...(17)...(10)LOT..."
-            style={{
-              flex: 1,
-              padding: "0.6rem 0.85rem",
-              borderRadius: "8px",
-              border: "1px solid var(--border)",
-              fontSize: "0.875rem",
-              backgroundColor: "#ffffff",
-            }}
+            style={{ flex: 1 }}
           />
           <button
             type="button"
             onClick={() => handleBarcodeScan(barcodeInput)}
-            style={{
-              padding: "0.6rem 1rem",
-              borderRadius: "8px",
-              backgroundColor: "var(--navy)",
-              color: "#ffffff",
-              border: "none",
-              fontSize: "0.85rem",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
+            style={{ padding: "0.6rem 1rem", borderRadius: "8px", backgroundColor: "var(--navy)", color: "#ffffff", border: "none", fontSize: 'var(--fs-base)', fontWeight: 600, cursor: "pointer" }}
           >
             Detectar
           </button>
         </div>
         {scanMessage && (
-          <div style={{ fontSize: "0.8rem", color: scanMessage.startsWith("OK:") ? "#047857" : "#b45309", marginTop: "2px", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          <div style={{ fontSize: 'var(--fs-sm)', color: scanMessage.startsWith("OK:") ? "#047857" : "#b45309", marginTop: "2px", display: "flex", alignItems: "center", gap: "0.35rem" }}>
             {scanMessage.startsWith("OK:") ? <CheckCircle2 className="ui-icon" aria-hidden="true" /> : <AlertTriangle className="ui-icon" aria-hidden="true" />}
             {scanMessage.replace(/^(OK:|Aviso:)\s*/, "")}
           </div>
@@ -246,18 +230,18 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
 
         {/* PASO 1: SELECCIONAR REACTIVO */}
         <div>
-          <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+          <label style={{ display: "block", color: "var(--navy)" }}>
             Área de inventario
           </label>
           <select value={selectedSectionId} onChange={event => {
             setSelectedSectionId(event.target.value);
             setSelectedItemId("");
             setSelectedBatchId("");
-          }} style={{ width: "100%", padding: "0.65rem 0.85rem", marginBottom: "0.85rem" }}>
+          }} style={{ width: "100%", marginBottom: "0.85rem" }}>
             <option value="">Todas las áreas</option>
             {sections.map(section => <option key={section.id} value={section.id}>{section.name}</option>)}
           </select>
-          <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+          <label style={{ display: "block", color: "var(--navy)" }}>
             1. Producto *
           </label>
           <select
@@ -276,14 +260,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               }
             }}
             required
-            style={{
-              width: "100%",
-              padding: "0.65rem 0.85rem",
-              borderRadius: "8px",
-              border: "1px solid var(--border)",
-              fontSize: "0.9rem",
-              backgroundColor: "#ffffff",
-            }}
+            style={{ width: "100%" }}
           >
             <option value="">-- Seleccione un producto del catálogo --</option>
             {availableProducts.map((p) => (
@@ -302,7 +279,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
         {/* PASO 2: SELECCIONAR LOTE (ORDENADO FEFO) */}
         {selectedItemId && (
           <div>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+            <label style={{ display: "block", color: "var(--navy)" }}>
               2. Selección de Lote Analítico (Algoritmo FEFO) *
             </label>
             <select
@@ -310,14 +287,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               value={selectedBatchId}
               onChange={(e) => setSelectedBatchId(e.target.value)}
               required
-              style={{
-                width: "100%",
-                padding: "0.375rem 0.75rem",
-                borderRadius: "8px",
-                border: isFefoDeviated ? "2px solid #f59e0b" : "1px solid var(--border)",
-                fontSize: "0.9rem",
-                backgroundColor: "#ffffff",
-              }}
+              style={{ width: "100%", border: isFefoDeviated ? "2px solid #f59e0b" : "1px solid var(--border)" }}
             >
               {productBatches.map((b, idx) => {
                 const expDate = new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString();
@@ -336,23 +306,16 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
         {/* ALERTA DE DESVIACIÓN FEFO */}
         {isFefoDeviated && fefoSuggestedBatch && (
           <div
-            style={{
-              padding: "1rem 1.25rem",
-              borderRadius: "10px",
-              backgroundColor: "#fef3c7",
-              border: "1px solid #fcd34d",
-              color: "#92400e",
-              fontSize: "0.875rem",
-            }}
+            style={{ padding: "1rem 1.25rem", borderRadius: "10px", backgroundColor: "#fef3c7", border: "1px solid #fcd34d", color: "#92400e", fontSize: 'var(--fs-base)' }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, marginBottom: "0.35rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 600, marginBottom: "0.35rem" }}>
               <AlertTriangle className="ui-icon" aria-hidden="true" />
               <span>Advertencia de Desviación FEFO (ISO 15189)</span>
             </div>
-            <p style={{ lineHeight: "1.5" }}>
+            <p>
               Está seleccionando el lote <b>{currentBatch?.batch_number}</b> (Vence: {new Date(currentBatch?.adjusted_expiration_date || currentBatch?.expiration_date || "").toLocaleDateString()}), pero existe el lote <b>{fefoSuggestedBatch.batch_number}</b> que vence primero ({new Date(fefoSuggestedBatch.adjusted_expiration_date || fefoSuggestedBatch.expiration_date).toLocaleDateString()}).
             </p>
-            <p style={{ marginTop: "0.35rem", fontSize: "0.825rem", fontWeight: 600 }}>
+            <p style={{ marginTop: "0.35rem", fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
               Para continuar, debe justificar clínicamente esta selección:
             </p>
 
@@ -363,16 +326,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
               placeholder="Ej: Calibración específica de corrida analítica / Control de calidad exige este lote específico / Solicitud médica..."
-              style={{
-                width: "100%",
-                marginTop: "0.5rem",
-                padding: "0.6rem 0.85rem",
-                borderRadius: "8px",
-                border: "1px solid #f59e0b",
-                fontSize: "0.85rem",
-                backgroundColor: "#ffffff",
-                color: "#1e293b",
-              }}
+              style={{ width: "100%", marginTop: "0.5rem", color: "#1e293b" }}
             />
           </div>
         )}
@@ -405,7 +359,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <Layers className="ui-icon" style={{ color: isFractional ? "#16a34a" : "var(--navy)" }} aria-hidden="true" />
-                    <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--navy)" }}>
+                    <span style={{ fontSize: 'var(--fs-base)', fontWeight: 600, color: "var(--navy)" }}>
                       Presentación comercial con unidades internas ({unitsInPackage} por empaque)
                     </span>
                   </div>
@@ -417,17 +371,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                         setIsFractional(false);
                         setQuantity(1);
                       }}
-                      style={{
-                        padding: "0.35rem 0.75rem",
-                        borderRadius: "6px",
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
-                        border: "1px solid",
-                        borderColor: !isFractional ? "var(--primary)" : "var(--border)",
-                        backgroundColor: !isFractional ? "var(--primary)" : "#ffffff",
-                        color: !isFractional ? "#ffffff" : "var(--text)",
-                        cursor: "pointer",
-                      }}
+                      style={{ padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: 'var(--fs-sm)', fontWeight: 600, border: "1px solid", borderColor: !isFractional ? "var(--primary)" : "var(--border)", backgroundColor: !isFractional ? "var(--primary)" : "#ffffff", color: !isFractional ? "#ffffff" : "var(--text)", cursor: "pointer" }}
                     >
                       Sacar caja/kit completo
                     </button>
@@ -438,17 +382,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                         setQuantity(1);
                         if (!fractionalUnits || fractionalUnits <= 0) setFractionalUnits(1);
                       }}
-                      style={{
-                        padding: "0.35rem 0.75rem",
-                        borderRadius: "6px",
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
-                        border: "1px solid",
-                        borderColor: isFractional ? "#16a34a" : "var(--border)",
-                        backgroundColor: isFractional ? "#16a34a" : "#ffffff",
-                        color: isFractional ? "#ffffff" : "var(--text)",
-                        cursor: "pointer",
-                      }}
+                      style={{ padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: 'var(--fs-sm)', fontWeight: 600, border: "1px solid", borderColor: isFractional ? "#16a34a" : "var(--border)", backgroundColor: isFractional ? "#16a34a" : "#ffffff", color: isFractional ? "#ffffff" : "var(--text)", cursor: "pointer" }}
                     >
                       Sacar unidades/pruebas de una caja
                     </button>
@@ -469,11 +403,11 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                      <span style={{ fontSize: "0.8rem", color: "#15803d" }}>
+                      <span style={{ fontSize: 'var(--fs-sm)', color: "#15803d" }}>
                         Disponibles: <b>{(currentBatch?.current_stock || 0) * unitsInPackage + (currentBatch?.opened_units_remaining || 0)}</b> unidades en total. Quedarán {(currentBatch?.current_stock || 0) * unitsInPackage + (currentBatch?.opened_units_remaining || 0) - (fractionalUnits || 0)}.
                       </span>
                     </div>
-                    <span style={{ fontSize: "0.75rem", color: "#166534" }}>
+                    <span style={{ fontSize: 'var(--fs-xs)', color: "#166534" }}>
                       💡 La caja/kit se abrirá automáticamente para seguimiento analítico post-apertura.
                     </span>
                   </div>
@@ -483,7 +417,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+                <label style={{ display: "block", color: "var(--navy)" }}>
                   {isFractional ? "Unidades internas a retirar *" : "Empaques completos a retirar *"}
                 </label>
                 {isFractional ? (
@@ -494,7 +428,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                     value={fractionalUnits}
                     onChange={(e) => setFractionalUnits(Math.min((currentBatch?.current_stock || 0) * (unitsInPackage || 0) + (currentBatch?.opened_units_remaining || 0), Math.max(1, Number(e.target.value))))}
                     required
-                    style={{ width: "100%", padding: "0.375rem 0.75rem", borderRadius: "8px", border: "1px solid var(--border)", fontSize: "0.9rem" }}
+                    style={{ width: "100%" }}
                   />
                 ) : (
                   <input
@@ -506,10 +440,10 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                     onChange={(e) => setQuantity(Number(e.target.value))}
                     disabled={(currentBatch?.current_stock || 0) <= 0}
                     required
-                    style={{ width: "100%", padding: "0.375rem 0.75rem", borderRadius: "8px", border: "1px solid var(--border)", fontSize: "0.9rem" }}
+                    style={{ width: "100%" }}
                   />
                 )}
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                <span style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)" }}>
                   {isFractional
                     ? `Disponibles: ${(currentBatch?.current_stock || 0) * (unitsInPackage || 0) + (currentBatch?.opened_units_remaining || 0)} unidades internas`
                     : `Disponibles: ${currentBatch?.current_stock || 0} ${currentBatch?.item?.purchase_unit || currentBatch?.catalog_items?.purchase_unit || "empaques"}`}
@@ -517,7 +451,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+                <label style={{ display: "block", color: "var(--navy)" }}>
                   Motivo de Salida *
                 </label>
                 <select
@@ -525,13 +459,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   required
-                  style={{
-                    width: "100%",
-                    padding: "0.65rem 0.85rem",
-                    borderRadius: "8px",
-                    border: "1px solid var(--border)",
-                    fontSize: "0.9rem",
-                  }}
+                  style={{ width: "100%" }}
                 >
                   <option value="Consumo operativo analítico">Consumo Operativo Analítico</option>
                   <option value="Montaje de controles y calibradores">Montaje de Controles / Calibradores</option>
@@ -559,9 +487,9 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                   id="chk-open"
                   checked={markAsOpened}
                   onChange={(e) => setMarkAsOpened(e.target.checked)}
-                  style={{ width: "18px", height: "18px", cursor: "pointer" }}
+                  style={{ width: "18px", cursor: "pointer" }}
                 />
-                <label htmlFor="chk-open" style={{ fontSize: "0.85rem", color: "#1e3a8a", cursor: "pointer" }}>
+                <label htmlFor="chk-open" style={{ color: "#1e3a8a", cursor: "pointer" }}>
                   <FlaskConical className="ui-icon" aria-hidden="true" /> <b>Marcar como abierto/destapado hoy</b>: Iniciar seguimiento de estabilidad post-apertura en el sistema.
                 </label>
               </div>
@@ -569,7 +497,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
 
             {/* EQUIPO O ANALIZADOR DESTINO */}
             <div>
-              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--navy)", marginBottom: "0.4rem" }}>
+              <label style={{ display: "block", color: "var(--navy)" }}>
                 Equipo o Analizador Destino (Trazabilidad ISO 15189)
               </label>
               <input
@@ -578,13 +506,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
                 value={equipment}
                 onChange={(e) => setEquipment(e.target.value)}
                 placeholder="Ej: Cobas c311, Sysmex XN-1000, Mindray BC-5380, Stat Fax..."
-                style={{
-                  width: "100%",
-                  padding: "0.65rem 0.85rem",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border)",
-                  fontSize: "0.9rem",
-                }}
+                style={{ width: "100%" }}
               />
             </div>
 
@@ -593,20 +515,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               <button
                 type="submit"
                 disabled={isFefoDeviated && (!justification || justification.trim() === "")}
-                style={{
-                  padding: "0.75rem 2rem",
-                  borderRadius: "8px",
-                  backgroundColor: isFefoDeviated ? "#d97706" : "var(--primary)",
-                  color: "#ffffff",
-                  border: "none",
-                  fontWeight: 700,
-                  fontSize: "0.95rem",
-                  cursor: isFefoDeviated && (!justification || justification.trim() === "") ? "not-allowed" : "pointer",
-                  boxShadow: "var(--shadow-md)",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                }}
+                style={{ padding: "0.75rem 2rem", borderRadius: "8px", backgroundColor: isFefoDeviated ? "#d97706" : "var(--primary)", color: "#ffffff", border: "none", fontWeight: 600, fontSize: 'var(--fs-md)', cursor: isFefoDeviated && (!justification || justification.trim() === "") ? "not-allowed" : "pointer", boxShadow: "var(--shadow-md)", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
               >
                 <ArrowUpFromLine className="ui-icon" aria-hidden="true" /> Confirmar Salida de Inventario
               </button>

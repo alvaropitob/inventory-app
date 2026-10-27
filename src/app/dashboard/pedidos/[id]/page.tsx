@@ -133,8 +133,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               </tbody>
               <tfoot>
                 <tr style={{ background: 'var(--bg-app)' }}>
-                  <td colSpan={5} className="cell-right" style={{ padding: '1rem', fontWeight: 700, fontSize: '1rem' }}>TOTAL ESTIMADO:</td>
-                  <td className="cell-right" style={{ padding: '1rem', fontWeight: 700, fontSize: '1.2rem', color: 'var(--primary)' }}>
+                  <td colSpan={5} className="cell-right" style={{ fontWeight: 600 }}>TOTAL ESTIMADO:</td>
+                  <td className="cell-right" style={{ fontWeight: 600, color: 'var(--primary)' }}>
                     ${order.total_estimated_value?.toFixed(2)}
                   </td>
                 </tr>
