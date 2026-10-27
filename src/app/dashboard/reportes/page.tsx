@@ -7,6 +7,12 @@ import {
   Building2,
   BookmarkCheck,
   AlertTriangle,
+  ClipboardList,
+  Clock3,
+  DollarSign,
+  ShieldCheck,
+  Thermometer,
+  Trash2,
 } from "lucide-react";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import PrintReportButton from "@/components/PrintReportButton";
@@ -25,14 +31,16 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   }
 
   const { type = "suficiencia" } = await searchParams;
-  const activeReportType: string = type === "suficiencia" ? type : "suficiencia";
+  const reportTypes = ["resumen", "kardex", "suficiencia", "vencimientos", "mermas", "reactivovigilancia", "ambiental", "valorizacion"] as const;
+  const activeReportType = reportTypes.includes(type as (typeof reportTypes)[number]) ? type : "suficiencia";
 
-  const [incidents, logs, movementsResponse, batchesResponse, catalogResponse] = await Promise.all([
+  const [incidents, logs, movementsResponse, batchesResponse, catalogResponse, fractionalMovementsResponse] = await Promise.all([
     ComplianceService.getSafetyIncidents(),
     ComplianceService.getEnvironmentalLogs(200),
     StockService.getAllMovements(),
     StockService.getAllBatches(),
     CatalogService.getCatalogItems(),
+    StockService.getAllFractionalMovements(),
   ]);
 
   interface MovementItem {
@@ -52,6 +60,15 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   }
 
   const movements = (movementsResponse.data as MovementItem[]) || [];
+  const fractionalMovements = (fractionalMovementsResponse.data || []) as Array<{
+    id: string;
+    movement_type?: string;
+    reason: string;
+    created_at: string;
+    units_withdrawn: number;
+    batch?: MovementItem["batch"];
+    user?: MovementItem["user"];
+  }>;
 
   interface BatchItem {
     id: string;
@@ -86,7 +103,17 @@ export default async function ReportesPage({ searchParams }: PageProps) {
           m.reason?.toLowerCase().includes("baja") ||
           m.reason?.toLowerCase().includes("descarte") ||
           m.reason?.toLowerCase().includes("merma")))
-  );
+  ).map(m => ({ ...m, unit: m.batch?.item?.purchase_unit || "empaques" }));
+  mermas.push(...fractionalMovements
+    .filter(m => m.movement_type === "discard")
+    .map(m => ({
+      ...m,
+      id: `fractional-${m.id}`,
+      movement_type: "discard",
+      quantity: m.units_withdrawn,
+      unit: "unidades internas",
+    })));
+  mermas.sort((a, b) => b.created_at.localeCompare(a.created_at));
 
   // Semáforo de Lotes
   const today = new Date();
@@ -218,6 +245,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     Producto: m.batch?.item?.technical_name || "N/A",
     Lote: m.batch?.batch_number || "N/A",
     "Cantidad descartada": m.quantity,
+    Unidad: m.unit,
     Motivo: m.reason || "Baja técnica",
     Responsable: m.user?.full_name || m.user?.username || "Sistema",
   }));
@@ -273,19 +301,36 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   }));
 
   const navItems = [
+    { key: "resumen", label: "Resumen normativo", icon: ShieldCheck },
+    { key: "kardex", label: "Kardex", icon: ClipboardList },
     { key: "suficiencia", label: "Suficiencia", icon: Building2 },
+    { key: "vencimientos", label: "Vencimientos", icon: Clock3 },
+    { key: "mermas", label: "Mermas", icon: Trash2 },
+    { key: "reactivovigilancia", label: "Reactivovigilancia", icon: AlertTriangle },
+    { key: "ambiental", label: "Ambiental", icon: Thermometer },
+    { key: "valorizacion", label: "Valorización", icon: DollarSign },
   ];
+
+  const activeReport = navItems.find(item => item.key === activeReportType) || navItems[2];
+  const reportDescriptions: Record<string, string> = {
+    resumen: "Estado consolidado de cumplimiento, controles y evidencias del laboratorio.",
+    kardex: "Historial de movimientos de inventario por producto, lote y responsable.",
+    suficiencia: "Existencias por producto y sección, comparadas con los niveles mínimos configurados.",
+    vencimientos: "Lotes vencidos o próximos a vencer para priorizar su revisión.",
+    mermas: "Pérdidas y bajas registradas, con sus cantidades y motivos.",
+    reactivovigilancia: "Eventos y reportes de seguridad asociados a reactivos e insumos.",
+    ambiental: "Registros de monitoreo ambiental y desviaciones reportadas.",
+    valorizacion: "Valor estimado de las existencias actuales por producto.",
+  };
 
   return (
     <div className="dashboard-main reports-page">
       {/* HEADER DE REPORTE */}
       <div className="page-header">
         <div>
-          <h1 className="page-header-title">
-            Suficiencia
-          </h1>
+          <h1 className="page-header-title">{activeReport.label}</h1>
           <p className="page-header-subtitle">
-      Existencias por producto y sección, comparadas con los niveles mínimos configurados.
+            {reportDescriptions[activeReportType]}
           </p>
         </div>
       </div>
@@ -294,7 +339,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
         {/* NAVEGACIÓN LATERAL DE REPORTES */}
         <div className="reports-nav-card" style={{ backgroundColor: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--border)", padding: "1.25rem", boxShadow: "var(--shadow-sm)" }}>
           <h2 style={{ color: "var(--text-muted)", textTransform: "uppercase" }}>
-            Suficiencia
+            Tipos de reporte
           </h2>
           <nav style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
             {navItems.map((item) => {
@@ -548,6 +593,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                       <th>Producto</th>
                       <th>Lote</th>
                       <th style={{ textAlign: "center" }}>Cantidad Dada de Baja</th>
+                      <th>Unidad</th>
                       <th>Motivo / Justificación</th>
                       <th>Responsable</th>
                     </tr>
@@ -561,13 +607,14 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                         <td style={{ textAlign: "center", color: "#991b1b", fontWeight: 600 }}>
                           -{m.quantity}
                         </td>
+                        <td>{m.unit}</td>
                         <td style={{ color: "var(--navy)" }}>{m.reason}</td>
                         <td>{m.user?.full_name || m.user?.username || "Sistema"}</td>
                       </tr>
                     ))}
                     {mermas.length === 0 && (
                       <tr>
-                        <td colSpan={6} style={{ textAlign: "center", color: "var(--text-muted)" }}>
+                        <td colSpan={7} style={{ textAlign: "center", color: "var(--text-muted)" }}>
                           No se registran descartes o mermas en el período.
                         </td>
                       </tr>

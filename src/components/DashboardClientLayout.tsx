@@ -45,6 +45,34 @@ export default function DashboardClientLayout({ children, user }: DashboardClien
   const pageTitle = pageTitles.find(([path]) => pathname.startsWith(path))?.[1] ?? "Panel operativo";
 
   const view = searchParams.get("view");
+  const inventoryViewTitles: Record<string, string> = {
+    entradas: "Entradas y catálogo",
+    stock: "Stock",
+    salidas: "Salidas",
+    bajas: "Bajas y disposición final",
+    traslados: "Traslados",
+    movimientos: "Trazabilidad",
+    trazabilidad: "Trazabilidad",
+  };
+  const reportTitles: Record<string, string> = {
+    resumen: "Resumen normativo",
+    kardex: "Kardex",
+    suficiencia: "Suficiencia",
+    vencimientos: "Vencimientos",
+    mermas: "Mermas",
+    reactivovigilancia: "Reactivovigilancia",
+    ambiental: "Monitoreo ambiental",
+    valorizacion: "Valorización",
+  };
+  const contextualPageTitle = pathname === "/dashboard/inventario"
+    ? (view === "bajas" ? inventoryViewTitles.entradas : inventoryViewTitles[view || "entradas"]) || "Inventario y lotes"
+    : pathname === "/dashboard/reportes"
+      ? reportTitles[searchParams.get("type") || "suficiencia"] || "Suficiencia"
+      : pathname.startsWith("/dashboard/pedidos/") && pathname !== "/dashboard/pedidos/nuevo"
+        ? "Detalle del pedido"
+        : pathname.startsWith("/dashboard/recepcion/")
+          ? "Inspección técnica"
+          : pageTitle;
   const pageHelp = pathname.startsWith("/dashboard/inventario/calidad")
     ? { title: "Verificación de calidad", description: "Evalúa los lotes en cuarentena antes de liberarlos para uso clínico.", steps: ["Revisa el lote y la evidencia técnica disponible.", "Registra el resultado de la verificación.", "Libera o mantiene el lote en cuarentena según el resultado."], tips: ["No liberes un lote si persiste una duda sobre su identidad, conservación o documentación."] }
     : pathname === "/dashboard/inventario"
@@ -54,11 +82,11 @@ export default function DashboardClientLayout({ children, user }: DashboardClien
         ? { title: "Stock actual", description: "Consulta las existencias vigentes agrupadas por producto y lote.", steps: ["Busca el insumo que necesitas revisar.", "Compara cantidades y ubicaciones por lote.", "Abre los movimientos si necesitas investigar el historial."], tips: ["La disponibilidad se calcula con los movimientos registrados para cada lote."] }
         : view === "salidas"
         ? { title: "Salidas de inventario", description: "Registra consumos y entregas para descontar existencias por lote.", steps: ["Identifica el insumo y lote requerido.", "Indica cantidad, destino o responsable y motivo.", "Confirma la salida y revisa el movimiento generado."], tips: ["Prioriza el lote con vencimiento más próximo (FEFO)."] }
+        : view === "bajas"
+        ? { title: "Bajas y disposición final", description: "Retira productos vencidos, dañados o no aptos y conserva el motivo en la trazabilidad.", steps: ["Selecciona el lote y las cantidades disponibles.", "Indica la causa y documenta el hallazgo o soporte.", "Confirma la disposición y revisa el movimiento de baja registrado."], tips: ["La baja es irreversible desde este formulario y requiere permisos de administrador o supervisor."] }
         : view === "trazabilidad" || view === "movimientos"
           ? { title: "Trazabilidad de inventario", description: "Consulta el historial de entradas, salidas, ajustes y traslados con sus responsables.", steps: ["Filtra o revisa los movimientos por fecha e insumo.", "Comprueba lote, cantidad, tipo de movimiento y usuario.", "Usa el detalle para aclarar diferencias de existencias."], tips: ["Los movimientos registrados permiten reconstruir el recorrido del inventario."] }
-        : view === "bajas"
-            ? { title: "Bajas y disposición final", description: "Registra productos vencidos, dañados o no aptos y documenta su disposición.", steps: ["Selecciona el lote y la cantidad que se dará de baja.", "Elige el método de disposición correspondiente.", "Describe el motivo y confirma el registro."], tips: ["Confirma el lote y la cantidad antes de guardar; la baja afecta las existencias disponibles."] }
-            : { title: "Gestión de inventario", description: "Administra el catálogo, las entradas y los lotes disponibles del laboratorio.", steps: ["Busca el producto o crea su ficha si aún no existe.", "Registra proveedor, lote, vencimiento, cantidad y ubicación.", "Revisa alertas de vencimiento y existencias antes de operar."], tips: ["Mantén separados los lotes del mismo producto para conservar vencimientos y costos correctos."] }
+        : { title: "Entrada manual y catálogo", description: "Registra productos y existencias que no provienen de una orden de compra.", steps: ["Busca el producto o crea su ficha técnica.", "Registra cantidad, lote, vencimiento y ubicación.", "Para compras a proveedores, crea un pedido y completa Recepción Técnica."], tips: ["Las compras deben seguir el flujo Pedidos → Recepción Técnica para conservar su trazabilidad."] }
     : pathname.startsWith("/dashboard/pedidos/nuevo")
       ? { title: "Crear orden de compra", description: "Prepara una requisición para abastecer productos del laboratorio.", steps: ["Selecciona el proveedor y la fecha esperada.", "Agrega productos y cantidades solicitadas.", "Revisa el valor estimado y guarda la orden."], tips: ["Comprueba cantidades y proveedor antes de enviar la solicitud."] }
       : pathname.startsWith("/dashboard/pedidos/")
@@ -131,15 +159,17 @@ export default function DashboardClientLayout({ children, user }: DashboardClien
         >
           <header className="desktop-topbar">
             <div className="topbar-breadcrumb" aria-label="Ruta de navegación">
-              <span>Operación clínica</span>
+              <Link href="/dashboard" className="topbar-home-link">Operación clínica</Link>
               <ChevronRight aria-hidden="true" size={15} />
-              <strong>{pageTitle}</strong>
+              <strong>{contextualPageTitle}</strong>
             </div>
             <div className="topbar-actions">
               <ContextualHelp content={pageHelp} />
               <span className="topbar-role">{user.role}</span>
               <span className="topbar-avatar" aria-hidden="true">{user.fullName.trim().charAt(0).toUpperCase()}</span>
-              <Link href="/dashboard/inventario" className="topbar-link">Ver inventario</Link>
+              {!pathname.startsWith("/dashboard/inventario") && (
+                <Link href="/dashboard/inventario?view=stock" className="topbar-link">Ver stock</Link>
+              )}
             </div>
           </header>
           {children}

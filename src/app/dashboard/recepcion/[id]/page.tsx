@@ -2,6 +2,7 @@ import { OrderService } from "@/lib/services/orders";
 import TechnicalReceptionForm from "@/components/TechnicalReceptionForm";
 import { notFound } from "next/navigation";
 import { CatalogService } from "@/lib/services/catalog";
+import { getCurrentUserProfile } from "@/lib/services/user";
 
 export const dynamic = "force-dynamic";
 
@@ -13,10 +14,11 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
   const { id } = await params;
 
   try {
-    const [order, locationsResponse, sectionsResponse] = await Promise.all([
+    const [order, locationsResponse, sectionsResponse, user] = await Promise.all([
       OrderService.getOrderById(id),
       CatalogService.getLocations(),
       CatalogService.getSections(),
+      getCurrentUserProfile(),
     ]);
 
     if (!order) {
@@ -57,6 +59,7 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
             order={formattedOrder}
             locations={(locationsResponse.data || []).filter(location => location.is_active !== false)}
             sections={(sectionsResponse.data || []).filter(section => section.is_active)}
+            canManageLocations={user?.role === "admin"}
           />
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { submitTechnicalReception } from "@/app/dashboard/recepcion/actions";
 import ContextualHelp from "./ContextualHelp";
 import { parseGS1Barcode } from "@/lib/utils/gs1";
@@ -32,7 +33,7 @@ interface Order {
 interface Location { id: string; name: string; section_id?: string | null; location_type?: string; sections?: { name: string } | null; }
 interface Section { id: string; name: string; is_active: boolean; }
 
-export default function TechnicalReceptionForm({ order, locations, sections }: { order: Order; locations: Location[]; sections: Section[] }) {
+export default function TechnicalReceptionForm({ order, locations, sections, canManageLocations }: { order: Order; locations: Location[]; sections: Section[]; canManageLocations: boolean }) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -243,7 +244,9 @@ export default function TechnicalReceptionForm({ order, locations, sections }: {
                                     </select>
                                     {itemData[item.catalog_item_id].section_id && locationsForArea(itemData[item.catalog_item_id].section_id).length === 0 && (
                                         <small className="reception-location-help">
-                                            No hay ubicaciones para esta área. <a href={`/dashboard/configuracion?tab=ubicaciones&sectionId=${encodeURIComponent(itemData[item.catalog_item_id].section_id)}`} target="_blank" rel="noreferrer">Crear ubicación en Configuración</a>.
+                                            No hay ubicaciones para esta área. {canManageLocations
+                                                ? <><a href={`/dashboard/configuracion?tab=ubicaciones&sectionId=${encodeURIComponent(itemData[item.catalog_item_id].section_id)}`} target="_blank" rel="noreferrer">Crear ubicación en Configuración</a>.</>
+                                                : "Solicita al administrador que cree una ubicación para esta área en Configuración."}
                                         </small>
                                     )}
                                 </td>
@@ -295,10 +298,14 @@ export default function TechnicalReceptionForm({ order, locations, sections }: {
             </div>
 
             {sections.length === 0 && (
-                <div className="error-message">No hay áreas activas. Crea un área en Configuración antes de confirmar la recepción.</div>
+                <div className="error-message">No hay áreas activas. {canManageLocations
+                    ? <><a href="/dashboard/configuracion?tab=secciones" target="_blank" rel="noreferrer">Crea un área en Configuración</a> antes de confirmar la recepción.</>
+                    : "Solicita al administrador que cree un área en Configuración antes de confirmar la recepción."}</div>
             )}
             {locations.length === 0 && (
-                <div className="error-message">No hay ubicaciones activas. Asigna una ubicación a un área en Configuración antes de confirmar la recepción.</div>
+                <div className="error-message">No hay ubicaciones activas. {canManageLocations
+                    ? <><a href="/dashboard/configuracion?tab=ubicaciones" target="_blank" rel="noreferrer">Asigna una ubicación a un área en Configuración</a> antes de confirmar la recepción.</>
+                    : "Solicita al administrador que asigne una ubicación a un área en Configuración antes de confirmar la recepción."}</div>
             )}
 
             <div className="form-group reception-notes-field">
@@ -312,13 +319,9 @@ export default function TechnicalReceptionForm({ order, locations, sections }: {
             </div>
 
             <div className="form-actions reception-actions">
-                <button 
-                    type="button" 
-                    onClick={() => router.back()} 
-                    className="btn-secondary"
-                >
-                    Volver
-                </button>
+                <Link href={`/dashboard/pedidos/${order.id}`} className="btn-secondary" style={{ textDecoration: "none" }}>
+                    Volver al pedido
+                </Link>
                 <button 
                     type="submit" 
                     className="btn-primary"

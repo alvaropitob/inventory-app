@@ -211,6 +211,50 @@ export async function handleConsumeAction(formData: FormData) {
   redirect("/dashboard/inventario?view=movimientos");
 }
 
+export async function handleDiscardAction(formData: FormData) {
+  try {
+    const { user } = await requireRole(["admin", "supervisor"]);
+    const batchId = String(formData.get("batch_id") || "").trim();
+    const quantityPackages = Number(formData.get("quantity_packages"));
+    const openedUnits = Number(formData.get("opened_units"));
+    const dispositionMethod = String(formData.get("disposition_method") || "").trim();
+    const disposalRoute = String(formData.get("disposal_route") || "").trim();
+    const reason = String(formData.get("reason") || "").trim();
+    const validMethods = ["expired", "damaged", "quality_alert", "temperature_excursion", "contamination", "other"];
+    const validRoutes = ["biohazard_waste", "supplier_return", "post_consumer_program", "authorized_destruction", "other"];
+
+    if (!/^[0-9a-f-]{36}$/i.test(batchId)) throw new Error("Selecciona un lote válido.");
+    if (!Number.isSafeInteger(quantityPackages) || quantityPackages < 0 ||
+        !Number.isSafeInteger(openedUnits) || openedUnits < 0 ||
+        quantityPackages + openedUnits <= 0) {
+      throw new Error("Indica una cantidad válida de empaques o unidades abiertas para dar de baja.");
+    }
+    if (!validMethods.includes(dispositionMethod)) throw new Error("Selecciona una causa válida para la baja.");
+    if (!validRoutes.includes(disposalRoute)) throw new Error("Selecciona un método válido de disposición final.");
+    if (reason.length < 8 || reason.length > 500) throw new Error("El detalle debe tener entre 8 y 500 caracteres.");
+
+    const { error } = await StockService.discardStock({
+      batch_id: batchId,
+      quantity_packages: quantityPackages,
+      opened_units: openedUnits,
+      disposed_by: user.id,
+      disposition_method: dispositionMethod,
+      disposal_route: disposalRoute,
+      reason,
+    });
+    if (error) throw new Error(error.message || "No se pudo registrar la baja.");
+
+    revalidatePath("/dashboard/inventario");
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/reportes");
+    redirect("/dashboard/inventario?view=movimientos&movementType=discard");
+  } catch (error) {
+    if (error instanceof Error && (error as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw error;
+    const errorMsg = encodeURIComponent(error instanceof Error ? error.message : "Error inesperado al registrar la baja.");
+    redirect(`/dashboard/inventario?view=bajas&error=${errorMsg}`);
+  }
+}
+
 export async function handleTransferAction(formData: FormData) {
   const batchId = formData.get("batch_id") as string;
   const destinationLocationId = formData.get("destination_location_id") as string;

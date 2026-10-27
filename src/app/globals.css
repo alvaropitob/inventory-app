@@ -343,6 +343,8 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
   backdrop-filter: blur(10px);
 }
 .topbar-breadcrumb { display: flex; align-items: center; gap: var(--sp-2); color: var(--text-muted); font-size: var(--fs-sm); }
+.topbar-home-link { color: inherit; text-decoration: none; }
+.topbar-home-link:hover { color: var(--primary); text-decoration: underline; }
 .topbar-breadcrumb strong { color: var(--navy); font-weight: var(--fw-semibold); }
 .topbar-actions { display: flex; align-items: center; gap: var(--sp-3); }
 .topbar-role { color: var(--text-muted); font-size: var(--fs-sm); text-transform: capitalize; }
@@ -1033,7 +1035,7 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 }
 .badge-success, .pill-green, .badge-verified, .movement-badge-entry, .score-badge-good { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
 .badge-warning, .pill-amber, .pill-orange, .badge-pending, .movement-badge-adjust, .score-badge-fair { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
-.badge-danger, .pill-red, .movement-badge-exit, .audit-action-danger, .score-badge-poor { background: var(--error-bg); border-color: var(--error-border); color: var(--error); }
+.badge-danger, .pill-red, .movement-badge-exit, .movement-badge-discard, .audit-action-danger, .score-badge-poor { background: var(--error-bg); border-color: var(--error-border); color: var(--error); }
 .badge-info, .pill-blue { background: var(--info-bg); border-color: var(--info-border); color: var(--info); }
 .pill-slate, .audit-action { background: var(--neutral-bg); border-color: var(--border); color: var(--navy-light); }
 .audit-detail { max-width: 280px; color: var(--text-muted); font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: var(--fs-xs); overflow-wrap: anywhere; }
@@ -1714,6 +1716,10 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 .clinical-fefo-prompt { margin-top: var(--sp-2); font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
 .clinical-fefo-justification { margin-top: var(--sp-2); color: var(--text-main); }
 .clinical-batch-summary { padding: var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-soft); }
+.inventory-disposition-form { gap: var(--sp-4); }
+.inventory-disposition-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--sp-3); }
+.inventory-disposition-notice { display: flex; align-items: flex-start; gap: var(--sp-2); padding: var(--sp-3); border: 1px solid var(--warning-border); border-radius: var(--radius); background: var(--warning-bg); color: var(--text-main); font-size: var(--fs-sm); line-height: var(--lh-base); }
+.inventory-disposition-notice .ui-icon { flex: 0 0 18px; color: var(--warning); }
 .clinical-fractional-panel { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-soft); }
 .clinical-fractional-active { border-color: var(--success-border); background: var(--success-bg); }
 .clinical-fractional-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-2); }

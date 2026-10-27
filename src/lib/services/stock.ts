@@ -86,6 +86,29 @@ export class StockService {
     return { data: { success: true }, error: null };
   }
 
+  static async discardStock(data: {
+    batch_id: string;
+    quantity_packages: number;
+    opened_units: number;
+    disposed_by: string;
+    disposition_method: string;
+    disposal_route: string;
+    reason: string;
+  }): Promise<{ data: { id: string } | null; error: PostgrestError | null }> {
+    const supabase = await createClient();
+    const { data: batchId, error } = await supabase.rpc("fn_discard_inventory_batch", {
+      p_batch_id: data.batch_id,
+      p_quantity_packages: data.quantity_packages,
+      p_opened_units: data.opened_units,
+      p_disposed_by: data.disposed_by,
+      p_disposition_method: data.disposition_method,
+      p_disposal_route: data.disposal_route,
+      p_reason: data.reason,
+    });
+    if (error) return { data: null, error };
+    return { data: { id: batchId as string }, error: null };
+  }
+
   static async consumeFractionalStock(data: {
     batch_id: string;
     units: number;
@@ -141,7 +164,7 @@ export class StockService {
           location_id,
           batch_number, 
           expiration_date,
-          item:catalog_items(technical_name, commercial_name, internal_code),
+          item:catalog_items(technical_name, commercial_name, internal_code, purchase_unit),
           location:locations(id, name)
         ),
         user:users(full_name, username)
@@ -160,7 +183,7 @@ export class StockService {
           location_id,
           batch_number,
           expiration_date,
-          item:catalog_items(technical_name, commercial_name, internal_code),
+          item:catalog_items(technical_name, commercial_name, internal_code, purchase_unit),
           location:locations(id, name)
         ),
         user:users(full_name, username)

@@ -94,13 +94,13 @@ export default async function DashboardPage() {
           <p className="page-header-subtitle">Bienvenido de nuevo, {fullName}. Aquí tienes un resumen de la operación.</p>
         </div>
         <div className="page-header-actions">
-          <Link href="/dashboard/inventario?view=entradas" className="btn-secondary" style={{ textDecoration: 'none' }}>
+          <Link href="/dashboard/inventario?view=entradas" className="btn-secondary" style={{ textDecoration: 'none' }} aria-label="Registrar entrada manual de producto e inventario, sin asociarla a un pedido" title="Da de alta un producto y sus existencias sin asociarlos a un pedido. Para compras, usa Nuevo Pedido.">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            Ingresar Stock
+            Entrada manual
           </Link>
           <Link href="/dashboard/pedidos/nuevo" className="btn-primary" style={{ textDecoration: 'none' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -128,7 +128,7 @@ export default async function DashboardPage() {
               : "No se detectan productos bajo el mínimo o sobre el máximo ni lotes vencidos."}
           </span>
         </div>
-        <Link href="/dashboard/inventario" className="dashboard-alert-link">
+        <Link href="/dashboard/inventario?view=stock" className="dashboard-alert-link">
           Revisar inventario <span aria-hidden="true">→</span>
         </Link>
       </section>
@@ -229,7 +229,7 @@ export default async function DashboardPage() {
                 <span className="status-dot status-dot-danger" />
                 Productos con Stock Crítico
               </h2>
-              <Link href="/dashboard/inventario" className="data-card-link">Ver todo &rarr;</Link>
+              <Link href="/dashboard/inventario?view=stock" className="data-card-link">Ver stock &rarr;</Link>
             </div>
             <div className="data-card-body">
               {stockLevels.filter(s => s.priority === 'high' || s.priority === 'medium').length === 0 ? (

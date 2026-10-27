@@ -11,9 +11,10 @@ import ContextualHelp from "@/components/ContextualHelp";
 import * as Actions from "./actions";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ClinicalOutputForm from "@/components/ClinicalOutputForm";
+import InventoryDispositionForm from "@/components/InventoryDispositionForm";
 import { getDateKeyInBusinessTimeZone, getDaysUntilDateKey } from "@/lib/dates";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
-import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Boxes, ClipboardList, FileText, History, Package, PackagePlus, X } from "lucide-react";
+import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Boxes, ClipboardList, FileText, History, Package, PackagePlus, PackageX, Trash2, X } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +103,7 @@ function getUserDisplayName(users: AuditUser | AuditUser[] | null | undefined): 
 function movementLabel(type: string) {
   if (type === 'entry') return 'Entrada';
   if (type === 'exit') return 'Salida';
+  if (type === 'discard') return 'Baja / Disposición';
   if (type === 'adjustment') return 'Ajuste';
   return 'Descarte';
 }
@@ -109,12 +111,13 @@ function movementLabel(type: string) {
 function movementBadgeClass(type: string) {
   if (type === 'entry') return 'movement-badge movement-badge-entry';
   if (type === 'exit') return 'movement-badge movement-badge-exit';
+  if (type === 'discard') return 'movement-badge movement-badge-discard';
   return 'movement-badge movement-badge-adjust';
 }
 
 function movementQtyClass(type: string) {
   if (type === 'entry') return 'qty-entry';
-  if (type === 'exit') return 'qty-exit';
+  if (type === 'exit' || type === 'discard') return 'qty-exit';
   return 'qty-adjust';
 }
 
@@ -126,6 +129,7 @@ export default async function InventarioPage({
   const { editId, view, error, from, to, user: userFilter, product, location, movementType } = await searchParams;
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
+  const canManageDisposal = user.role === "admin" || user.role === "supervisor";
 
   const [
     { data: catalogItems },
@@ -147,12 +151,12 @@ export default async function InventarioPage({
 
   const combinedMovements = [
     ...(allMovements || []).filter((movement: StockMovement) => !movement.reason?.includes("[FRACCIONAL_PACKAGE_OPEN]")),
-    ...(fractionalMovements || []).map((movement: { id: string; batch_id: string; user_id: string; units_withdrawn: number; units_per_package: number; packages_opened: number; reason: string; equipment_name?: string | null; created_at: string; batch?: StockMovement["batch"]; user?: AuditUser | null }) => ({
+    ...(fractionalMovements || []).map((movement: { id: string; batch_id: string; user_id: string; units_withdrawn: number; units_per_package: number; packages_opened: number; reason: string; movement_type?: string; equipment_name?: string | null; created_at: string; batch?: StockMovement["batch"]; user?: AuditUser | null }) => ({
       id: `fractional-${movement.id}`,
-      movement_type: "exit",
+      movement_type: movement.movement_type || "exit",
       created_at: movement.created_at,
       quantity: movement.units_withdrawn,
-      reason: `${movement.reason} (salida fraccionada: ${movement.units_withdrawn} de ${movement.units_per_package} unidades internas${movement.packages_opened ? `; se abrieron ${movement.packages_opened} empaque(s)` : ""})`,
+      reason: `${movement.reason} (${movement.movement_type === "discard" ? "baja" : "salida"} fraccionada: ${movement.units_withdrawn} de ${movement.units_per_package} unidades internas${movement.packages_opened ? `; se abrieron ${movement.packages_opened} empaque(s)` : ""})`,
       batch: movement.batch,
       user_id: movement.user_id,
       users: movement.user,
@@ -179,7 +183,9 @@ export default async function InventarioPage({
     }
   }
 
-  const currentView = view === "bajas" ? "entradas" : (view || "entradas");
+  const inventoryViews = ["entradas", "stock", "salidas", "bajas", "traslados", "movimientos"];
+  const requestedView = view || "entradas";
+  const currentView = inventoryViews.includes(requestedView) ? requestedView : "entradas";
   const filteredMovements = combinedMovements.filter((movement: StockMovement) => {
     const movementDate = movement.created_at.slice(0, 10);
     return (!from || movementDate >= from)
@@ -219,7 +225,7 @@ export default async function InventarioPage({
     <div className="dashboard-main inventory-page">
       <div className="welcome-section">
         <h1 className="page-header-title">Gestión de Inventario</h1>
-        <p>Control de entradas, salidas y existencias del laboratorio.</p>
+        <p>Control de entradas, salidas, bajas y existencias del laboratorio.</p>
       </div>
 
       <section className="inventory-metrics" aria-label="Resumen de lotes activos">
@@ -248,9 +254,10 @@ export default async function InventarioPage({
       {/* Tab Navigation */}
       <nav className="tabs-nav inventory-tabs-nav" aria-label="Secciones de inventario">
         {[
-          { key: 'entradas', label: 'Entradas', icon: <PackagePlus className="ui-icon" aria-hidden="true" /> },
+          { key: 'entradas', label: 'Entrada manual', icon: <PackagePlus className="ui-icon" aria-hidden="true" /> },
           { key: 'stock', label: 'Stock', icon: <Boxes className="ui-icon" aria-hidden="true" /> },
           { key: 'salidas', label: 'Salidas', icon: <ArrowUpFromLine className="ui-icon" aria-hidden="true" /> },
+          ...(canManageDisposal ? [{ key: 'bajas', label: 'Bajas', icon: <PackageX className="ui-icon" aria-hidden="true" /> }] : []),
           { key: 'traslados', label: 'Traslados', icon: <ArrowLeftRight className="ui-icon" aria-hidden="true" /> },
           { key: 'movimientos', label: 'Trazabilidad', icon: <History className="ui-icon" aria-hidden="true" /> },
         ].map(tab => (
@@ -281,8 +288,8 @@ export default async function InventarioPage({
         {currentView === 'entradas' && (
           <>
             <CollapsibleSection
-              title="Nuevo Registro en Catálogo"
-              subtitle="Defina los productos maestros que ingresarán al inventario."
+              title="Registro manual de producto y existencias"
+              subtitle="Usa esta opción para altas no asociadas a un pedido. Las compras a proveedores se registran desde Pedidos y Recepción Técnica."
               icon={<Package className="ui-icon" aria-hidden="true" />}
               className="inventory-register-section"
             >
@@ -403,7 +410,7 @@ export default async function InventarioPage({
 
                   <div className="form-actions">
                     <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
-                      {editingItem ? "Actualizar Producto" : "Registrar Producto"}
+                      {editingItem ? "Actualizar Producto" : "Registrar Producto e Inventario"}
                     </button>
                   </div>
                 </form>
@@ -510,6 +517,38 @@ export default async function InventarioPage({
               <ClinicalOutputForm batches={allBatches || []} sections={activeSections.map((section: { id: string; name: string }) => section)} action={Actions.handleConsumeAction} />
             </div>
           </CollapsibleSection>
+        )}
+
+        {/* ====== BAJAS Y DISPOSICIÓN FINAL ====== */}
+        {currentView === 'bajas' && (
+          canManageDisposal ? <CollapsibleSection
+            title="Bajas y disposición final"
+            subtitle="Retira existencias vencidas, dañadas o no aptas con motivo documentado y trazabilidad por lote."
+            icon={<Trash2 className="ui-icon" aria-hidden="true" />}
+          >
+            <div className="form-card">
+              <div className="form-card-header">
+                <div>
+                  <h2 className="form-card-title">Registrar baja de inventario</h2>
+                  <p className="form-card-subtitle">Elige el lote, indica empaques completos y unidades remanentes abiertas, y documenta la causa y disposición.</p>
+                </div>
+              </div>
+              <div className="form-card-body">
+                {(allBatches || []).some((batch: Batch) => batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0) ? (
+                  <InventoryDispositionForm
+                    batches={(allBatches || []).filter((batch: Batch) => batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0)}
+                    action={Actions.handleDiscardAction}
+                  />
+                ) : (
+                  <div className="empty-state">
+                    <div className="empty-state-icon"><PackageX className="ui-icon" aria-hidden="true" /></div>
+                    <p className="empty-state-title">No hay existencias para dar de baja</p>
+                    <p className="empty-state-text">Los lotes sin saldo no aparecen en este formulario.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CollapsibleSection> : <div className="error-message" role="alert">Solo administradores y supervisores pueden registrar bajas y disposiciones finales. Solicita apoyo a un responsable autorizado.</div>
         )}
 
         {/* ====== TRASLADOS INTERNOS ====== */}
@@ -624,7 +663,7 @@ export default async function InventarioPage({
               <div><label className="form-label" htmlFor="movement-product">Producto</label><select id="movement-product" className="form-select" name="product" defaultValue={product || ''}><option value="">Todos</option>{catalogItems?.map(item => <option key={item.id} value={item.id}>{item.technical_name}</option>)}</select></div>
               <div><label className="form-label" htmlFor="movement-location">Ubicación</label><select id="movement-location" className="form-select" name="location" defaultValue={location || ''}><option value="">Todas</option>{locations?.map((loc: { id: string; name: string }) => <option key={loc.id} value={loc.id}>{loc.name}</option>)}</select></div>
               <div><label className="form-label" htmlFor="movement-user">Usuario</label><select id="movement-user" className="form-select" name="user" defaultValue={userFilter || ''}><option value="">Todos</option>{movementUsers.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></div>
-              <div><label className="form-label" htmlFor="movement-type">Tipo</label><select id="movement-type" className="form-select" name="movementType" defaultValue={movementType || ''}><option value="">Todos</option><option value="entry">Entrada</option><option value="exit">Salida</option><option value="adjustment">Ajuste</option><option value="discard">Descarte</option></select></div>
+              <div><label className="form-label" htmlFor="movement-type">Tipo</label><select id="movement-type" className="form-select" name="movementType" defaultValue={movementType || ''}><option value="">Todos</option><option value="entry">Entrada</option><option value="exit">Salida</option><option value="adjustment">Ajuste</option><option value="discard">Baja / Disposición</option></select></div>
               <div className="inventory-filter-actions">
                 <button type="submit" className="btn-primary">Filtrar movimientos</button>
                 <a href="?view=movimientos" className="btn-secondary" style={{ textAlign: 'center', textDecoration: 'none' }}>Limpiar filtros</a>

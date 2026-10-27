@@ -68,7 +68,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
     },
     {
       name: "Inventario",
-      href: "/dashboard/inventario",
+      href: "/dashboard/inventario?view=stock",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="m7.5 4.27 9 5.15" />
@@ -79,10 +79,11 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
       ),
       show: true,
       subItems: [
-        { name: "Stock", href: "/dashboard/inventario" },
+        { name: "Stock", href: "/dashboard/inventario?view=stock" },
         { name: "Calidad", href: "/dashboard/inventario/calidad" },
-        { name: "Entradas", href: "/dashboard/inventario?view=entradas" },
+        { name: "Entrada manual", href: "/dashboard/inventario?view=entradas" },
         { name: "Salidas", href: "/dashboard/inventario?view=salidas" },
+        ...(["admin", "supervisor"].includes(user.role) ? [{ name: "Bajas y disposición final", href: "/dashboard/inventario?view=bajas" }] : []),
         { name: "Traslados", href: "/dashboard/inventario?view=traslados" },
         { name: "Trazabilidad", href: "/dashboard/inventario?view=movimientos" },
       ]
@@ -150,7 +151,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
       show: true,
     },
     {
-      name: "Suficiencia",
+      name: "Reportes",
       href: "/dashboard/reportes",
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
