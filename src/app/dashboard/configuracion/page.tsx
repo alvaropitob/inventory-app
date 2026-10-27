@@ -345,7 +345,7 @@ export default async function ConfiguracionPage({
                 <label className="form-label">Área *</label>
                 <select className="form-select" name="section_id" defaultValue={(editingItem as Location)?.section_id || ""} required>
                   <option value="" disabled>Seleccione un área...</option>
-                  {sections?.filter(section => section.is_active || section.id === (editingItem as Location)?.section_id).map(section => (
+                  {sections?.filter(section => section.is_active).map(section => (
                     <option key={section.id} value={section.id}>{section.name}</option>
                   ))}
                 </select>
@@ -433,7 +433,7 @@ export default async function ConfiguracionPage({
                 <label className="form-label">Área *</label>
                 <select className="form-select" name="section_id" defaultValue={(editingItem as CatalogItem)?.section_id || ""} required>
                   <option value="">Seleccione...</option>
-                  {sections?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  {sections?.filter(section => section.is_active).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
               <div>

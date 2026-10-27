@@ -50,6 +50,10 @@ export async function handleLocationAction(formData: FormData) {
   await requireRole(["admin"]);
   const sectionId = String(formData.get("section_id") || "").trim();
   if (!sectionId) throw new Error("Selecciona el área a la que pertenece esta ubicación.");
+  const { data: activeSections } = await CatalogService.getSections();
+  if (!activeSections?.some(section => section.id === sectionId && section.is_active)) {
+    throw new Error("Selecciona un área activa para esta ubicación.");
+  }
   const data = {
     id: (formData.get("id") as string) || undefined,
     name: formData.get("name") as string,
@@ -69,6 +73,10 @@ export async function handleCatalogAction(formData: FormData) {
   await requireRole(["admin", "supervisor"]);
   const id = formData.get("id") as string;
   const sectionId = formData.get("section_id") as string;
+  if (!sectionId) throw new Error("Selecciona un área activa para el producto.");
+  const { data: activeSections } = await CatalogService.getSections();
+  const selectedSection = activeSections?.find(section => section.id === sectionId && section.is_active);
+  if (!selectedSection) throw new Error("El área seleccionada no está activa. Elige una de las áreas vigentes.");
   const productType = String(formData.get("product_type") || "");
   const productTypes = ["medicamento", "dispositivo_medico", "reactivo", "insumo"];
   if (!productTypes.includes(productType)) throw new Error("Selecciona un tipo de producto válido.");
@@ -97,12 +105,7 @@ export async function handleCatalogAction(formData: FormData) {
     redirect(`/dashboard/configuracion?tab=productos&error=${encodeURIComponent("El stock mínimo debe ser entero no negativo y el máximo debe ser mayor o igual al mínimo.")}`);
   }
   
-  let category_id = null;
-  if (sectionId) {
-    const { data: sections } = await CatalogService.getSections();
-    const selectedSection = sections?.find(s => s.id === sectionId);
-    category_id = (selectedSection as { category_id: string | null })?.category_id || null;
-  }
+  const category_id = (selectedSection as { category_id: string | null }).category_id || null;
   
   const data = {
     id: id || undefined,

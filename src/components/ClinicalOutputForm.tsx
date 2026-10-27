@@ -66,17 +66,22 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
   // Incluir empaques sin abrir y unidades que quedaron en un empaque abierto.
   const availableBatches = useMemo(() => {
     const today = getDateKeyInBusinessTimeZone(new Date());
+    const activeSectionIds = new Set(sections.map(section => section.id));
     return batches.filter(
-      (b) => (b.current_stock > 0 || (b.opened_units_remaining || 0) > 0)
-        && (b.clinical_status === "accepted" || !b.clinical_status)
-        && (b.status === "accepted" || !b.status)
-        && (b.adjusted_expiration_date || b.expiration_date) >= today
+      (b) => {
+        const batchSectionId = b.location?.section_id || b.locations?.section_id;
+        return Boolean(batchSectionId && activeSectionIds.has(batchSectionId))
+          && (b.current_stock > 0 || (b.opened_units_remaining || 0) > 0)
+          && (b.clinical_status === "accepted" || !b.clinical_status)
+          && (b.status === "accepted" || !b.status)
+          && (b.adjusted_expiration_date || b.expiration_date) >= today;
+      }
     ).filter(batch => {
       if (!selectedSectionId) return true;
-      const batchSectionId = batch.location?.section_id || batch.locations?.section_id || batch.item?.section_id || batch.catalog_items?.section_id;
+      const batchSectionId = batch.location?.section_id || batch.locations?.section_id;
       return batchSectionId === selectedSectionId;
     });
-  }, [batches, selectedSectionId]);
+  }, [batches, sections, selectedSectionId]);
 
   // Lista única de productos que tienen stock
   const availableProducts = useMemo(() => {

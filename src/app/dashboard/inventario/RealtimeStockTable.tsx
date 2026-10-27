@@ -64,7 +64,7 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
 
   // Grouping logic (simplified)
   const visibleBatches = selectedSection === "all" ? batches : batches.filter(batch =>
-    (batch.location?.section_id || batch.item?.section_id) === selectedSection
+    batch.location?.section_id === selectedSection
   );
   const groupedStock = visibleBatches.reduce((acc: Record<string, GroupedItem>, batch) => {
     const itemId = batch.item_id;

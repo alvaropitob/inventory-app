@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { submitTechnicalReception } from "@/app/dashboard/recepcion/actions";
 import ContextualHelp from "./ContextualHelp";
 import { parseGS1Barcode } from "@/lib/utils/gs1";
-import { getLocationsForSection } from "@/lib/utils/locations";
+import { filterLocationsForSection } from "@/lib/utils/locations";
 
 interface OrderItem {
     catalog_item_id: string;
@@ -15,6 +15,7 @@ interface OrderItem {
         commercial_name: string;
         section_id?: string | null;
         section_name?: string | null;
+        section_is_active?: boolean;
     };
     quantity_requested: number;
     quantity_received: number;
@@ -43,8 +44,9 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
     const [notes, setNotes] = useState("");
     const [invoiceNumber, setInvoiceNumber] = useState("");
 
-    const locationOptionsForItem = (item: OrderItem) => getLocationsForSection(locations, item.catalog_item.section_id);
-    const locationsForItem = (item: OrderItem) => locationOptionsForItem(item).locations;
+    const locationsForItem = (item: OrderItem) => item.catalog_item.section_is_active
+        ? filterLocationsForSection(locations, item.catalog_item.section_id)
+        : [];
 
     // Items states (lot, expiration, qty, price per item)
     const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string, qty: number, price: number, location_id: string }>>(
@@ -192,7 +194,7 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                 <td>
                                     <div className="reception-product-name">{item.catalog_item.technical_name}</div>
                                     <div className="cell-muted">{item.catalog_item.commercial_name} ({item.catalog_item.internal_code})</div>
-                                    <div className="reception-product-area">Área: {item.catalog_item.section_name || "Sin área asignada"}</div>
+                                    <div className="reception-product-area">Área: {item.catalog_item.section_is_active ? item.catalog_item.section_name : "Sin área activa"}</div>
                                 </td>
                                 <td className="cell-center reception-requested">{item.quantity_requested}</td>
                                 <td className="cell-center">{Math.max(0, item.quantity_requested - item.quantity_received)}</td>
@@ -213,12 +215,11 @@ export default function TechnicalReceptionForm({ order, locations }: { order: Or
                                         <option value="">{locationsForItem(item).length ? "Seleccione ubicación..." : "Sin ubicaciones para esta área"}</option>
                                         {locationsForItem(item).map(location => (
                                             <option key={location.id} value={location.id}>
-                                                {location.sections?.name ? `${location.sections.name} — ${location.name}` : `Sin área asignada — ${location.name}`}
+                                                {`${item.catalog_item.section_name || location.sections?.name || "Área"} — ${location.name}`}
                                             </option>
                                         ))}
                                     </select>
-                                    {locationOptionsForItem(item).usingUnassignedFallback && <small className="reception-location-help">No hay ubicaciones asociadas a {item.catalog_item.section_name}. Se muestran ubicaciones sin área temporalmente; asígnalas en Configuración.</small>}
-                                    {locationsForItem(item).length === 0 && <small className="reception-location-help">Crea una ubicación para {item.catalog_item.section_name || "esta área"} desde Configuración → Ubicaciones.</small>}
+                                    {locationsForItem(item).length === 0 && <small className="reception-location-help">{item.catalog_item.section_is_active ? `Crea una ubicación nueva para ${item.catalog_item.section_name || "esta área"} desde Configuración → Ubicaciones.` : "Asigna un área activa al producto desde Configuración → Productos."}</small>}
                                 </td>
                                 <td>
                                     <input 

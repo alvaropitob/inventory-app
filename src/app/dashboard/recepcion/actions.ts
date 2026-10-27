@@ -1,6 +1,8 @@
 "use server";
 
 import { ComplianceService } from "@/lib/services/compliance";
+import { CatalogService } from "@/lib/services/catalog";
+import { OrderService } from "@/lib/services/orders";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/supabase/authorization";
 
@@ -31,6 +33,20 @@ export async function submitTechnicalReception(data: {
     }
     if (new Set(data.items.map(item => item.catalog_item_id)).size !== data.items.length) {
         throw new Error("Cada producto de la orden solo puede aparecer una vez por recepción.");
+    }
+    const [order, { data: locations, error: locationsError }] = await Promise.all([
+        OrderService.getOrderById(data.order_id),
+        CatalogService.getLocations(),
+    ]);
+    if (locationsError) throw new Error("No se pudieron validar las áreas y ubicaciones activas.");
+    for (const receivedItem of data.items) {
+        const orderedItem = order.items?.find(item => item.item_id === receivedItem.catalog_item_id);
+        const location = locations?.find(candidate => candidate.id === receivedItem.location_id && candidate.is_active);
+        const itemArea = orderedItem?.catalog_item;
+        if (!orderedItem || !location || !itemArea?.section_id || itemArea.sections?.is_active !== true ||
+            location.section_id !== itemArea.section_id || location.sections?.is_active !== true) {
+            throw new Error("La ubicación debe estar asociada al área activa del producto.");
+        }
     }
     try {
         const result = await ComplianceService.createTechnicalReception(data);
