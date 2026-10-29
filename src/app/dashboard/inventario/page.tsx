@@ -12,7 +12,7 @@ import * as Actions from "./actions";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ClinicalOutputForm from "@/components/ClinicalOutputForm";
 import InventoryDispositionForm from "@/components/InventoryDispositionForm";
-import { getDateKeyInBusinessTimeZone, getDaysUntilDateKey } from "@/lib/dates";
+import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
 import { getDispositionCauseLabel, getDisposalRouteLabel } from "@/lib/disposal-options";
 import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Boxes, ClipboardList, FileText, History, Package, PackagePlus, PackageX, Trash2, X } from "lucide-react";
@@ -212,10 +212,14 @@ export default async function InventarioPage({
     .filter((movement: StockMovement) => movement.user_id)
     .map((movement: StockMovement) => [movement.user_id!, getUserDisplayName(movement.users)])).entries());
   const activeBatches = (allBatches || []).filter((batch: Batch) => batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0);
-  const daysUntilExpiry = (batch: Batch) => getDaysUntilDateKey(batch.adjusted_expiration_date || batch.expiration_date);
-  const criticalExpiryCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) <= 15).length;
-  const warningExpiryCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) > 15 && daysUntilExpiry(batch) <= 45).length;
-  const validBatchCount = activeBatches.filter((batch: Batch) => daysUntilExpiry(batch) > 45).length;
+  const expirationStatus = (batch: Batch) => getExpirationSemaforo(
+    batch.adjusted_expiration_date || batch.expiration_date,
+    batch.status,
+    batch.clinical_status,
+  );
+  const expiredBatchCount = activeBatches.filter((batch: Batch) => expirationStatus(batch).state === "expired").length;
+  const nearExpiryBatchCount = activeBatches.filter((batch: Batch) => expirationStatus(batch).state === "near_expiry").length;
+  const validBatchCount = activeBatches.filter((batch: Batch) => expirationStatus(batch).state === "valid").length;
   const quarantineBatchCount = activeBatches.filter((batch: Batch) => batch.clinical_status === 'quarantine').length;
 
   const productIdsWithStock = new Set(allBatches?.map((b: Batch) => b.item_id) || []);
@@ -223,8 +227,10 @@ export default async function InventarioPage({
 
   const consolidatedStock = catalogItems?.map((item: CatalogItem) => {
     const itemBatches = allBatches?.filter((b: Batch) => b.item_id === item.id) || [];
-    const todayKey = getDateKeyInBusinessTimeZone(new Date());
-    const usableBatches = itemBatches.filter((b: Batch) => b.clinical_status === 'accepted' && b.status !== 'expired' && (b.adjusted_expiration_date || b.expiration_date) >= todayKey);
+    const usableBatches = itemBatches.filter((b: Batch) =>
+      b.clinical_status === 'accepted'
+      && expirationStatus(b).state !== "expired"
+    );
     const totalStock = usableBatches.reduce((acc: number, b: Batch) => {
       const innerUnits = parseUnitsFromPresentation(item.commercial_presentation);
       return acc + (b.current_stock || 0) + (innerUnits ? (b.opened_units_remaining || 0) / innerUnits : 0);
@@ -242,20 +248,20 @@ export default async function InventarioPage({
       </div>
 
       <section className="inventory-metrics" aria-label="Resumen de lotes activos">
-        <article className="inventory-metric inventory-metric-critical">
-          <span className="inventory-metric-label">Vencimiento crítico</span>
-          <strong>{criticalExpiryCount} lotes</strong>
-          <span className="inventory-metric-note">Vencidos o vencen en 15 días</span>
+        <article className="inventory-metric inventory-metric-expired">
+          <span className="inventory-metric-label">Vencidos</span>
+          <strong>{expiredBatchCount} lotes</strong>
+          <span className="inventory-metric-note">No aptos para uso</span>
         </article>
-        <article className="inventory-metric inventory-metric-warning">
-          <span className="inventory-metric-label">Alerta FEFO</span>
-          <strong>{warningExpiryCount} lotes</strong>
-          <span className="inventory-metric-note">Vencen entre 16 y 45 días</span>
+        <article className="inventory-metric inventory-metric-critical">
+          <span className="inventory-metric-label">Próximos a vencer</span>
+          <strong>{nearExpiryBatchCount} lotes</strong>
+          <span className="inventory-metric-note">Vencen entre 1 y 30 días</span>
         </article>
         <article className="inventory-metric inventory-metric-success">
           <span className="inventory-metric-label">Lotes vigentes</span>
           <strong>{validBatchCount} lotes</strong>
-          <span className="inventory-metric-note">Más de 45 días de vigencia</span>
+          <span className="inventory-metric-note">Más de 30 días de vigencia</span>
         </article>
         <article className="inventory-metric inventory-metric-neutral">
           <span className="inventory-metric-label">En cuarentena</span>
@@ -722,11 +728,15 @@ export default async function InventarioPage({
                       </td>
                       <td>
                         <div style={{ fontWeight: 600 }}>{m.batch?.batch_number}</div>
-                        <div className="kardex-expiry">
-                          Vence: {m.batch && 'expiration_date' in m.batch && m.batch.expiration_date
-                            ? new Date(m.batch.expiration_date).toLocaleDateString()
-                            : 'N/A'}
-                        </div>
+                        {m.batch?.expiration_date ? (() => {
+                          const expiryDate = m.batch.adjusted_expiration_date || m.batch.expiration_date;
+                          const semaforo = getExpirationSemaforo(expiryDate, m.batch.status, m.batch.clinical_status);
+                          return (
+                            <div className="kardex-expiry" style={{ color: semaforo.color }}>
+                              {semaforo.label}: {new Date(expiryDate).toLocaleDateString()}
+                            </div>
+                          );
+                        })() : <div className="kardex-expiry">N/A</div>}
                       </td>
                       <td style={{ textAlign: 'center' }}>
                         <span className={movementQtyClass(m.movement_type)}>

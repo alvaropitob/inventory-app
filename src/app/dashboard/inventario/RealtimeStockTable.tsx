@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
 
 interface Batch {
@@ -13,6 +13,8 @@ interface Batch {
   adjusted_expiration_date?: string | null;
   current_stock: number;
   opened_units_remaining?: number;
+  status?: string | null;
+  clinical_status?: string | null;
   item?: { technical_name: string; commercial_name: string; internal_code: string; commercial_presentation?: string | null; minimum_stock_threshold?: number; maximum_stock_threshold?: number | null; section_id?: string; sections?: { name: string } | null } | null;
   location?: { name: string; section_id?: string | null } | null;
   clinical_status?: string;
@@ -80,7 +82,7 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
         itemBatches: []
       };
     }
-    if (batch.clinical_status === "accepted" && (batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0) && (batch.adjusted_expiration_date || batch.expiration_date) >= getDateKeyInBusinessTimeZone(new Date())) {
+    if (batch.clinical_status === "accepted" && (batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0) && getExpirationSemaforo(batch.adjusted_expiration_date || batch.expiration_date, batch.status, batch.clinical_status).state !== "expired") {
       const packageUnits = parseUnitsFromPresentation(batch.item?.commercial_presentation);
       acc[itemId].totalStock += batch.current_stock + (packageUnits ? (batch.opened_units_remaining || 0) / packageUnits : 0);
     }
@@ -135,7 +137,9 @@ export default function RealtimeStockTable({ initialBatches, sections = [] }: { 
                       </div>
                       <div className="inventory-stock-batch-meta">
                         <span>{b.location?.name || "Sin ubicación"}</span>
-                        <span>Vence: {new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString("es-CO")}</span>
+                        <span style={{ color: getExpirationSemaforo(b.adjusted_expiration_date || b.expiration_date, b.status, b.clinical_status).color, fontWeight: 600 }}>
+                          {getExpirationSemaforo(b.adjusted_expiration_date || b.expiration_date, b.status, b.clinical_status).isExpired ? "VENCIDO" : "Vence"}: {new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString("es-CO")}
+                        </span>
                       </div>
                     </div>
                   ))}

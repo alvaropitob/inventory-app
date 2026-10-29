@@ -43,6 +43,9 @@ export default function ProductTechnicalFields({
   configurationMode?: boolean;
 }) {
   const [type, setType] = useState<ProductType | "">(initial?.product_type || "");
+  const [commercialPresentation, setCommercialPresentation] = useState(
+    initial?.commercial_name || initial?.commercial_presentation || ""
+  );
   const isMedicine = type === "medicamento";
   const isQaTrackedType = type === "dispositivo_medico" || type === "reactivo" || type === "insumo";
   const typeField = <div>
@@ -94,7 +97,14 @@ export default function ProductTechnicalFields({
     </div>
     <div>
       <label className="form-label">Presentación comercial *</label>
-      <input name="commercial_presentation" defaultValue={initial?.commercial_name || initial?.commercial_presentation || ""} className="form-input" required placeholder="Ej: Kit x 100 Det" />
+      <input
+        name="commercial_presentation"
+        value={commercialPresentation}
+        onChange={event => setCommercialPresentation(event.target.value)}
+        className="form-input"
+        required
+        placeholder="Ej: Kit x 100 Det"
+      />
     </div>
     <div>
       <label className="form-label">Unidad de medida *</label>
@@ -140,10 +150,7 @@ export default function ProductTechnicalFields({
       {typeField}
       <input type="hidden" name="commercial_name" value={initial?.commercial_name || ""} />
     </>}
-    {!configurationMode && <div>
-      <label className="form-label">Presentación / nombre comercial</label>
-      <input name="commercial_name" defaultValue={initial?.commercial_name || ""} className="form-input" placeholder="Marca, nombre o referencia" />
-    </div>}
+    {!configurationMode && <input type="hidden" name="commercial_name" value={commercialPresentation} />}
     {!configurationMode && <p className="cell-secondary">Complete los datos aplicables al tipo de producto. Si un campo no corresponde, escriba “No aplica”.</p>}
   </div>;
 }

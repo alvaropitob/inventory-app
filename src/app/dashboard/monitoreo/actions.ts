@@ -11,7 +11,8 @@ export async function submitEnvironmentalLog(formData: FormData) {
     const location_id = formData.get("location_id") as string;
     const rawTemperature = String(formData.get("temperature") || "").trim();
     const temperature = rawTemperature ? Number(rawTemperature) : Number.NaN;
-    const rawHumidity = String(formData.get("humidity") || "").trim();
+    const humidityNotApplicable = formData.get("humidity_not_applicable") === "on";
+    const rawHumidity = humidityNotApplicable ? "" : String(formData.get("humidity") || "").trim();
     const humidity = rawHumidity ? Number(rawHumidity) : undefined;
     const notes = String(formData.get("notes") || "").trim();
     const readingType = formData.get("reading_type") === "pm" ? "pm" : "am";
@@ -19,6 +20,9 @@ export async function submitEnvironmentalLog(formData: FormData) {
 
     if (!location_id || !Number.isFinite(temperature) || (humidity !== undefined && !Number.isFinite(humidity))) {
         throw new Error("Datos obligatorios faltantes");
+    }
+    if (!humidityNotApplicable && !rawHumidity) {
+        throw new Error("Ingresa la humedad o marca N/A si no aplica.");
     }
 
     try {

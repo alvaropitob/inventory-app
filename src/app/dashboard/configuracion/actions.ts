@@ -49,6 +49,13 @@ export async function handleCategoryAction(formData: FormData) {
 export async function handleLocationAction(formData: FormData) {
   await requireRole(["admin"]);
   const sectionId = String(formData.get("section_id") || "").trim();
+  const rawTemperatureMin = String(formData.get("temperature_min") || "").trim();
+  const rawTemperatureMax = String(formData.get("temperature_max") || "").trim();
+  const temperatureMin = rawTemperatureMin ? Number(rawTemperatureMin) : Number.NaN;
+  const temperatureMax = rawTemperatureMax ? Number(rawTemperatureMax) : Number.NaN;
+  if (!Number.isFinite(temperatureMin) || !Number.isFinite(temperatureMax) || temperatureMin >= temperatureMax) {
+    throw new Error("El rango ambiental requiere valores numéricos y la temperatura mínima debe ser menor que la máxima.");
+  }
   if (!sectionId) throw new Error("Selecciona el área a la que pertenece esta ubicación.");
   const { data: activeSections } = await CatalogService.getSections();
   if (!activeSections?.some(section => section.id === sectionId && section.is_active)) {
@@ -60,12 +67,16 @@ export async function handleLocationAction(formData: FormData) {
     description: formData.get("description") as string,
     section_id: sectionId,
     location_type: formData.get("location_type") as string,
+    temperature_min: temperatureMin,
+    temperature_max: temperatureMax,
   };
   const { error } = await CatalogService.upsertLocation(data);
   if (error) throw new Error(`No se pudo guardar la ubicación: ${error.message}`);
   revalidatePath("/dashboard/configuracion");
   revalidatePath("/dashboard/recepcion");
   revalidatePath("/dashboard/inventario");
+  revalidatePath("/dashboard/monitoreo");
+  revalidatePath("/dashboard/reportes");
   if (data.id) redirect(`/dashboard/configuracion?tab=ubicaciones`);
 }
 

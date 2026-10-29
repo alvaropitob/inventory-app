@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { parseGS1Barcode } from "@/lib/utils/gs1";
-import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
 import ContextualHelp from "@/components/ContextualHelp";
 import { AlertTriangle, ArrowUpFromLine, CheckCircle2, FlaskConical, Layers, ScanLine } from "lucide-react";
@@ -66,7 +66,6 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
 
   // Incluir empaques sin abrir y unidades que quedaron en un empaque abierto.
   const availableBatches = useMemo(() => {
-    const today = getDateKeyInBusinessTimeZone(new Date());
     const activeSectionIds = new Set(sections.map(section => section.id));
     return batches.filter(
       (b) => {
@@ -75,7 +74,7 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
           && (b.current_stock > 0 || (b.opened_units_remaining || 0) > 0)
           && (b.clinical_status === "accepted" || !b.clinical_status)
           && (b.status === "accepted" || !b.status)
-          && (b.adjusted_expiration_date || b.expiration_date) >= today;
+          && getExpirationSemaforo(b.adjusted_expiration_date || b.expiration_date, b.status, b.clinical_status).state !== "expired";
       }
     ).filter(batch => {
       if (!selectedSectionId) return true;
@@ -286,12 +285,14 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
               className={`form-select ${isFefoDeviated ? "clinical-batch-warning" : ""}`}
             >
               {productBatches.map((b, idx) => {
-                const expDate = new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString();
+                const expirationDate = b.adjusted_expiration_date || b.expiration_date;
+                const expDate = new Date(expirationDate).toLocaleDateString();
+                const semaforo = getExpirationSemaforo(expirationDate, b.status, b.clinical_status);
                 const isFirst = idx === 0;
                 const locName = b.location?.name || b.locations?.name;
                 return (
-                  <option key={b.id} value={b.id}>
-                    {isFirst ? "⭐ [SUGERIDO FEFO] " : ""}Lote: {b.batch_number} | Vence: {expDate} | Disp: {b.current_stock} empaques{(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ""} {locName ? `(${locName})` : ""}
+                  <option key={b.id} value={b.id} style={{ color: semaforo.color }}>
+                    {isFirst ? "⭐ [SUGERIDO FEFO] " : ""}Lote: {b.batch_number} | Vence: {expDate} ({semaforo.label}{semaforo.state === "near_expiry" ? ` · ${semaforo.daysRemaining} días` : ""}) | Disp: {b.current_stock} empaques{(b.opened_units_remaining || 0) > 0 ? ` + ${b.opened_units_remaining} unidades abiertas` : ""} {locName ? `(${locName})` : ""}
                   </option>
                 );
               })}

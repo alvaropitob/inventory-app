@@ -23,10 +23,12 @@ export interface EnvironmentalLog {
     humidity?: number;
     reading_type?: string;
     is_out_of_range?: boolean;
+    temperature_min_at_reading?: number | null;
+    temperature_max_at_reading?: number | null;
     created_at: string;
     user_id: string;
     notes?: string;
-    locations?: { name: string };
+    locations?: { name: string; temperature_min?: number | null; temperature_max?: number | null };
 }
 
 export interface SafetyIncident {
@@ -227,7 +229,7 @@ export const ComplianceService = {
         const supabase = await createClient();
         let query = supabase
             .from('environmental_readings')
-            .select('*, locations(name)')
+            .select('*, locations(name, temperature_min, temperature_max)')
             .order('created_at', { ascending: false });
         if (locationId) query = query.eq('location_id', locationId);
         const { data, error } = await query.limit(limit);

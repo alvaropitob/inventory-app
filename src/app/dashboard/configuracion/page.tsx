@@ -39,6 +39,8 @@ interface Location {
   name: string;
   section_id: string | null;
   location_type: string;
+  temperature_min: number | null;
+  temperature_max: number | null;
   is_active: boolean;
   sections?: { name: string } | null;
 }
@@ -359,6 +361,17 @@ export default async function ConfiguracionPage({
                   <option value="frozen">Congelado (-20°C)</option>
                 </select>
               </div>
+              <div className="form-grid-2 form-field-full">
+                <div>
+                  <label className="form-label">Temperatura mínima (°C) *</label>
+                  <input className="form-input" type="number" step="0.1" name="temperature_min" defaultValue={(editingItem as Location)?.temperature_min ?? ""} required placeholder="Ej. nevera: 2" />
+                </div>
+                <div>
+                  <label className="form-label">Temperatura máxima (°C) *</label>
+                  <input className="form-input" type="number" step="0.1" name="temperature_max" defaultValue={(editingItem as Location)?.temperature_max ?? ""} required placeholder="Ej. nevera: 8" />
+                </div>
+                <p className="cell-secondary">Define los límites aprobados para esta ubicación. La gráfica Levey–Jennings los interpreta como −3/+3 DE y calcula la media en el punto medio. Referencias iniciales: refrigerado 2–8 °C, ambiente 15–25 °C, congelado −25 a −15 °C.</p>
+              </div>
               <button type="submit" className={editingItem ? 'btn-warning' : 'btn-primary'}>
                 {editingItem ? "Actualizar" : "Añadir"}
               </button>
@@ -374,6 +387,7 @@ export default async function ConfiguracionPage({
                   <tr>
                     <th>Nombre</th>
                     <th>Área</th>
+                    <th>Rango ambiental (°C)</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>
@@ -387,6 +401,7 @@ export default async function ConfiguracionPage({
                           ? <span className="pill-badge pill-blue">{l.sections.name}</span>
                           : <span className="pill-badge pill-amber">Sin área asignada</span>}
                       </td>
+                      <td>{l.temperature_min ?? "—"} a {l.temperature_max ?? "—"} °C</td>
                       <td><StatusPill active={l.is_active} /></td>
                       <td>
                         <div className="action-group">

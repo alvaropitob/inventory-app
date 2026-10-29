@@ -1174,13 +1174,17 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
   border-radius: 50%;
   background: var(--border-strong);
 }
-.inventory-metric-critical::after { background: var(--error); }
+.inventory-metric-critical::after { background: #dc2626; }
+.inventory-metric-expired::after { background: #000; }
 .inventory-metric-warning::after, .workflow-metric-warning::after { background: var(--warning); }
-.inventory-metric-success::after, .workflow-metric-success::after { background: var(--success); }
+.inventory-metric-success::after { background: #10b981; }
+.workflow-metric-success::after { background: var(--success); }
 .workflow-metric-info::after { background: var(--info); }
-.inventory-metric-critical strong { color: var(--error); }
+.inventory-metric-critical strong { color: #dc2626; }
+.inventory-metric-expired strong { color: #000; }
 .inventory-metric-warning strong, .workflow-metric-warning > strong { color: var(--warning); }
-.inventory-metric-success strong, .workflow-metric-success > strong { color: var(--success); }
+.inventory-metric-success strong { color: #10b981; }
+.workflow-metric-success > strong { color: var(--success); }
 .workflow-metric-info > strong { color: var(--info); }
 .workflow-metric-neutral > strong { color: var(--text-muted); }
 

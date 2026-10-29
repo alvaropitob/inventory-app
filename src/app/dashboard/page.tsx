@@ -6,7 +6,7 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { OrderService } from "@/lib/services/orders";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import Link from "next/link";
-import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +20,7 @@ interface Batch {
   current_stock: number;
   opened_units_remaining?: number;
   clinical_status?: 'accepted' | 'quarantine' | 'rejected' | string;
+  status?: string | null;
   item?: { technical_name: string };
   priority?: 'none' | 'medium' | 'high';
 }
@@ -41,8 +42,7 @@ export default async function DashboardPage() {
 
   const stockLevels = (items || []).map(item => {
     const itemBatches = (batches || []).filter(b => b.item_id === item.id);
-    const todayKey = getDateKeyInBusinessTimeZone(new Date());
-    const totalStock = itemBatches.filter(b => b.clinical_status === "accepted" && (b.adjusted_expiration_date || b.expiration_date) >= todayKey && b.status !== "expired")
+    const totalStock = itemBatches.filter(b => b.clinical_status === "accepted" && getExpirationSemaforo(b.adjusted_expiration_date || b.expiration_date, b.status, b.clinical_status).state !== "expired")
       .reduce((sum, b) => {
         const unitsPerPackage = parseUnitsFromPresentation(item.commercial_presentation);
         return sum + b.current_stock + (unitsPerPackage ? (b.opened_units_remaining || 0) / unitsPerPackage : 0);
@@ -60,23 +60,25 @@ export default async function DashboardPage() {
 
   const criticalStockCount = stockLevels.filter(s => s.priority === 'high' || s.priority === 'medium').length;
 
-  const now = new Date();
-  const next30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const expirationAlerts = (batches || [])
+    .filter(batch => (batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0) && batch.clinical_status === "accepted")
+    .map(batch => ({
+      ...batch,
+      expirationSemaforo: getExpirationSemaforo(
+        batch.adjusted_expiration_date || batch.expiration_date,
+        batch.status,
+        batch.clinical_status,
+      ),
+    }))
+    .filter(batch => batch.expirationSemaforo.state !== "valid");
 
-  const expirationAlerts = (batches || []).filter(batch => (batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0) && batch.clinical_status === "accepted" && batch.status !== "expired").map(batch => {
-    const expDate = new Date(batch.adjusted_expiration_date || batch.expiration_date);
-    let priority: 'none' | 'medium' | 'high' = 'none';
-    if (expDate <= now) priority = 'high';
-    else if (expDate <= next30Days) priority = 'medium';
-    return { ...batch, priority };
-  }).filter(b => b.priority !== 'none');
-
-  const criticalExpiry = expirationAlerts.filter(e => e.priority === 'high').length;
+  const criticalExpiry = expirationAlerts.filter(e => e.expirationSemaforo.state === "expired").length;
+  const nearExpiryCount = expirationAlerts.filter(e => e.expirationSemaforo.state === "near_expiry").length;
   const overStockCount = stockLevels.filter(s => s.maximum_stock_threshold != null && s.totalStock > s.maximum_stock_threshold).length;
-  const totalAlerts = criticalStockCount + overStockCount + criticalExpiry;
+  const totalAlerts = criticalStockCount + overStockCount + criticalExpiry + nearExpiryCount;
 
   const totalInventoryValue = (items || []).reduce((acc, item) => {
-    const itemBatches = (batches || []).filter(b => b.item_id === item.id && b.clinical_status === "accepted" && b.status !== "expired" && (b.adjusted_expiration_date || b.expiration_date) >= getDateKeyInBusinessTimeZone(new Date()));
+    const itemBatches = (batches || []).filter(b => b.item_id === item.id && b.clinical_status === "accepted" && getExpirationSemaforo(b.adjusted_expiration_date || b.expiration_date, b.status, b.clinical_status).state !== "expired");
     const totalStock = itemBatches.reduce((sum, b) => {
       const unitsPerPackage = parseUnitsFromPresentation(item.commercial_presentation);
       return sum + (b.current_stock || 0) + (unitsPerPackage ? (b.opened_units_remaining || 0) / unitsPerPackage : 0);
@@ -212,7 +214,7 @@ export default async function DashboardPage() {
             {totalAlerts}
           </div>
           <p className="kpi-meta" style={{ color: totalAlerts > 0 ? 'var(--error)' : 'var(--text-muted)' }}>
-            {criticalStockCount} stock bajo, {criticalExpiry} vencidos
+            {criticalStockCount} stock bajo, {criticalExpiry} vencidos, {nearExpiryCount} próximos a vencer
           </p>
         </div>
       </div>
@@ -324,26 +326,32 @@ export default async function DashboardPage() {
               </h2>
             </div>
             <div className="data-card-body">
-              {expirationAlerts.filter(e => e.priority === 'high' || e.priority === 'medium').length === 0 ? (
+              {expirationAlerts.length === 0 ? (
                 <div className="empty-state">
-                  <p className="empty-state-text">No hay lotes con riesgo de caducidad en los próximos 30 días.</p>
+                  <p className="empty-state-text">No hay lotes vencidos ni próximos a vencer en los próximos 30 días.</p>
                 </div>
               ) : (
                 <div className="expiry-list">
                   {expirationAlerts
-                    .filter(e => e.priority === 'high' || e.priority === 'medium')
-                    .sort((a, b) => new Date(a.adjusted_expiration_date || a.expiration_date).getTime() - new Date(b.adjusted_expiration_date || b.expiration_date).getTime())
+                    .sort((a, b) => a.expirationSemaforo.daysRemaining - b.expirationSemaforo.daysRemaining)
                     .slice(0, 6)
                     .map((batch: Batch) => {
                       const cStatus = batch.clinical_status || 'accepted';
+                      const expirationSemaforo = getExpirationSemaforo(
+                        batch.adjusted_expiration_date || batch.expiration_date,
+                        batch.status,
+                        batch.clinical_status,
+                      );
                       return (
                         <div key={batch.id} className="expiry-item">
                           <div className="expiry-item-top">
                             <span className="expiry-item-name">
                               {(batch as { item?: { technical_name: string } }).item?.technical_name}
                             </span>
-                            <span className={batch.priority === 'high' ? 'expiry-item-date-danger' : 'expiry-item-date-warning'}>
-                              {new Date(batch.adjusted_expiration_date || batch.expiration_date).toLocaleDateString()}
+                            <span style={{ color: expirationSemaforo.color, fontSize: 'var(--fs-sm)', fontWeight: 'var(--fw-semibold)' }}>
+                              {expirationSemaforo.isExpired
+                                ? `VENCIDO · ${new Date(batch.adjusted_expiration_date || batch.expiration_date).toLocaleDateString()}`
+                                : `Vence en ${expirationSemaforo.daysRemaining} días · ${new Date(batch.adjusted_expiration_date || batch.expiration_date).toLocaleDateString()}`}
                             </span>
                           </div>
                           <div className="expiry-item-bottom">

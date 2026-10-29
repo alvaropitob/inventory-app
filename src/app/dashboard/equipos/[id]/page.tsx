@@ -3,6 +3,7 @@ import MaintenanceRegistryForm from "@/components/MaintenanceRegistryForm";
 import MaintenanceHistory from "@/components/MaintenanceHistory";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -62,7 +63,14 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
               </div>
               <div className="tech-info-row">
                 <span className="cell-muted">Vencimiento INVIMA:</span>
-                <span className="equipment-detail-value">{equipment.data.invima_expiration_date || "—"}</span>
+                <span
+                  className="equipment-detail-value"
+                  style={equipment.data.invima_expiration_date ? { color: getExpirationSemaforo(equipment.data.invima_expiration_date).color } : undefined}
+                >
+                  {equipment.data.invima_expiration_date
+                    ? `${getExpirationSemaforo(equipment.data.invima_expiration_date).label} · ${equipment.data.invima_expiration_date}`
+                    : "—"}
+                </span>
               </div>
               <div className="tech-info-row">
                 <span className="cell-muted">Frecuencias:</span>

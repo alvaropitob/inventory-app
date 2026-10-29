@@ -3,6 +3,7 @@
 import { Equipment } from "@/lib/services/equipment";
 import Link from "next/link";
 import { formatDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 
 export default function EquipmentList({ equipments }: { equipments: Equipment[] }) {
   const getStatusBadge = (status: Equipment['status']) => {
@@ -40,7 +41,9 @@ export default function EquipmentList({ equipments }: { equipments: Equipment[] 
                 <td>
                   <div className="equipment-name">{eq.name}</div>
                   <div className="equipment-meta">Inventario: {eq.inventory_number || "N/A"}</div>
-                  <div className="equipment-meta">Vencimiento INVIMA: {formatDateKeyInBusinessTimeZone(eq.invima_expiration_date)}</div>
+                  <div className="equipment-meta" style={eq.invima_expiration_date ? { color: getExpirationSemaforo(eq.invima_expiration_date).color, fontWeight: 600 } : undefined}>
+                    Vencimiento INVIMA{eq.invima_expiration_date ? ` · ${getExpirationSemaforo(eq.invima_expiration_date).label}` : ""}: {formatDateKeyInBusinessTimeZone(eq.invima_expiration_date)}
+                  </div>
                   <div className="equipment-meta">{eq.brand} {eq.model} • SN: {eq.serial_number}</div>
                 </td>
                 <td>

@@ -14,10 +14,10 @@ const countFields = [
   ["managed_pharmacovigilance", "Total de alertas y/o informes de seguridad en Farmacovigilancia gestionados que aplican al laboratorio."],
 ] as const;
 
-export default function MonthlyAlertForm({ reports, action }: { reports: MonthlyAlertReport[]; action: FormAction }) {
+export default function MonthlyAlertForm({ reports, action, initialMonth }: { reports: MonthlyAlertReport[]; action: FormAction; initialMonth?: string }) {
   const currentMonth = getYearMonthInBusinessTimeZone();
-  const [month, setMonth] = useState(currentMonth);
-  const [report, setReport] = useState(() => reports.find(row => row.period_month.slice(0, 7) === currentMonth));
+  const [month, setMonth] = useState(initialMonth || currentMonth);
+  const [report, setReport] = useState(() => reports.find(row => row.period_month.slice(0, 7) === (initialMonth || currentMonth)));
 
   function chooseMonth(value: string) {
     setMonth(value);
@@ -34,6 +34,6 @@ export default function MonthlyAlertForm({ reports, action }: { reports: Monthly
     </div>
     <div><label className="form-label">Observaciones</label><textarea name="notes" rows={2} defaultValue={report?.notes || ""} key={`${month}-notes`} className="form-textarea" /></div>
     <p className="cell-secondary">Al cambiar el mes se cargan sus datos existentes. El porcentaje se registra manualmente porque el formato compartido no especifica una fórmula.</p>
-    <button type="submit" className="btn-primary">Guardar resumen</button>
+    <button type="submit" className="btn-primary">{report ? "Actualizar resumen" : "Guardar resumen"}</button>
   </form>;
 }

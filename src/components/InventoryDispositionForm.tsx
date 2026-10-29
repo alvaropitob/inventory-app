@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { PackageX, ShieldAlert } from "lucide-react";
 import { dispositionCauses, disposalRoutes } from "@/lib/disposal-options";
+import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 
 interface DispositionBatch {
   id: string;
@@ -92,12 +93,13 @@ export default function InventoryDispositionForm({ batches, action }: {
           {batches.map(item => {
             const catalogItem = item.item || item.catalog_items;
             const status = item.clinical_status || item.status || "sin estado";
+            const semaforo = getExpirationSemaforo(item.adjusted_expiration_date || item.expiration_date, item.status, item.clinical_status);
             return (
-              <option key={item.id} value={item.id}>
+              <option key={item.id} value={item.id} style={{ color: semaforo.color }}>
                 {catalogItem?.technical_name || "Producto"} ({catalogItem?.internal_code || "Sin código"})
                 {` | Lote: ${item.batch_number} | ${item.current_stock} empaques`}
                 {(item.opened_units_remaining || 0) > 0 ? ` + ${item.opened_units_remaining} unidades abiertas` : ""}
-                {` | ${item.location?.name || item.locations?.name || "Sin ubicación"} | ${status}`}
+                {` | ${item.location?.name || item.locations?.name || "Sin ubicación"} | ${semaforo.label} | ${status}`}
               </option>
             );
           })}
@@ -110,7 +112,9 @@ export default function InventoryDispositionForm({ batches, action }: {
           <div className="clinical-batch-summary inventory-disposition-summary">
             <div><strong>Producto:</strong> {product?.technical_name || "No disponible"}</div>
             <div><strong>Lote:</strong> {batch.batch_number}</div>
-            <div><strong>Vencimiento:</strong> {formatDate(batch.adjusted_expiration_date || batch.expiration_date)}</div>
+            <div style={{ color: getExpirationSemaforo(batch.adjusted_expiration_date || batch.expiration_date, batch.status, batch.clinical_status).color }}>
+              <strong>Vencimiento:</strong> {getExpirationSemaforo(batch.adjusted_expiration_date || batch.expiration_date, batch.status, batch.clinical_status).label} · {formatDate(batch.adjusted_expiration_date || batch.expiration_date)}
+            </div>
             <div><strong>Ubicación:</strong> {location}</div>
             <div><strong>Estado:</strong> {batch.clinical_status || batch.status || "Sin estado"}</div>
           </div>

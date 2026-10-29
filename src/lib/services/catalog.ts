@@ -104,7 +104,7 @@ export const CatalogService = {
     return await supabase.from("locations").select("*, sections(name, is_active)").order("name");
   },
 
-  async upsertLocation(data: { id?: string; name: string; section_id: string; location_type: string; is_active?: boolean }) {
+  async upsertLocation(data: { id?: string; name: string; section_id: string; location_type: string; temperature_min: number; temperature_max: number; is_active?: boolean }) {
     const supabase = await createClient();
     return await supabase.from("locations").upsert(data).select().single();
   },

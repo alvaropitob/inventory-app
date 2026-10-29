@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import PrintReportButton from "@/components/PrintReportButton";
-import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import { formatAmount, formatNumber } from "@/lib/formatters";
 import { dispositionCauses, disposalRoutes, getDispositionCauseLabel, getDisposalRouteLabel } from "@/lib/disposal-options";
 
@@ -36,7 +36,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   const reportTypes = ["resumen", "kardex", "suficiencia", "vencimientos", "mermas", "reactivovigilancia", "ambiental", "valorizacion"] as const;
   const activeReportType = reportTypes.includes(type as (typeof reportTypes)[number]) ? type : "suficiencia";
 
-  const [incidents, logs, movementsResponse, batchesResponse, catalogResponse, fractionalMovementsResponse] = await Promise.all([
+  const [incidents, environmentalLogs, movementsResponse, batchesResponse, catalogResponse, fractionalMovementsResponse] = await Promise.all([
     ComplianceService.getSafetyIncidents(),
     ComplianceService.getEnvironmentalLogs(200),
     StockService.getAllMovements(),
@@ -44,6 +44,19 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     CatalogService.getCatalogItems(),
     StockService.getAllFractionalMovements(),
   ]);
+
+  const logs = environmentalLogs.map(log => {
+    const temperatureMin = log.temperature_min_at_reading ?? log.locations?.temperature_min;
+    const temperatureMax = log.temperature_max_at_reading ?? log.locations?.temperature_max;
+    return {
+      ...log,
+      temperature_min_at_reading: temperatureMin,
+      temperature_max_at_reading: temperatureMax,
+      is_out_of_range: temperatureMin != null && temperatureMax != null
+        ? log.temperature < temperatureMin || log.temperature > temperatureMax
+        : Boolean(log.is_out_of_range),
+    };
+  });
 
   interface MovementItem {
     id: string;
@@ -126,29 +139,24 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   );
 
   // Semáforo de Lotes
-  const today = new Date();
   const batchesWithDays = batches.map((b) => {
-    const expDate = new Date(b.adjusted_expiration_date || b.expiration_date);
-    const diffDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    let trafficLight = "Óptimo";
-    let trafficColor = "#10b981";
-
-    if (diffDays <= 0 || b.status === "expired") {
-      trafficLight = "Vencido";
-      trafficColor = "#ef4444";
-    } else if (diffDays <= 7) {
-      trafficLight = "Crítico (<7 días)";
-      trafficColor = "#dc2626";
-    } else if (diffDays <= 30) {
-      trafficLight = "Alerta (<30 días)";
-      trafficColor = "#f59e0b";
-    }
+    const semaforo = getExpirationSemaforo(
+      b.adjusted_expiration_date || b.expiration_date,
+      b.status,
+      b.clinical_status,
+    );
+    const trafficLight = semaforo.isExpired
+      ? "Vencido"
+      : semaforo.state === "near_expiry"
+        ? (semaforo.daysRemaining <= 7 ? "Crítico (<7 días)" : "Alerta (≤30 días)")
+        : "Óptimo";
 
     return {
       ...b,
-      diffDays,
+      diffDays: semaforo.daysRemaining,
+      isExpired: semaforo.isExpired,
       trafficLight,
-      trafficColor,
+      trafficColor: semaforo.color,
     };
   });
 
@@ -174,7 +182,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     Producto: b.item?.technical_name || "N/A",
     "Código": b.item?.internal_code || "N/A",
     Lote: b.batch_number,
-    "Fecha de vencimiento": new Date(b.expiration_date).toLocaleDateString(),
+    "Fecha de vencimiento": new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString(),
     "Días restantes": b.diffDays,
     "Stock actual": b.current_stock,
     "Ubicación": b.location?.name || "N/A",
@@ -183,9 +191,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
 
   // Datos para exportación Suficiencia / Habilitación Res. 3100
   const suficienciaData = catalog.map((item) => {
-    const todayKey = getDateKeyInBusinessTimeZone(new Date());
     const itemBatches = batches.filter((b) => b.item?.internal_code === item.internal_code);
-    const totalStock = itemBatches.filter(b => b.clinical_status === "accepted" && b.status !== "expired" && (b.adjusted_expiration_date || b.expiration_date) >= todayKey)
+    const totalStock = itemBatches.filter(b => b.clinical_status === "accepted" && getExpirationSemaforo(b.adjusted_expiration_date || b.expiration_date, b.status, b.clinical_status).state !== "expired")
       .reduce((acc, b) => acc + (b.current_stock || 0), 0);
     const minStock = item.minimum_stock_threshold || 1;
     const maxStock = item.maximum_stock_threshold ?? null;
@@ -269,16 +276,18 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     "Fecha y hora": new Date(log.created_at).toLocaleString(),
     "Ubicación": log.locations?.name || "N/A",
     "Temperatura (°C)": log.temperature,
-    "Humedad (%)": log.humidity || "N/A",
+    "Rango aplicado (°C)": log.temperature_min_at_reading != null && log.temperature_max_at_reading != null
+      ? `${log.temperature_min_at_reading}–${log.temperature_max_at_reading}`
+      : "Sin rango guardado",
+    "Humedad (%)": log.humidity ?? "N/A",
     "Alerta fuera de rango": log.is_out_of_range ? "SÍ" : "NO",
   }));
 
   // Valorización del inventario y costos
   const valorizacionData = catalog.map((item) => {
     const itemBatches = batches.filter((b) => b.item?.internal_code === item.internal_code);
-    const todayKey = getDateKeyInBusinessTimeZone(new Date());
     const totalStock = itemBatches
-      .filter((b) => b.clinical_status === "accepted" && b.status !== "expired" && (b.adjusted_expiration_date || b.expiration_date) >= todayKey)
+      .filter((b) => b.clinical_status === "accepted" && getExpirationSemaforo(b.adjusted_expiration_date || b.expiration_date, b.status, b.clinical_status).state !== "expired")
       .reduce((acc, b) => acc + (b.current_stock || 0), 0);
     const unitPrice = Number(item.estimated_unit_price || 0);
     const totalValue = totalStock * unitPrice;
@@ -297,7 +306,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   const valorTotalInventario = valorizacionData.reduce((acc, curr) => acc + curr.ValorTotal, 0);
 
   const valorEnRiesgo = batchesWithDays
-    .filter((b) => b.diffDays <= 30 && b.current_stock > 0)
+    .filter((b) => (b.isExpired || b.diffDays <= 30) && b.current_stock > 0)
     .reduce((acc, b) => {
       const catItem = catalog.find((c) => c.internal_code === b.item?.internal_code);
       const price = Number(catItem?.estimated_unit_price || 0);
@@ -400,10 +409,10 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
                   <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)", fontWeight: 600 }}>LOTES EN RIESGO / CRÍTICOS</p>
-                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: batchesWithDays.filter((b) => b.diffDays <= 30).length > 0 ? "var(--error)" : "var(--success)", marginTop: "0.25rem" }}>
-                    {batchesWithDays.filter((b) => b.diffDays <= 30).length}
+                  <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: batchesWithDays.some((b) => b.isExpired || b.diffDays <= 30) ? "var(--error)" : "var(--success)", marginTop: "0.25rem" }}>
+                    {batchesWithDays.filter((b) => b.isExpired || b.diffDays <= 30).length}
                   </p>
-                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Vencimiento en ≤ 30 días</p>
+                  <p style={{ fontSize: 'var(--fs-xs)', color: "var(--text-muted)", marginTop: "2px" }}>Vencidos o vencen en ≤ 30 días</p>
                 </div>
                 <div style={{ padding: "1.25rem", borderRadius: "10px", backgroundColor: "#f8fafc", border: "1px solid var(--border)" }}>
                   <p style={{ fontSize: 'var(--fs-sm)', color: "var(--text-muted)", fontWeight: 600 }}>BAJAS / MERMAS</p>
@@ -572,9 +581,9 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                       <tr key={b.id} style={{ borderBottom: "1px solid var(--border)" }}>
                         <td style={{ fontWeight: 600, color: "var(--navy)" }}>{b.item?.technical_name || "N/A"}</td>
                         <td>{b.batch_number}</td>
-                        <td>{new Date(b.expiration_date).toLocaleDateString()}</td>
+                        <td>{new Date(b.adjusted_expiration_date || b.expiration_date).toLocaleDateString()}</td>
                         <td style={{ textAlign: "center", fontWeight: 600, color: b.trafficColor }}>
-                          {b.diffDays <= 0 ? "VENCIDO" : `${b.diffDays} días`}
+                          {b.isExpired ? "VENCIDO" : `${b.diffDays} días`}
                         </td>
                         <td style={{ textAlign: "center", fontWeight: 600 }}>{b.current_stock}</td>
                         <td>{b.location?.name || "—"}</td>
@@ -738,6 +747,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                       <th>Fecha y Hora</th>
                       <th>Ubicación / Equipo de Frío</th>
                       <th style={{ textAlign: "center" }}>Temperatura (°C)</th>
+                      <th style={{ textAlign: "center" }}>Rango aplicado (°C)</th>
                       <th style={{ textAlign: "center" }}>Humedad (%)</th>
                       <th style={{ textAlign: "center" }}>Estado de Rango</th>
                     </tr>
@@ -750,7 +760,12 @@ export default async function ReportesPage({ searchParams }: PageProps) {
                         <td style={{ textAlign: "center", fontWeight: 600, color: log.is_out_of_range ? "#dc2626" : "var(--navy)" }}>
                           {log.temperature} °C
                         </td>
-                        <td style={{ textAlign: "center" }}>{log.humidity ? `${log.humidity}%` : "—"}</td>
+                        <td style={{ textAlign: "center" }}>
+                          {log.temperature_min_at_reading != null && log.temperature_max_at_reading != null
+                            ? `${log.temperature_min_at_reading}–${log.temperature_max_at_reading} °C`
+                            : "Sin rango"}
+                        </td>
+                        <td style={{ textAlign: "center" }}>{log.humidity != null ? `${log.humidity}%` : "N/A"}</td>
                         <td style={{ textAlign: "center" }}>
                           <span
                             style={{ padding: "0.2rem 0.5rem", borderRadius: "4px", fontSize: 'var(--fs-xs)', fontWeight: 600, backgroundColor: log.is_out_of_range ? "#fee2e2" : "#dcfce7", color: log.is_out_of_range ? "#991b1b" : "#15803d" }}
