@@ -359,9 +359,16 @@ export const ComplianceService = {
 
         // A completed quality check must leave the verification queue. A passed
         // batch becomes available for inventory use; a failed one stays blocked.
+        const nextStatus = data.result === 'pass' ? 'accepted' : 'rejected';
+        const nextAcceptanceStatus = data.result === 'pass' ? 'passed' : 'failed';
         const { error: statusError } = await supabase
             .from('inventory_batches')
-            .update({ clinical_status: data.result === 'pass' ? 'accepted' : 'rejected' })
+            .update({
+                status: nextStatus,
+                clinical_status: nextStatus,
+                acceptance_test_status: nextAcceptanceStatus,
+                verified_by: user.id
+            })
             .eq('id', data.batch_id)
             .eq('clinical_status', 'quarantine');
 
