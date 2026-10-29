@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { submitTechnicalReception } from "@/app/dashboard/recepcion/actions";
 import ContextualHelp from "./ContextualHelp";
-import { parseGS1Barcode } from "@/lib/utils/gs1";
 import { filterLocationsForSection } from "@/lib/utils/locations";
 
 interface OrderItem {
@@ -185,7 +184,6 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
                         "Confirme que el producto recibido corresponda a la orden de compra.",
                         "Compare la cantidad recibida con la orden y la factura.",
                         "Registre el número de factura, lote y fecha de vencimiento tal como aparecen en los documentos y el envase.",
-                        "Use el escaneo GS1-128 cuando el empaque tenga un código legible."
                     ],
                     tips: ["Si hay diferencias, daño, temperatura inadecuada o documentación incompleta, deje constancia y no libere el lote sin revisión."]
                 }} />
@@ -203,7 +201,6 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
                             <th className="fulfillment-header">Ubicación</th>
                             <th className="fulfillment-header">Número de Lote</th>
                             <th className="fulfillment-header">Vencimiento</th>
-                            <th className="fulfillment-header reception-scan-column">Escanear GS1-128</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -268,30 +265,10 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
                                         className="table-input"
                                     />
                                 </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        placeholder="Escanee código aquí..."
-                                        className="table-input"
-
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            if (val && val.length > 5) {
-                                                const parsed = parseGS1Barcode(val);
-                                                if (parsed.lotNumber) {
-                                                    handleItemChange(item.catalog_item_id, 'lot', parsed.lotNumber);
-                                                }
-                                                if (parsed.expirationDate) {
-                                                    handleItemChange(item.catalog_item_id, 'exp', parsed.expirationDate);
-                                                }
-                                            }
-                                        }}
-                                    />
-                                </td>
                             </tr>
                         ))}
                 {order.items.length === 0 && (
-                    <tr><td colSpan={9} className="empty-state">Esta orden no tiene productos para recibir.</td></tr>
+                    <tr><td colSpan={8} className="empty-state">Esta orden no tiene productos para recibir.</td></tr>
                 )}
                     </tbody>
                 </table>

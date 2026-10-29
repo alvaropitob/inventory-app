@@ -16,9 +16,11 @@ interface DashboardClientLayoutProps {
     avatarUrl: string | null;
     role: string;
   };
+  appVersion: string;
+  deploymentEnvironment: string;
 }
 
-export default function DashboardClientLayout({ children, user }: DashboardClientLayoutProps) {
+export default function DashboardClientLayout({ children, user, appVersion, deploymentEnvironment }: DashboardClientLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -141,6 +143,9 @@ export default function DashboardClientLayout({ children, user }: DashboardClien
           </svg>
         </button>
         <span className="mobile-logo-text">MediCore <small>Inventario clínico</small></span>
+        <span className="app-version-badge" title={`Versión ${appVersion} · ${deploymentEnvironment}`}>
+          v{appVersion} · {deploymentEnvironment === "production" ? "PROD" : deploymentEnvironment === "preview" ? "QA" : "DEV"}
+        </span>
       </header>
 
       <Sidebar 
@@ -164,6 +169,9 @@ export default function DashboardClientLayout({ children, user }: DashboardClien
               <strong>{contextualPageTitle}</strong>
             </div>
             <div className="topbar-actions">
+              <span className="app-version-badge" title={`Versión ${appVersion} · ${deploymentEnvironment}`}>
+                v{appVersion} · {deploymentEnvironment === "production" ? "PROD" : deploymentEnvironment === "preview" ? "QA" : "DEV"}
+              </span>
               <ContextualHelp content={pageHelp} />
               <span className="topbar-role">{user.role}</span>
               <span className="topbar-avatar" aria-hidden="true">{user.fullName.trim().charAt(0).toUpperCase()}</span>
