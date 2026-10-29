@@ -40,7 +40,7 @@ export async function signInWithGoogle() {
     origin = 'http://localhost:3000';
   } else {
     protocol = headersList.get("x-forwarded-proto") || "https";
-    origin = host ? `${protocol}://${host}` : "https://inventory-app-ten-omega.vercel.app";
+    origin = host ? `${protocol}://${host}` : "https://inventory-app-three-alpha.vercel.app";
   }
 
   console.log("Auth Origin Debug:", { host, protocol, origin });

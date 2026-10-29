@@ -46,7 +46,7 @@ export default function LoginPage() {
     setErrorMsg(null);
     try {
       const supabase = createClient();
-      const origin = typeof window !== "undefined" ? window.location.origin : "https://inventory-app-ten-omega.vercel.app";
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://inventory-app-three-alpha.vercel.app";
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
