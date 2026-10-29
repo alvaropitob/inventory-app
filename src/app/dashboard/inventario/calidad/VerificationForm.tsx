@@ -22,12 +22,12 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
         <label className="verification-label">
           Resultado de Prueba *
           <ContextualHelp 
-            content="Según ISO 15189, la liberación técnica requiere que los controles de calidad estén dentro de los rangos establecidos. 'Pasar' moverá el lote de Cuarentena a Aceptado." 
+            content="Este formulario registra el resultado y el lote de control utilizado. En la versión actual, aprobar o fallar no cambia el estado del lote: no lo libera ni lo rechaza automáticamente."
           />
         </label>
         <select name="result" required className="form-select">
-          <option value="pass">Aprobado (Liberar para uso)</option>
-          <option value="fail">Fallido (Rechazar lote)</option>
+          <option value="pass">Prueba aprobada (solo registra resultado)</option>
+          <option value="fail">Prueba fallida (solo registra resultado)</option>
         </select>
       </div>
 
@@ -47,7 +47,7 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
       />
       <div className="verification-help">
         <ContextualHelp 
-          content="Esta firma vincula permanentemente tu identidad a esta liberación técnica. El sello generado garantiza la integridad del registro en la auditoría forense." 
+          content="El código ingresado solo habilita el envío si tiene cuatro caracteres; no se valida contra tu contraseña ni es una firma electrónica certificada. El resultado queda registrado con el usuario autenticado."
         />
       </div>
 
@@ -58,7 +58,7 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
       >
         Guardar Verificación
       </button>
-      {!seal && <p className="verification-signature-hint">Debe firmar digitalmente para habilitar el guardado.</p>}
+      {!seal && <p className="verification-signature-hint">Confirma el registro para habilitar el guardado.</p>}
     </form>
   );
 }

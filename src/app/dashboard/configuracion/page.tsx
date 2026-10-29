@@ -5,6 +5,7 @@ import DeleteMasterButton from "@/components/DeleteMasterButton";
 import * as Actions from "./actions";
 import ProductMaintenanceList from "@/components/ProductMaintenanceList";
 import ProductTechnicalFields from "@/components/ProductTechnicalFields";
+import ContextualHelp from "@/components/ContextualHelp";
 
 export const dynamic = "force-dynamic";
 
@@ -433,12 +434,12 @@ export default async function ConfiguracionPage({
                 configurationMode
               />
               <div>
-                <label className="form-label">Stock Mínimo</label>
-                <input className="form-input" type="number" min="0" step="1" name="minimum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.minimum_stock_threshold || 0} />
+                <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><label className="form-label" htmlFor="config-min-stock">Stock Mínimo</label><ContextualHelp content="Umbral de reposición en unidades de compra. El panel alerta cuando el stock utilizable es menor; si el stock utilizable es cero, se mantiene la alerta aunque el mínimo esté en cero. Este valor no bloquea ni habilita salidas." /></div>
+                <input id="config-min-stock" className="form-input" type="number" min="0" step="1" name="minimum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.minimum_stock_threshold || 0} />
               </div>
               <div>
-                <label className="form-label">Stock Máximo (opcional)</label>
-                <input className="form-input" type="number" min="0" step="1" name="maximum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.maximum_stock_threshold ?? ""} />
+                <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><label className="form-label" htmlFor="config-max-stock">Stock Máximo (opcional)</label><ContextualHelp content="Nivel superior de referencia. Si se supera, el panel puede señalar exceso de stock. Déjalo vacío si no necesitas controlar un máximo." /></div>
+                <input id="config-max-stock" className="form-input" type="number" min="0" step="1" name="maximum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.maximum_stock_threshold ?? ""} />
               </div>
               <div>
                 <label className="form-label">P. Estimado ($)</label>

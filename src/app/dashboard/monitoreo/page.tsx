@@ -51,14 +51,14 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
           <div className="form-card-header">
             <h2 className="form-card-title">Nueva Lectura</h2>
             <ContextualHelp content={{
-              title: "Control de Red de Frío",
+              title: "Monitoreo por ubicación",
               description: "El monitoreo diario asegura que los reactivos mantengan su estabilidad (ISO 15189).",
               steps: [
-                "Seleccione la ubicación o equipo específico.",
-                "Ingrese temperatura en grados Celsius (°C).",
-                "La humedad es opcional pero recomendada en almacenes.",
+                "Seleccione la ubicación monitoreada; la fecha se registra automáticamente.",
+                "Ingrese la temperatura observada en grados Celsius (°C).",
+                "La humedad es opcional.",
               ],
-              tips: ["Si la temperatura está fuera de rango (ej. > 8°C en nevera), registre la acción correctiva en Notas."],
+              tips: ["Compare la lectura con el rango validado para esa ubicación y con las instrucciones del fabricante.", "El sistema registra las lecturas, pero no tiene límites configurables por ubicación ni determina automáticamente si una temperatura cumple el protocolo."],
             }} />
           </div>
 
@@ -76,7 +76,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
             <div className="form-grid-2">
               <div>
                 <label className="form-label">Turno de lectura *</label>
-                <select name="reading_type" required className="form-select"><option value="am">AM - Ma?ana</option><option value="pm">PM - Tarde</option></select>
+                <select name="reading_type" required className="form-select"><option value="am">AM - Mañana</option><option value="pm">PM - Tarde</option></select>
               </div>
               <div>
                 <label className="form-label">Temperatura (°C) *</label>
@@ -90,7 +90,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
 
             <div>
               <label className="form-label">Observaciones</label>
-              <textarea name="notes" rows={3} className="form-textarea" defaultValue="Temperatura acorde a los límites de almacenamiento establecidos por el fabricante" placeholder="Cualquier desviación o evento..." style={{ resize: 'none' }} />
+              <textarea name="notes" rows={3} className="form-textarea" placeholder="Registre desviaciones, acciones realizadas o el motivo de corrección..." style={{ resize: 'none' }} />
             </div>
 
             <label style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
@@ -117,11 +117,6 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
           </div>
           {chartReadings.length ? <div style={{ padding: '1rem 1.5rem 0' }}>
             <svg viewBox="0 0 800 220" role="img" aria-label="Gráfica de temperaturas AM y PM de la ubicación seleccionada" style={{ width: '100%', height: 'auto' }}>
-              <rect x="24" y={yForTemperature(8)} width="752" height={yForTemperature(2) - yForTemperature(8)} fill="#dcfce7" />
-              <line x1="24" y1={yForTemperature(8)} x2="776" y2={yForTemperature(8)} stroke="#16a34a" strokeDasharray="6 4" strokeWidth="2" />
-              <line x1="24" y1={yForTemperature(2)} x2="776" y2={yForTemperature(2)} stroke="#16a34a" strokeDasharray="6 4" strokeWidth="2" />
-              <text x="30" y={yForTemperature(8) - 5} fontSize="10" fill="#15803d">8 °C</text>
-              <text x="30" y={yForTemperature(2) - 5} fontSize="10" fill="#15803d">2 °C</text>
               <line x1="24" y1="176" x2="776" y2="176" stroke="#cbd5e1" />
               {(["am", "pm"] as const).map((shift, shiftIndex) => {
                 const shiftPoints = chartReadings.filter(log => (log.reading_type || "am") === shift).map(log => {
@@ -144,7 +139,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
                 return <text key={day} x={x} y="202" textAnchor="middle" fontSize="10" fill="#64748b">{new Date(`${day}T12:00:00Z`).toLocaleDateString('es-CO', { timeZone: "UTC", day: '2-digit', month: '2-digit' })}</text>;
               })}
             </svg>
-            <p className="cell-secondary"><span style={{ color: "#0f766e", fontWeight: 600 }}>AM</span> · <span style={{ color: "#2563eb", fontWeight: 600 }}>PM</span>. Se grafica la ubicación seleccionada.</p>
+            <p className="cell-secondary"><span style={{ color: "#0f766e", fontWeight: 600 }}>AM</span> · <span style={{ color: "#2563eb", fontWeight: 600 }}>PM</span>. Se grafica la ubicación seleccionada; la gráfica no marca rangos aceptables.</p>
           </div> : <p className="cell-secondary" style={{ padding: '0 1.5rem' }}>Registra lecturas de mañana y tarde para ver la tendencia.</p>}
           {selectedLocationId && <p className="cell-secondary" style={{ padding: "0 1.5rem 1rem" }}>
             {pendingShifts.length
@@ -176,7 +171,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
                     <td className="cell-primary">{log.locations?.name}</td>
                     <td>{log.reading_type?.toUpperCase() || "AM"}</td>
                     <td className="cell-center">
-                      <span style={{ fontWeight: 600, fontSize: 'var(--fs-md)', color: log.temperature > 30 || log.temperature < 15 ? 'var(--error)' : 'var(--success)' }}>
+                      <span style={{ fontWeight: 600, fontSize: 'var(--fs-md)', color: 'var(--navy)' }}>
                         {log.temperature}°C
                       </span>
                     </td>

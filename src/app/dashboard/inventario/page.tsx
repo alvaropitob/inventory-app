@@ -374,8 +374,14 @@ export default async function InventarioPage({
                           )}
                         </div>
                         <div className="form-grid-2">
-                          <div><label className="form-label">Stock mínimo</label><input className="form-input" type="number" min="0" step="1" name="minimum_stock_threshold" defaultValue={editingItem?.minimum_stock_threshold || 0} /></div>
-                          <div><label className="form-label">Stock máximo (opcional)</label><input className="form-input" type="number" min="0" step="1" name="maximum_stock_threshold" defaultValue={editingItem?.maximum_stock_threshold ?? ""} /></div>
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><label className="form-label" htmlFor="inventory-min-stock">Stock mínimo</label><ContextualHelp content="Umbral de reposición en unidades de compra. Si el stock utilizable queda por debajo, el panel genera una alerta. Un valor de cero no oculta una alerta por stock utilizable igual a cero y no bloquea ni habilita salidas." /></div>
+                            <input id="inventory-min-stock" className="form-input" type="number" min="0" step="1" name="minimum_stock_threshold" defaultValue={editingItem?.minimum_stock_threshold || 0} />
+                          </div>
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><label className="form-label" htmlFor="inventory-max-stock">Stock máximo (opcional)</label><ContextualHelp content="Umbral superior de referencia para señalar existencias por encima del nivel deseado. Déjalo vacío si no se controla máximo." /></div>
+                            <input id="inventory-max-stock" className="form-input" type="number" min="0" step="1" name="maximum_stock_threshold" defaultValue={editingItem?.maximum_stock_threshold ?? ""} />
+                          </div>
                         </div>
                         <div><label className="form-label">Precio estimado ($)</label><input className="form-input" type="number" min="0" step="0.01" name="estimated_unit_price" defaultValue={editingItem?.estimated_unit_price || 0} /></div>
                       </div>

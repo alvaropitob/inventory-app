@@ -162,11 +162,12 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
                     />
                 </div>
                 <div className="form-group">
-                    <label>Resultado global</label>
+                    <label>Resultado global para los lotes recibidos</label>
                     <select value={isApproved ? "true" : "false"} onChange={e => setIsApproved(e.target.value === "true")}>
                         <option value="true">APROBADO PARA USO</option>
-                        <option value="false">EN CUARENTENA / RECHAZADO</option>
+                        <option value="false">NO APROBADO: queda en cuarentena</option>
                     </select>
+                    <small className="form-hint">Se aplica a todos los productos incluidos en esta recepción. Para separar lotes con resultados diferentes, registra recepciones por separado.</small>
                 </div>
             </div>
 

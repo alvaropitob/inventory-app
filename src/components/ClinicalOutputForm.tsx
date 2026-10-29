@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { parseGS1Barcode } from "@/lib/utils/gs1";
 import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
+import ContextualHelp from "@/components/ContextualHelp";
 import { AlertTriangle, ArrowUpFromLine, CheckCircle2, FlaskConical, Layers, ScanLine } from "lucide-react";
 
 interface CatalogItem {
@@ -224,9 +225,10 @@ export default function ClinicalOutputForm({ batches, sections = [], action }: P
 
         {/* PASO 1: SELECCIONAR REACTIVO */}
         <div className="form-group">
-          <label className="form-label">
-            Área de inventario
-          </label>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+            <label className="form-label">Área de inventario</label>
+            <ContextualHelp content={{ title: "Área y unidad de salida", description: "El área filtra los lotes por ubicación; no determina si debes retirar cajas o unidades.", steps: ["En el flujo habitual de Especiales se suele retirar por unidad.", "En Química se suele retirar por caja/empaque cuando el consumo es de líquido.", "Confirma la presentación del producto y selecciona el modo que corresponda antes de registrar la salida."], tips: ["La guía por área no es una regla automática: el formulario permite elegir el modo para cada salida."] }} />
+          </div>
           <select value={selectedSectionId} onChange={event => {
             setSelectedSectionId(event.target.value);
             setSelectedItemId("");

@@ -160,7 +160,7 @@ export default function ComplianceChecklistPage() {
             Dashboard Normativo
           </Link>
           <button onClick={() => window.print()} className="btn-primary">
-            Imprimir Certificación
+            Imprimir Checklist
           </button>
         </div>
       </header>
@@ -187,12 +187,7 @@ export default function ComplianceChecklistPage() {
                 <div key={iIdx} className="checklist-item">
                   <span className="checklist-item-label">{item.label}</span>
                   <div className="checklist-item-status">
-                    <span className="checklist-verified">VERIFICADO</span>
-                    <div className="checklist-check">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </div>
+                    <span className="checklist-reference">REFERENCIA</span>
                   </div>
                 </div>
               ))}
@@ -211,14 +206,13 @@ export default function ComplianceChecklistPage() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
-          <span>Conclusión Técnica de Cumplimiento</span>
+          <span>Alcance de esta pantalla</span>
         </div>
         <p className="checklist-footer-text">
-          &quot;El ecosistema digital implementado proporciona una infraestructura técnica íntegra que
-          garantiza la trazabilidad absoluta del reactivo desde su recepción primaria hasta su disposición
-          final. Los controles implementados satisfacen los requisitos de integridad de datos, seguridad
-          clínica y gestión proactiva de riesgos exigidos por los estándares internacionales de
-          acreditación de laboratorios clínicos.&quot;
+          Este checklist describe módulos y funciones disponibles como referencia. No inspecciona evidencias,
+          no confirma que los procesos estén configurados o se usen correctamente y no certifica el
+          cumplimiento de ISO 15189 ni de la Resolución 3100. La evaluación normativa debe respaldarse con
+          registros y evidencias vigentes del laboratorio.
         </p>
       </motion.footer>
     </div>

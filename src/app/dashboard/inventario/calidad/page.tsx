@@ -20,7 +20,7 @@ export default async function CalidadPage() {
       <div className="page-header">
         <div>
           <h1 className="page-header-title">Verificación de Calidad</h1>
-          <p className="page-header-subtitle">Liberación técnica de insumos en cuarentena para uso clínico.</p>
+          <p className="page-header-subtitle">Registro de resultados de prueba para lotes en cuarentena.</p>
         </div>
         <div className="page-header-actions">
           <Link href="/dashboard/inventario?view=stock" className="btn-secondary quality-stock-link">

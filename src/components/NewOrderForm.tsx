@@ -6,6 +6,7 @@ import { createPurchaseOrder } from "@/app/dashboard/pedidos/actions";
 import Link from "next/link";
 import SearchableProductSelect from "@/components/SearchableProductSelect";
 import { formatAmount, formatNumber } from "@/lib/formatters";
+import ContextualHelp from "@/components/ContextualHelp";
 
 interface Supplier { id: string; name: string; }
 interface CatalogItem { id: string; technical_name: string; commercial_name: string; internal_code: string; supplier_id: string; estimated_unit_price?: number | null; }
@@ -78,6 +79,9 @@ export default function NewOrderForm({ suppliers, items }: { suppliers: Supplier
   return (
     <form onSubmit={handleSubmit} className="entry-form purchase-order-form">
       {error && <div className="error-message">{error}</div>}
+      <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: "0.5rem" }}>
+        <ContextualHelp content={{ title: "Crear y solicitar un pedido", description: "La creación guarda un borrador en el sistema; el envío al proveedor es un paso posterior.", steps: ["Elige un proveedor activo; solo verás productos asociados a ese proveedor.", "La cantidad y el precio unitario son valores estimados. El total se calcula automáticamente.", "Guarda el borrador, revisa su detalle y pulsa Solicitar Pedido para cambiarlo a solicitado."], tips: ["Actualmente el sistema no envía automáticamente un correo al proveedor, aunque el correo esté guardado en su ficha."] }} />
+      </div>
       
       <div className="form-group purchase-order-supplier">
         <label>Proveedor Responsable</label>

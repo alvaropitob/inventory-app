@@ -43,6 +43,7 @@ export default function ContextualHelp({ content }: { content: string | HelpCont
           setIsOpen(!isOpen);
         }}
         title="Ver ayuda"
+        aria-label={`Ayuda: ${normalizedContent.title}`}
         aria-expanded={isOpen}
       >
         ?
@@ -77,12 +78,12 @@ export default function ContextualHelp({ content }: { content: string | HelpCont
               </div>
             )}
 
-            {normalizedContent.tips && (
-               <div className="help-popover-tip">
-                  <strong>Consejo de Calidad:</strong>
-                  <p>{normalizedContent.tips[0]}</p>
-               </div>
-            )}
+            {normalizedContent.tips?.map((tip, i) => (
+              <div className="help-popover-tip" key={i}>
+                <strong>{normalizedContent.tips!.length > 1 ? `Importante ${i + 1}:` : "Importante:"}</strong>
+                <p>{tip}</p>
+              </div>
+            ))}
 
             <div className="help-popover-footer">
               <button type="button" className="help-popover-close" onClick={() => setIsOpen(false)}>

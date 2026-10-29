@@ -1475,7 +1475,7 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 .checklist-item { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: 32px; }
 .checklist-item-label { color: var(--navy-light); font-size: var(--fs-sm); }
 .checklist-item-status { display: flex; align-items: center; gap: var(--sp-2); }
-.checklist-verified { color: var(--success); font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
+.checklist-reference { color: var(--text-muted); font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: 0.04em; text-transform: uppercase; }
 .checklist-check { display: flex; align-items: center; justify-content: center; flex: 0 0 20px; width: 20px; height: 20px; border: 1px solid var(--success-border); border-radius: 50%; background: var(--success-bg); color: var(--success); }
 .checklist-footer { margin-top: var(--sp-6); padding: var(--sp-5); text-align: center; background: var(--surface-soft); border: 1px solid var(--border); border-radius: var(--radius); }
 .checklist-footer-title { display: flex; align-items: center; justify-content: center; gap: var(--sp-2); margin-bottom: var(--sp-2); color: var(--navy); font-size: var(--fs-base); font-weight: var(--fw-semibold); }
