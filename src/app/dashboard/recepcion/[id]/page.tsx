@@ -35,6 +35,7 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
           internal_code: item.catalog_item?.internal_code || "N/A",
           technical_name: item.catalog_item?.technical_name || "Desconocido",
           commercial_name: item.catalog_item?.commercial_name || "",
+          sanitary_registration: item.catalog_item?.sanitary_registration || "",
           section_id: item.catalog_item?.section_id || null,
           section_name: item.catalog_item?.sections?.name || null,
           section_is_active: item.catalog_item?.sections?.is_active || false,

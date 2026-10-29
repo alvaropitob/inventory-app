@@ -142,6 +142,7 @@ export const ComplianceService = {
             catalog_item_id: string;
             section_id: string;
             lot_number: string;
+            sanitary_registration?: string;
             expiration_date: string;
             quantity_received: number;
             location_id: string;
@@ -168,6 +169,15 @@ export const ComplianceService = {
             })),
         });
         if (error) throw error;
+
+        for (const item of data.items) {
+            const { error: registrationError } = await supabase.rpc("fn_update_catalog_item_sanitary_registration", {
+                p_item_id: item.catalog_item_id,
+                p_registration: item.sanitary_registration?.trim() || null,
+            });
+            if (registrationError) throw registrationError;
+        }
+
         return { success: true, receptionId };
     },
 
@@ -346,6 +356,16 @@ export const ComplianceService = {
             .single();
 
         if (error) throw error;
+
+        // A completed quality check must leave the verification queue. A passed
+        // batch becomes available for inventory use; a failed one stays blocked.
+        const { error: statusError } = await supabase
+            .from('inventory_batches')
+            .update({ clinical_status: data.result === 'pass' ? 'accepted' : 'rejected' })
+            .eq('id', data.batch_id)
+            .eq('clinical_status', 'quarantine');
+
+        if (statusError) throw statusError;
 
         // Audit Log
         await AuditService.logAction({

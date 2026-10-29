@@ -34,6 +34,7 @@ export interface PurchaseOrderItem {
     internal_code: string;
     technical_name: string;
     commercial_name: string;
+    sanitary_registration?: string | null;
     section_id?: string | null;
     sections?: { name: string; is_active: boolean } | null;
   };
@@ -73,7 +74,7 @@ export const OrderService = {
         creator:users!purchase_orders_created_by_fkey(id, full_name, email),
         items:purchase_order_items(
           *,
-          catalog_item:catalog_items(id, internal_code, technical_name, commercial_name, section_id, sections(name, is_active))
+          catalog_item:catalog_items(id, internal_code, technical_name, commercial_name, sanitary_registration, section_id, sections(name, is_active))
         )
       `)
       .eq("id", id)

@@ -171,8 +171,16 @@ export default async function InventarioPage({
 
   const editingItem = editId ? catalogItems?.find(i => i.id === editId) : null;
   const sectionOrder = ["hematologia", "microbiologia", "quimica", "especiales", "sede norte", "inmunologia", "inmunologia manual", "insumos", "medicamentos", "repuestos", "riqas", "glicosiladas", "dispositivos medicos", "colorantes", "aseo", "especiales 2"];
+  const normalizeSectionName = (name: string) => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
   const activeSections = (sections || []).filter((section: { is_active?: boolean }) => section.is_active !== false)
-    .sort((a: { name: string }, b: { name: string }) => sectionOrder.indexOf(a.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase()) - sectionOrder.indexOf(b.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase()));
+    .sort((a: { name: string }, b: { name: string }) => {
+      const aIndex = sectionOrder.indexOf(normalizeSectionName(a.name));
+      const bIndex = sectionOrder.indexOf(normalizeSectionName(b.name));
+      return (aIndex < 0 ? Number.MAX_SAFE_INTEGER : aIndex) - (bIndex < 0 ? Number.MAX_SAFE_INTEGER : bIndex);
+    });
+  const manualEntrySections = activeSections.filter((section: { name: string }) =>
+    sectionOrder.includes(normalizeSectionName(section.name))
+  );
   const northLocations = (locations || []).filter((location: { is_active?: boolean; name: string }) =>
     location.is_active !== false && location.name.trim().toLocaleLowerCase() === "sede norte"
   );
@@ -339,7 +347,7 @@ export default async function InventarioPage({
                             />
                           </div>
                           <div>
-                            <label className="form-label">Nombre Técnico</label>
+                              <label className="form-label">Producto</label>
                             <input
                               name="technical_name"
                               defaultValue={editingItem?.technical_name || ""}
@@ -369,7 +377,7 @@ export default async function InventarioPage({
                           ) : (
                             <select name="section_id" required className="form-select">
                               <option value="">Seleccione un área...</option>
-                              {activeSections.map((s: { id: string; name: string }) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                              {manualEntrySections.map((s: { id: string; name: string }) => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
                           )}
                         </div>
@@ -383,7 +391,7 @@ export default async function InventarioPage({
                             <input id="inventory-max-stock" className="form-input" type="number" min="0" step="1" name="maximum_stock_threshold" defaultValue={editingItem?.maximum_stock_threshold ?? ""} />
                           </div>
                         </div>
-                        <div><label className="form-label">Precio estimado ($)</label><input className="form-input" type="number" min="0" step="0.01" name="estimated_unit_price" defaultValue={editingItem?.estimated_unit_price || 0} /></div>
+                        <div><label className="form-label">Precio unitario estimado ($)</label><input className="form-input" type="number" min="0" step="0.01" name="estimated_unit_price" defaultValue={editingItem?.estimated_unit_price || 0} /></div>
                       </div>
                     </div>
 

@@ -22,12 +22,12 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
         <label className="verification-label">
           Resultado de Prueba *
           <ContextualHelp 
-            content="Este formulario registra el resultado y el lote de control utilizado. En la versión actual, aprobar o fallar no cambia el estado del lote: no lo libera ni lo rechaza automáticamente."
+            content="Al aprobar, el lote sale de cuarentena y queda aceptado para uso. Al fallar, sale de la cola y queda rechazado, sin estar disponible para uso."
           />
         </label>
         <select name="result" required className="form-select">
-          <option value="pass">Prueba aprobada (solo registra resultado)</option>
-          <option value="fail">Prueba fallida (solo registra resultado)</option>
+          <option value="pass">Prueba aprobada (aceptar lote y retirar de pendientes)</option>
+          <option value="fail">Prueba fallida (rechazar lote y retirar de pendientes)</option>
         </select>
       </div>
 
@@ -47,7 +47,7 @@ export default function VerificationForm({ batchId, action, userName }: Verifica
       />
       <div className="verification-help">
         <ContextualHelp 
-          content="El código ingresado solo habilita el envío si tiene cuatro caracteres; no se valida contra tu contraseña ni es una firma electrónica certificada. El resultado queda registrado con el usuario autenticado."
+          content="El código ingresado habilita el envío; la acción se registra con el usuario autenticado."
         />
       </div>
 

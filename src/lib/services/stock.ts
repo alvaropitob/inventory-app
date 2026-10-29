@@ -169,7 +169,7 @@ export class StockService {
           item:catalog_items(technical_name, commercial_name, internal_code, purchase_unit),
           location:locations(id, name)
         ),
-        user:users(full_name, username)
+        users:users(full_name, username)
       `)
       .order('created_at', { ascending: false });
   }

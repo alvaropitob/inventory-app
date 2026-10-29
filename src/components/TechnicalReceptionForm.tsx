@@ -13,6 +13,7 @@ interface OrderItem {
         internal_code: string;
         technical_name: string;
         commercial_name: string;
+        sanitary_registration?: string | null;
         section_id?: string | null;
         section_name?: string | null;
         section_is_active?: boolean;
@@ -48,7 +49,7 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
     const locationsForArea = (sectionId?: string | null) => filterLocationsForSection(locations, sectionId);
 
     // Items states (lot, expiration, qty, price per item)
-    const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string, qty: number, price: number, section_id: string, location_id: string }>>(
+    const [itemData, setItemData] = useState<Record<string, { lot: string, exp: string, invima: string, qty: number, price: number, section_id: string, location_id: string }>>(
         order.items.reduce((acc, item) => {
             const sectionId = item.catalog_item.section_is_active ? item.catalog_item.section_id || "" : "";
             const areaLocations = locationsForArea(sectionId);
@@ -57,6 +58,7 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
                 [item.catalog_item_id]: {
                     lot: "",
                     exp: "",
+                    invima: item.catalog_item.sanitary_registration || "",
                     qty: Math.max(0, item.quantity_requested - item.quantity_received),
                     price: item.estimated_unit_price,
                     section_id: sectionId,
@@ -66,7 +68,7 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
         }, {})
     );
 
-    const handleItemChange = (itemId: string, field: 'lot' | 'exp' | 'qty' | 'section_id' | 'location_id', value: string | number) => {
+    const handleItemChange = (itemId: string, field: 'lot' | 'exp' | 'invima' | 'qty' | 'section_id' | 'location_id', value: string | number) => {
         setItemData(prev => ({
             ...prev,
             [itemId]: { ...prev[itemId], [field]: value }
@@ -110,6 +112,7 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
                     catalog_item_id: item.catalog_item_id,
                     section_id: data.section_id,
                     lot_number: data.lot,
+                    sanitary_registration: data.invima.trim(),
                     expiration_date: data.exp,
                     quantity_received: Number(data.qty),
                     location_id: data.location_id,
@@ -195,6 +198,7 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
                     <thead>
                         <tr>
                             <th>Producto</th>
+                            <th className="fulfillment-header">Registro INVIMA</th>
                             <th className="cell-center">Solicitado</th>
                             <th className="cell-center">Pendiente</th>
                             <th className="fulfillment-header cell-center">Recibido</th>
@@ -210,6 +214,17 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
                                 <td>
                                     <div className="reception-product-name">{item.catalog_item.technical_name}</div>
                                     <div className="cell-muted">{item.catalog_item.commercial_name} ({item.catalog_item.internal_code})</div>
+                                </td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        placeholder="Registro INVIMA / No aplica"
+                                        value={itemData[item.catalog_item_id].invima}
+                                        onChange={e => handleItemChange(item.catalog_item_id, 'invima', e.target.value)}
+                                        className="table-input"
+                                        aria-label={`Registro INVIMA de ${item.catalog_item.technical_name}`}
+                                        disabled={item.quantity_requested <= item.quantity_received}
+                                    />
                                 </td>
                                 <td className="cell-center reception-requested">{item.quantity_requested}</td>
                                 <td className="cell-center">{Math.max(0, item.quantity_requested - item.quantity_received)}</td>
@@ -269,7 +284,7 @@ export default function TechnicalReceptionForm({ order, locations, sections, can
                             </tr>
                         ))}
                 {order.items.length === 0 && (
-                    <tr><td colSpan={8} className="empty-state">Esta orden no tiene productos para recibir.</td></tr>
+                    <tr><td colSpan={9} className="empty-state">Esta orden no tiene productos para recibir.</td></tr>
                 )}
                     </tbody>
                 </table>
