@@ -527,7 +527,13 @@ export default async function InventarioPage({
                 }))}
               />
             </div>
-            <RealtimeStockTable initialBatches={allBatches || []} sections={activeSections.map((section: { id: string; name: string }) => section)} />
+            <RealtimeStockTable
+              initialBatches={allBatches || []}
+              sections={activeSections.map((section: { id: string; name: string }) => section)}
+              catalogItems={catalogItems || []}
+              suppliers={suppliers || []}
+              movements={combinedMovements}
+            />
           </div>
         )}
 

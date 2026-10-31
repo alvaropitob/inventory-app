@@ -87,14 +87,16 @@ export default function ProductTechnicalFields({
       <input name="concentration" defaultValue={initial?.concentration || ""} className="form-input" required={isMedicine} placeholder="Ej. 70 %; No aplica" />
     </div>
 
-    <div>
-      <label className="form-label">Lote{configurationMode ? "" : " *"}</label>
-      <input name="batch_number" defaultValue={batchNumber} required={!configurationMode} placeholder="Ej: LOT-2024-001" className="form-input" />
-    </div>
-    <div>
-      <label className="form-label">Fecha de vencimiento{configurationMode ? "" : " *"}</label>
-      <input type="date" name="expiration_date" defaultValue={expirationDate} required={!configurationMode} className="form-input" />
-    </div>
+    {!configurationMode && <>
+      <div>
+        <label className="form-label">Lote *</label>
+        <input name="batch_number" defaultValue={batchNumber} required placeholder="Ej: LOT-2024-001" className="form-input" />
+      </div>
+      <div>
+        <label className="form-label">Fecha de vencimiento *</label>
+        <input type="date" name="expiration_date" defaultValue={expirationDate} required className="form-input" />
+      </div>
+    </>}
     <div>
       <label className="form-label">Presentación comercial *</label>
       <input

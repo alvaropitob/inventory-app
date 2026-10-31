@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { CatalogService } from "@/lib/services/catalog";
+import { StockService } from "@/lib/services/stock";
+import { formatDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import DeleteMasterButton from "@/components/DeleteMasterButton";
 import * as Actions from "./actions";
 import ProductMaintenanceList from "@/components/ProductMaintenanceList";
@@ -68,6 +71,23 @@ interface CatalogItem {
   risk_classification: "I" | "II" | "IIA" | "IIB" | "III" | "not_applicable" | null;
   shelf_life: string | null;
   is_active: boolean;
+  sections?: { name: string } | { name: string }[] | null;
+  suppliers?: { name: string } | { name: string }[] | null;
+}
+
+interface Batch {
+  id: string;
+  item_id: string;
+  batch_number: string;
+  expiration_date: string;
+  adjusted_expiration_date?: string | null;
+  current_stock: number;
+  initial_quantity?: number;
+  opened_units_remaining?: number;
+  supplier_id?: string | null;
+  status?: string | null;
+  clinical_status?: string | null;
+  location?: { name: string } | null;
 }
 
 function StatusPill({ active }: { active: boolean }) {
@@ -98,12 +118,14 @@ export default async function ConfiguracionPage({
     { data: rawCategories },
     { data: rawLocations },
     { data: rawCatalogItems },
+    { data: rawBatches },
   ] = await Promise.all([
     CatalogService.getSections(),
     CatalogService.getSuppliers(),
     CatalogService.getCategories(),
     CatalogService.getLocations(),
     CatalogService.getCatalogItems(),
+    activeTab === "productos" ? StockService.getAllBatches() : Promise.resolve({ data: [] }),
   ]);
 
   const sections = rawSections as Section[] | null;
@@ -111,6 +133,7 @@ export default async function ConfiguracionPage({
   const categories = rawCategories as Category[] | null;
   const locations = rawLocations as Location[] | null;
   const catalogItems = rawCatalogItems as CatalogItem[] | null;
+  const allBatches = rawBatches as Batch[] | null;
 
   const editingItem = editId ? (
     activeTab === "secciones"   ? sections?.find(s => s.id === editId) :
@@ -120,6 +143,12 @@ export default async function ConfiguracionPage({
     activeTab === "productos"   ? catalogItems?.find(i => i.id === editId) :
     null
   ) : null;
+
+  const editingProductBatches = activeTab === "productos" && editingItem
+    ? (allBatches || [])
+        .filter(batch => batch.item_id === (editingItem as CatalogItem).id)
+        .sort((a, b) => (a.expiration_date || "").localeCompare(b.expiration_date || ""))
+    : [];
 
   const tabs = [
     { key: 'secciones', label: 'Áreas' },
@@ -431,6 +460,7 @@ export default async function ConfiguracionPage({
               <h2 className="card-section-title">{editingItem ? "Editar Producto" : "Mantenimiento de Productos"}</h2>
               {editingItem && <a href="?tab=productos" className="cell-link text-error">Cancelar Edición</a>}
             </div>
+            <p className="card-section-subtitle">Esta ficha guarda las características estables del producto. El lote y su vencimiento se registran en cada entrada de inventario.</p>
             <form action={Actions.handleCatalogAction} className="config-form-panel config-product-form">
               <input type="hidden" name="id" value={(editingItem as CatalogItem)?.id || ""} />
               <div>
@@ -464,8 +494,60 @@ export default async function ConfiguracionPage({
                 {editingItem ? "Actualizar" : "Registrar"}
               </button>
             </form>
+
+            {editingItem && (
+              <div style={{ padding: "0 1.5rem 1.5rem 1.5rem" }}>
+                <section className="inventory-product-detail-section" style={{ marginBottom: 0 }}>
+                  <h3>Lotes registrados en inventario ({editingProductBatches.length})</h3>
+                  {editingProductBatches.length ? (
+                    <div className="inventory-product-detail-table-wrap">
+                      <table className="inventory-product-detail-table">
+                        <thead>
+                          <tr>
+                            <th>Lote</th>
+                            <th>Vencimiento</th>
+                            <th>Proveedor</th>
+                            <th>Ubicación</th>
+                            <th>Existencia inicial</th>
+                            <th>Saldo actual</th>
+                            <th>Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {editingProductBatches.map(batch => {
+                            const expiry = batch.adjusted_expiration_date || batch.expiration_date;
+                            const expiryStatus = getExpirationSemaforo(expiry, batch.status, batch.clinical_status);
+                            const supplierName = suppliers?.find(supplier => supplier.id === batch.supplier_id)?.name;
+                            return (
+                              <tr key={batch.id}>
+                                <td>{batch.batch_number || "No registrado"}</td>
+                                <td>{expiry ? formatDateKeyInBusinessTimeZone(expiry) : "No registrada"}</td>
+                                <td>{supplierName || "No registrado"}</td>
+                                <td>{batch.location?.name || "No registrado"}</td>
+                                <td>{batch.initial_quantity ?? "No registrado"} empaques</td>
+                                <td>{batch.current_stock} empaques{(batch.opened_units_remaining || 0) > 0 ? ` + ${batch.opened_units_remaining} unidades abiertas` : ""}</td>
+                                <td>
+                                  <span style={{ color: expiryStatus.color, fontWeight: 600 }}>
+                                    {({ accepted: "Aceptado", quarantine: "En cuarentena", rejected: "Rechazado", expired: "Vencido" } as Record<string, string>)[batch.clinical_status || batch.status || ""] || batch.clinical_status || batch.status || "No registrado"} · {expiryStatus.label}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="inventory-product-detail-empty">Este producto aún no tiene lotes registrados en inventario.</p>
+                  )}
+                </section>
+              </div>
+            )}
+
             <ProductMaintenanceList
               initialItems={catalogItems || []}
+              batches={allBatches || []}
+              suppliers={suppliers || []}
               toggleStatusAction={Actions.toggleStatus}
               handleDeleteAction={Actions.handleDelete}
             />

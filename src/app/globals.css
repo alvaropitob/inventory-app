@@ -932,6 +932,38 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 .inventory-stock-batch-number { min-width: 0; overflow-wrap: anywhere; font-weight: var(--fw-medium); }
 .inventory-stock-batch-main strong { white-space: nowrap; }
 .inventory-stock-batch-meta { display: flex; flex-wrap: wrap; gap: 2px 12px; color: var(--text-muted); font-size: var(--fs-xs); }
+.inventory-product-details-trigger { padding: 0.45rem 0.75rem; border: 1px solid var(--primary); border-radius: var(--radius-sm); background: var(--surface); color: var(--primary-dark); font: inherit; font-size: var(--fs-sm); font-weight: var(--fw-semibold); cursor: pointer; }
+.inventory-product-details-trigger:hover { background: var(--primary-light); }
+.inventory-product-details-trigger:focus-visible, .inventory-product-dialog button:focus-visible { outline: 3px solid var(--focus-ring, #0f766e); outline-offset: 2px; }
+.inventory-product-dialog-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 1.5rem; background: rgb(15 23 42 / 58%); }
+.inventory-product-dialog { display: flex; flex-direction: column; width: min(1120px, 100%); max-height: min(92vh, 1000px); overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text-main); box-shadow: 0 24px 70px rgb(15 23 42 / 28%); }
+.inventory-product-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--surface-soft); }
+.inventory-product-dialog-header h2 { margin: 0.15rem 0; color: var(--navy); font-size: var(--fs-lg); }
+.inventory-product-dialog-header p { margin: 0; color: var(--text-muted); }
+.inventory-product-dialog-eyebrow { color: var(--primary) !important; font-size: var(--fs-xs); font-weight: var(--fw-bold); letter-spacing: 0.06em; text-transform: uppercase; }
+.inventory-product-dialog-actions { display: flex; align-items: center; gap: 0.75rem; }
+.inventory-product-dialog-close { width: 2.25rem; height: 2.25rem; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--text); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.inventory-product-dialog-content { overflow: auto; padding: 1.5rem; }
+.inventory-product-detail-section { margin-bottom: 1.5rem; }
+.inventory-product-detail-section h3 { margin: 0 0 0.75rem; color: var(--navy); font-size: var(--fs-md); }
+.inventory-product-detail-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin: 0; }
+.inventory-product-detail-grid > div { min-width: 0; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); }
+.inventory-product-detail-grid dt { margin-bottom: 0.25rem; color: var(--text-muted); font-size: var(--fs-xs); }
+.inventory-product-detail-grid dd { margin: 0; color: var(--text-main); font-size: var(--fs-sm); font-weight: var(--fw-medium); overflow-wrap: anywhere; }
+.inventory-product-detail-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.inventory-product-detail-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.inventory-product-detail-table th, .inventory-product-detail-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.inventory-product-detail-table th { background: var(--surface-soft); color: var(--navy); font-weight: var(--fw-semibold); white-space: nowrap; }
+.inventory-product-detail-table tbody tr:last-child td { border-bottom: 0; }
+.inventory-product-detail-empty, .inventory-product-detail-footnote { color: var(--text-muted); font-size: var(--fs-sm); }
+.inventory-product-detail-footnote { margin: 0; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+@media (max-width: 760px) {
+  .inventory-product-dialog-backdrop { padding: 0; }
+  .inventory-product-dialog { width: 100%; max-height: 100vh; height: 100vh; border-radius: 0; }
+  .inventory-product-dialog-header { padding: 1rem; }
+  .inventory-product-dialog-content { padding: 1rem; }
+  .inventory-product-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .inventory-stock-status > span { display: inline-flex; max-width: 100%; justify-content: center; white-space: nowrap; }
 .sufficiency-report-wrap { overscroll-behavior-x: contain; }
 .disposal-report-filters {
@@ -1660,6 +1692,17 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 }
 
 @media print {
+  body:has(.inventory-product-dialog-backdrop) * { visibility: hidden !important; }
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-dialog-backdrop,
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-dialog-backdrop * { visibility: visible !important; }
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-dialog-backdrop { position: absolute; inset: 0; display: block; padding: 0; background: white; }
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-dialog { width: 100%; max-height: none; overflow: visible; border: 0; border-radius: 0; box-shadow: none; }
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-dialog-content { overflow: visible; padding: 0.5rem 0; }
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-dialog-actions { display: none; }
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-detail-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-detail-table-wrap { overflow: visible; }
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-detail-table { font-size: 8pt; }
+  body:has(.inventory-product-dialog-backdrop) .inventory-product-detail-table tr { break-inside: avoid; }
   .sidebar, .mobile-header, .desktop-topbar, .page-header-actions, .checklist-header-actions,
   .btn-primary, .btn-outline { display: none !important; }
   .dashboard-main { max-width: 100%; padding: 0; }

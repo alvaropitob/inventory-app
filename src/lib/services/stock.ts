@@ -224,6 +224,7 @@ export class StockService {
       .select("*")
       .eq('item_id', itemId)
       .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
   }
 
