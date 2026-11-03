@@ -957,6 +957,11 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 .inventory-product-detail-table tbody tr:last-child td { border-bottom: 0; }
 .inventory-product-detail-empty, .inventory-product-detail-footnote { color: var(--text-muted); font-size: var(--fs-sm); }
 .inventory-product-detail-footnote { margin: 0; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+.environmental-range-form { display: flex; align-items: end; flex-wrap: wrap; gap: 0.75rem 1rem; margin: 0 1.5rem 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-soft); }
+.environmental-range-form > div { display: grid; gap: 0.25rem; flex: 1 1 260px; align-self: center; }
+.environmental-range-form > div strong { color: var(--navy); font-size: var(--fs-sm); }
+.environmental-range-form > div span, .environmental-range-form label span { color: var(--text-muted); font-size: var(--fs-xs); }
+.environmental-range-form label { display: grid; gap: 0.3rem; width: 125px; }
 @media (max-width: 760px) {
   .inventory-product-dialog-backdrop { padding: 0; }
   .inventory-product-dialog { width: 100%; max-height: 100vh; height: 100vh; border-radius: 0; }

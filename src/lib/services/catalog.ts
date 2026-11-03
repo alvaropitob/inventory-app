@@ -109,6 +109,15 @@ export const CatalogService = {
     return await supabase.from("locations").upsert(data).select().single();
   },
 
+  async updateLocationTemperatureRange(id: string, temperatureMin: number, temperatureMax: number) {
+    const supabase = await createClient();
+    return await supabase.from("locations")
+      .update({ temperature_min: temperatureMin, temperature_max: temperatureMax })
+      .eq("id", id)
+      .select("id")
+      .single();
+  },
+
   // --- CATEGORIES ---
   async getCategories() {
     const supabase = await createClient();

@@ -6,16 +6,24 @@ import * as Actions from "./actions";
 import ContextualHelp from "@/components/ContextualHelp";
 import EnvironmentalHumidityField from "@/components/EnvironmentalHumidityField";
 import { BUSINESS_TIME_ZONE, getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import {
+  calculateLeveyJenningsParams,
+  calculateChartScale,
+  getYCoordinate,
+  getXCoordinate,
+  getReadingPointColor,
+  isTemperatureOutOfRange,
+} from "@/lib/utils/levey-jennings";
 
 export const dynamic = "force-dynamic";
 
-export default async function MonitoreoPage({ searchParams }: { searchParams: Promise<{ location?: string }> }) {
+export default async function MonitoreoPage({ searchParams }: { searchParams: Promise<{ location?: string; rangeSaved?: string; rangeError?: string }> }) {
   const user = await getCurrentUserProfile();
   if (!user) {
     redirect("/auth/login");
   }
 
-  const { location: requestedLocationId } = await searchParams;
+  const { location: requestedLocationId, rangeSaved, rangeError } = await searchParams;
   const { data: allLocations } = await CatalogService.getLocations();
   const locations = (allLocations || []).filter(location => location.is_active !== false);
   const selectedLocationId = locations.some(location => location.id === requestedLocationId)
@@ -24,7 +32,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
   const selectedLocation = locations.find(location => location.id === selectedLocationId);
   const configuredMin = selectedLocation?.temperature_min == null ? null : Number(selectedLocation.temperature_min);
   const configuredMax = selectedLocation?.temperature_max == null ? null : Number(selectedLocation.temperature_max);
-  const rawLogs = await ComplianceService.getEnvironmentalLogs(60, selectedLocationId);
+  const rawLogs = selectedLocationId ? await ComplianceService.getEnvironmentalLogs(60, selectedLocationId) : [];
   const logs = rawLogs.map(log => {
     const temperatureMin = log.temperature_min_at_reading ?? log.locations?.temperature_min;
     const temperatureMax = log.temperature_max_at_reading ?? log.locations?.temperature_max;
@@ -33,48 +41,26 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
       temperature_min_at_reading: temperatureMin,
       temperature_max_at_reading: temperatureMax,
       is_out_of_range: temperatureMin != null && temperatureMax != null
-        ? log.temperature < temperatureMin || log.temperature > temperatureMax
-        : Boolean(log.is_out_of_range),
-      is_out_of_configured_range: configuredMin != null && configuredMax != null
-        ? log.temperature < configuredMin || log.temperature > configuredMax
+        ? isTemperatureOutOfRange(log.temperature, temperatureMin, temperatureMax)
         : Boolean(log.is_out_of_range),
     };
   });
   const chartReadings = [...logs].reverse();
   const temperatureReadings = chartReadings.filter(log => Number.isFinite(Number(log.temperature)));
-  const hasTemperatureRange = configuredMin != null && configuredMax != null && configuredMin < configuredMax;
-  // For the Levey–Jennings display, the configured minimum and maximum are
-  // treated as -3 DE and +3 DE; the center line is their midpoint.
-  const leveyJenningsMean = hasTemperatureRange ? (configuredMin! + configuredMax!) / 2 : null;
-  const leveyJenningsSd = hasTemperatureRange ? (configuredMax! - configuredMin!) / 6 : null;
+  const ljParams = calculateLeveyJenningsParams(configuredMin, configuredMax);
+  const hasTemperatureRange = ljParams !== null;
+  const leveyJenningsMean = ljParams?.mean ?? null;
+  const leveyJenningsSd = ljParams?.sd ?? null;
+  const leveyJenningsLines = ljParams?.lines ?? [];
+
   const observedTemperatures = temperatureReadings.map(log => Number(log.temperature));
-  const extentValues = hasTemperatureRange
-    ? [...observedTemperatures, configuredMin!, configuredMax!]
-    : observedTemperatures;
-  const observedMin = extentValues.length ? Math.min(...extentValues) : 0;
-  const observedMax = extentValues.length ? Math.max(...extentValues) : 1;
-  const chartPadding = Math.max((observedMax - observedMin) * 0.12, 0.2);
-  const scaleMin = observedMin - chartPadding;
-  const scaleMax = observedMax + chartPadding;
+  const { scaleMin, scaleMax } = calculateChartScale(observedTemperatures, configuredMin, configuredMax);
   const plotLeft = 112;
   const plotRight = 960;
   const plotTop = 34;
   const plotBottom = 265;
-  const yForTemperature = (temperature: number) => plotBottom - ((temperature - scaleMin) / (scaleMax - scaleMin)) * (plotBottom - plotTop);
-  const xForReading = (index: number) => temperatureReadings.length < 2
-    ? (plotLeft + plotRight) / 2
-    : plotLeft + (index * (plotRight - plotLeft)) / (temperatureReadings.length - 1);
-  const leveyJenningsLines = hasTemperatureRange && leveyJenningsMean != null && leveyJenningsSd != null
-    ? [
-        { label: "+3 DE", value: leveyJenningsMean + 3 * leveyJenningsSd },
-        { label: "+2 DE", value: leveyJenningsMean + 2 * leveyJenningsSd },
-        { label: "+1 DE", value: leveyJenningsMean + leveyJenningsSd },
-        { label: "Media", value: leveyJenningsMean },
-        { label: "−1 DE", value: leveyJenningsMean - leveyJenningsSd },
-        { label: "−2 DE", value: leveyJenningsMean - 2 * leveyJenningsSd },
-        { label: "−3 DE", value: leveyJenningsMean - 3 * leveyJenningsSd },
-      ]
-    : [];
+  const yForTemperature = (temperature: number) => getYCoordinate(temperature, scaleMin, scaleMax, plotTop, plotBottom);
+  const xForReading = (index: number) => getXCoordinate(index, temperatureReadings.length, plotLeft, plotRight);
   const labelStride = Math.max(1, Math.ceil(temperatureReadings.length / 8));
   const todayInBogota = getDateKeyInBusinessTimeZone(new Date());
   const todayShifts = new Set(logs
@@ -156,7 +142,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
           <div className="card-section-header" style={{ alignItems: "end", gap: "1rem", flexWrap: "wrap" }}>
             <div>
               <h2 className="card-section-title">Gráfica Levey–Jennings (AM / PM)</h2>
-              <p className="cell-secondary">Los límites mínimo y máximo configurados se muestran como −3 y +3 DE; la media se calcula en el punto medio.</p>
+              <p className="cell-secondary">Configura el rango aceptable de la ubicación. La gráfica usa ese intervalo como −3 a +3 DE, con línea central en el punto medio.</p>
             </div>
             <form method="get" style={{ display: "flex", gap: ".5rem", alignItems: "end" }}>
               <div><label className="form-label" htmlFor="chart-location">Área / ubicación</label><select id="chart-location" name="location" defaultValue={selectedLocationId || ""} className="form-select">
@@ -165,7 +151,27 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
               <button className="btn-secondary" type="submit">Graficar</button>
             </form>
           </div>
-          {temperatureReadings.length && hasTemperatureRange && leveyJenningsMean != null && leveyJenningsSd != null ? (
+          {rangeSaved === "1" && <p className="alert-success" role="status" style={{ margin: "0 1.5rem 1rem" }}>Rango de temperatura actualizado para {selectedLocation?.name}.</p>}
+          {rangeError && <p className="alert-error" role="alert" style={{ margin: "0 1.5rem 1rem" }}>{rangeError}</p>}
+          {selectedLocationId && user.role === "admin" && (
+            <form action={Actions.updateTemperatureRange} className="environmental-range-form">
+              <input type="hidden" name="location_id" value={selectedLocationId} />
+              <div>
+                <strong>Rango aceptable de temperatura</strong>
+                <span>Estos límites se usan para evaluar lecturas nuevas y trazar la gráfica.</span>
+              </div>
+              <label>
+                <span>Mínimo (°C)</span>
+                <input type="number" name="temperature_min" step="0.1" required className="form-input" defaultValue={configuredMin ?? ""} placeholder="Ej. 2" />
+              </label>
+              <label>
+                <span>Máximo (°C)</span>
+                <input type="number" name="temperature_max" step="0.1" required className="form-input" defaultValue={configuredMax ?? ""} placeholder="Ej. 6" />
+              </label>
+              <button className="btn-secondary" type="submit">Guardar límites</button>
+            </form>
+          )}
+          {temperatureReadings.length > 0 && hasTemperatureRange && leveyJenningsMean != null && leveyJenningsSd != null ? (
             <div style={{ padding: '1rem 1.5rem 0' }}>
               <div className="cell-secondary" style={{ marginBottom: ".5rem" }}>
                 Rango configurado: <strong>{configuredMin}–{configuredMax} °C</strong>
@@ -203,7 +209,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
                   })}
                   <line x1={plotLeft} y1={plotTop} x2={plotLeft} y2={plotBottom} stroke="#64748b" />
                   <line x1={plotLeft} y1={plotBottom} x2={plotRight} y2={plotBottom} stroke="#64748b" />
-                  {temperatureReadings.map((log, index) => `${xForReading(index)},${yForTemperature(Number(log.temperature))}`).length > 1 && (
+                  {temperatureReadings.length > 1 && (
                     <polyline
                       points={temperatureReadings.map((log, index) => `${xForReading(index)},${yForTemperature(Number(log.temperature))}`).join(" ")}
                       fill="none"
@@ -216,14 +222,14 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
                   {temperatureReadings.map((log, index) => {
                     const x = xForReading(index);
                     const y = yForTemperature(Number(log.temperature));
-                    const pointColor = log.is_out_of_configured_range ? "#dc2626" : log.reading_type === "pm" ? "#2563eb" : "#0f766e";
+                    const pointColor = getReadingPointColor(log.is_out_of_range, log.reading_type);
                     const timestamp = new Date(log.created_at);
                     const dateLabel = timestamp.toLocaleDateString("es-CO", { timeZone: BUSINESS_TIME_ZONE, day: "2-digit", month: "2-digit" });
                     const timeLabel = timestamp.toLocaleTimeString("es-CO", { timeZone: BUSINESS_TIME_ZONE, hour: "2-digit", minute: "2-digit" });
                     const shouldLabel = index % labelStride === 0 || index === temperatureReadings.length - 1;
                     return <g key={log.id}>
                       <circle cx={x} cy={y} r="4" fill={pointColor} stroke="#ffffff" strokeWidth="1.5">
-                        <title>{`${dateLabel} ${timeLabel} · ${(log.reading_type || "am").toUpperCase()} · ${log.temperature} °C${log.is_out_of_configured_range ? " · FUERA DEL RANGO CONFIGURADO" : ""}`}</title>
+                        <title>{`${dateLabel} ${timeLabel} · ${(log.reading_type || "am").toUpperCase()} · ${log.temperature} °C${log.is_out_of_range ? " · FUERA DEL RANGO GUARDADO EN LA LECTURA" : ""}`}</title>
                       </circle>
                       {shouldLabel && <text x={x} y={plotBottom + 18} textAnchor="end" transform={`rotate(-35 ${x} ${plotBottom + 18})`} fontSize="10" fill="#475569">{dateLabel} {(log.reading_type || "am").toUpperCase()}</text>}
                     </g>;
@@ -236,7 +242,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
                 <span><span style={{ color: "#0f766e", fontWeight: 700 }}>● AM</span> · <span style={{ color: "#2563eb", fontWeight: 700 }}>● PM</span></span>
                 <span style={{ color: "#111827" }}>━ Media</span>
                 <span style={{ color: "#b91c1c" }}>┄ Límites mínimo/máximo (±3 DE)</span>
-                <span style={{ color: "#dc2626" }}>● Fuera del rango configurado</span>
+                <span style={{ color: "#dc2626" }}>● Fuera del rango guardado en la lectura</span>
               </div>
             </div>
           ) : chartReadings.length ? (
