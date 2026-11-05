@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import AuthBrand from "@/components/AuthBrand";
 
 export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
@@ -45,11 +45,9 @@ export default function RegisterPage() {
     <main className="auth-container">
       <section className="auth-card" aria-labelledby="access-title">
         <div className="auth-header">
-          <div className="auth-logo">
-            <Image src="/medicore-clinical-logo.svg" alt="Logotipo MediCore" width={84} height={84} priority />
-          </div>
+          <AuthBrand />
           <h1 id="access-title">Registro institucional</h1>
-          <p>Regístrate con tu cuenta de Google para solicitar acceso a MediCore.</p>
+          <p>Regístrate con tu cuenta de Google para solicitar acceso a Nexo Clínico.</p>
         </div>
         {error && <p className="alert-error" role="alert">{error}</p>}
         <button onClick={registerWithGoogle} className="google-button" type="button" disabled={loading}>

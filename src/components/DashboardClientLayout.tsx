@@ -142,10 +142,10 @@ export default function DashboardClientLayout({ children, user, appVersion, depl
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
-        <span className="mobile-logo-text">MediCore <small>Inventario clínico</small></span>
+        <span className="mobile-logo-text">Nexo Clínico <small>Gestión clínica</small></span>
         <ContextualHelp content={pageHelp} />
         <span className="app-version-badge" title={`Versión ${appVersion} · ${deploymentEnvironment}`}>
-          v{appVersion} · {deploymentEnvironment === "production" ? "PROD" : deploymentEnvironment === "preview" ? "QA" : "DEV"}
+          V{appVersion.split('.')[0]} · {deploymentEnvironment === "production" ? "PROD" : deploymentEnvironment === "preview" ? "QA" : "DEV"}
         </span>
       </header>
 
@@ -171,7 +171,7 @@ export default function DashboardClientLayout({ children, user, appVersion, depl
             </div>
             <div className="topbar-actions">
               <span className="app-version-badge" title={`Versión ${appVersion} · ${deploymentEnvironment}`}>
-                v{appVersion} · {deploymentEnvironment === "production" ? "PROD" : deploymentEnvironment === "preview" ? "QA" : "DEV"}
+                V{appVersion.split('.')[0]} · {deploymentEnvironment === "production" ? "PROD" : deploymentEnvironment === "preview" ? "QA" : "DEV"}
               </span>
               <ContextualHelp content={pageHelp} />
               <span className="topbar-role">{user.role}</span>

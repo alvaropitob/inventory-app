@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
   <defs>
-    <linearGradient id="medBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="clinicalBlue" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0284c7" />
       <stop offset="100%" stop-color="#0369a1" />
     </linearGradient>
@@ -21,8 +21,8 @@
   <circle cx="14" cy="100" r="5" fill="#38bdf8" />
 
   <!-- Shield / Cross Clinical Core container -->
-  <rect x="74" y="38" width="52" height="124" rx="26" fill="url(#medBlue)" filter="url(#softGlow)" />
-  <rect x="38" y="74" width="124" height="52" rx="26" fill="url(#medBlue)" filter="url(#softGlow)" />
+  <rect x="74" y="38" width="52" height="124" rx="26" fill="url(#clinicalBlue)" filter="url(#softGlow)" />
+  <rect x="38" y="74" width="124" height="52" rx="26" fill="url(#clinicalBlue)" filter="url(#softGlow)" />
 
   <!-- Dynamic internal logistical flow / pulse cross nodes -->
   <circle cx="100" cy="100" r="26" fill="#ffffff" />

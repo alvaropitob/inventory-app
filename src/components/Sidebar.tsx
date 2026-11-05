@@ -42,7 +42,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
 
   useEffect(() => {
     try {
-      const savedState = window.localStorage.getItem("medicore-sidebar-expanded");
+      const savedState = window.localStorage.getItem("nexo-clinico-sidebar-expanded");
       if (savedState === "true" || savedState === "false") {
         setIsExpanded(savedState === "true");
       }
@@ -55,7 +55,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
     const next = !isExpanded;
     setIsExpanded(next);
     try {
-      window.localStorage.setItem("medicore-sidebar-expanded", String(next));
+      window.localStorage.setItem("nexo-clinico-sidebar-expanded", String(next));
     } catch {
       // The menu still works for this session when browser storage is unavailable.
     }
@@ -308,7 +308,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
             </svg>
           </button>
           
-          <Link href="/dashboard" className="sidebar-logo-text" aria-label="MediCore, inicio"><span className="sidebar-brand-mark">MC</span><span className="sidebar-brand-copy">MediCore <small>Inventario clínico</small></span></Link>
+          <Link href="/dashboard" className="sidebar-logo-text" aria-label="Nexo Clínico, inicio"><span className="sidebar-brand-mark">NC</span><span className="sidebar-brand-copy">Nexo Clínico <small>Gestión clínica</small></span></Link>
         </div>
 
         <nav className="sidebar-nav">

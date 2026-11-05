@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 /* =====================================================================
-   MEDICORE DESIGN SYSTEM v2
+   NEXO CLÍNICO DESIGN SYSTEM v1
    Single source of truth. Every size, space and color comes from a token.
    Rules:
    - Font sizes: only --fs-xs | --fs-sm | --fs-base | --fs-md | --fs-lg
@@ -1545,9 +1545,14 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: var(--sp-6);
-  overflow: hidden;
-  background: linear-gradient(150deg, #eef4f4 0%, #f6f9f9 55%, #e7f0ef 100%);
+  min-height: 100svh;
+  padding: clamp(16px, 4vh, 36px) 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(19, 126, 117, 0.11), transparent 34%),
+    radial-gradient(ellipse at 90% 92%, rgba(35, 113, 145, 0.10), transparent 32%),
+    #f2f6f7;
 }
 .auth-bg-orbs { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 .orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.35; }
@@ -1557,29 +1562,44 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 .auth-card, .register-card {
   position: relative;
   z-index: 1;
-  width: min(100%, 420px);
-  padding: var(--sp-8);
+  width: min(100%, 456px);
+  padding: clamp(24px, 5vw, 40px);
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
+  border: 1px solid #e0e8eb;
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(22, 54, 67, 0.12), 0 3px 10px rgba(22, 54, 67, 0.04);
 }
 .register-card { width: min(100%, 480px); }
-.auth-header { margin-bottom: var(--sp-6); text-align: center; }
-.auth-logo { display: flex; justify-content: center; margin-bottom: var(--sp-3); }
-.auth-logo img { width: 64px; height: 64px; object-fit: contain; }
-.auth-header h1 { margin-bottom: var(--sp-1); font-size: var(--fs-lg); }
-.auth-header p { color: var(--text-muted); font-size: var(--fs-sm); }
+.auth-header { margin-bottom: 24px; text-align: center; }
+.auth-brand { display: flex; align-items: center; justify-content: center; gap: 11px; margin-bottom: 28px; }
+.auth-brand-mark { width: 48px; height: 48px; object-fit: contain; }
+.auth-brand-copy { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+.auth-brand-name { color: var(--navy); font-size: 1.1rem; font-weight: 750; letter-spacing: -0.035em; }
+.auth-brand-subtitle { margin-top: 2px; color: var(--text-muted); font-size: 0.69rem; letter-spacing: 0.025em; }
+.auth-version { align-self: flex-start; margin: 2px 0 0 3px; padding: 4px 7px; color: #126b64; background: #e7f4f1; border: 1px solid #cce7e1; border-radius: 999px; font-size: 0.64rem; font-weight: 750; letter-spacing: 0.04em; }
+.auth-header h1 { margin-bottom: 6px; font-size: clamp(1.55rem, 4vw, 1.8rem); letter-spacing: -0.04em; }
+.auth-header p { color: var(--text-muted); font-size: var(--fs-sm); line-height: 1.5; }
 .auth-form { display: flex; flex-direction: column; gap: var(--sp-4); }
 .auth-form .form-group label { font-size: var(--fs-sm); }
-.auth-button { width: 100%; margin-top: var(--sp-1); }
-.google-button { width: 100%; }
+.auth-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) { min-height: 46px; border-radius: 9px; }
+.auth-button { width: 100%; min-height: 46px; margin-top: 2px; border-radius: 9px; font-weight: 700; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.17); }
+.auth-recovery-row { display: flex; justify-content: flex-end; margin-top: 13px; }
+.auth-text-button { padding: 3px 0; color: var(--primary-dark); border: 0; background: transparent; font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; }
+.auth-text-button:hover { text-decoration: underline; }
+.auth-google-action { margin-top: 17px; }
+.auth-google-button { display: flex; align-items: center; justify-content: center; min-height: 46px; gap: 9px; border-radius: 9px; font-weight: 650; }
 .auth-divider { display: flex; align-items: center; gap: var(--sp-3); }
 .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-.auth-divider span { color: var(--text-subtle); font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: 0.06em; text-transform: uppercase; }
-.auth-footer { margin-top: var(--sp-6); padding-top: var(--sp-4); text-align: center; border-top: 1px solid var(--border); }
+.auth-divider { margin-top: 22px; }
+.auth-divider span { color: var(--text-muted); font-size: var(--fs-xs); font-weight: var(--fw-medium); }
+.auth-footer { margin-top: 23px; padding-top: 17px; text-align: center; border-top: 1px solid var(--border); }
 .auth-footer p { color: var(--text-muted); font-size: var(--fs-sm); }
 .auth-footer a { color: var(--primary-dark); font-weight: var(--fw-semibold); }
+.auth-security-note { display: flex; align-items: center; justify-content: center; gap: 7px; margin-bottom: 10px; font-size: var(--fs-xs) !important; }
+.auth-security-note span { color: #178278; font-size: 0.6rem; }
+.auth-notice { margin: 0 0 16px; padding: 11px 13px; border-radius: 9px; font-size: var(--fs-sm); line-height: 1.45; }
+.auth-notice-error { color: #8f2929; background: #fff2f1; border: 1px solid #f1c7c4; }
+.auth-notice-status { color: #174e68; background: #eff8fc; border: 1px solid #c5e3ef; }
 .register-password-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); }
 
 /* =====================================================================

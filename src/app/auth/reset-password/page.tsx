@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import AuthBrand from "@/components/AuthBrand";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function ResetPasswordPage() {
     <main className="auth-container">
       <section className="auth-card" aria-labelledby="reset-title">
         <div className="auth-header">
-          <div className="auth-logo"><Image src="/medicore-clinical-logo.svg" alt="Logotipo MediCore" width={84} height={84} priority /></div>
+          <AuthBrand />
           <h1 id="reset-title">Restablecer contraseña</h1>
           <p>Elige una contraseña nueva para tu cuenta institucional.</p>
         </div>
