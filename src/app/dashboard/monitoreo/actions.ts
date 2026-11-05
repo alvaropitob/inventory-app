@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { ComplianceService } from "@/lib/services/compliance";
 import { CatalogService } from "@/lib/services/catalog";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 import { validateEnvironmentalReading } from "@/lib/validation/environmental-reading";
 import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
 import { redirect } from "next/navigation";
 
 export async function updateTemperatureRange(formData: FormData) {
-    await requireRole(["admin"]);
+    await requirePermission("environmental.range.manage");
     const locationId = String(formData.get("location_id") || "").trim();
     const rawMin = String(formData.get("temperature_min") || "").trim();
     const rawMax = String(formData.get("temperature_max") || "").trim();
@@ -36,7 +36,7 @@ export async function updateTemperatureRange(formData: FormData) {
 }
 
 export async function submitEnvironmentalLog(formData: FormData) {
-    await requireRole(["admin", "operator"]);
+    await requirePermission("environmental.record");
     const location_id = formData.get("location_id") as string;
     const rawTemperature = String(formData.get("temperature") || "").trim();
     const temperature = rawTemperature ? Number(rawTemperature) : Number.NaN;

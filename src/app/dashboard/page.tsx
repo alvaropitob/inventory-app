@@ -8,6 +8,7 @@ import { getCurrentUserProfile } from "@/lib/services/user";
 import Link from "next/link";
 import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
+import { getInventoryStockPriority } from "@/lib/inventory-stock-priority";
 
 export const dynamic = "force-dynamic";
 
@@ -39,26 +40,32 @@ export default async function DashboardPage() {
 
   const orders = await OrderService.getOrders();
   const activeOrders = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled' && o.status !== 'draft');
+  const controlledItems = (items || []).filter(item => item.is_active !== false && item.inventory_control_enabled === true);
 
-  const stockLevels = (items || []).map(item => {
+  const stockLevels = controlledItems.map(item => {
     const itemBatches = (batches || []).filter(b => b.item_id === item.id);
     const totalStock = itemBatches.filter(b => b.clinical_status === "accepted" && getExpirationSemaforo(b.adjusted_expiration_date || b.expiration_date, b.status, b.clinical_status).state !== "expired")
       .reduce((sum, b) => {
         const unitsPerPackage = parseUnitsFromPresentation(item.commercial_presentation);
         return sum + b.current_stock + (unitsPerPackage ? (b.opened_units_remaining || 0) / unitsPerPackage : 0);
       }, 0);
-    const threshold = item.minimum_stock_threshold || 0;
-
-    let priority: 'none' | 'low' | 'medium' | 'high' = 'none';
-    if (totalStock === 0) priority = 'high';
-    else if (totalStock < threshold) priority = 'medium';
-    else if (item.maximum_stock_threshold != null && totalStock > item.maximum_stock_threshold) priority = 'low';
-    else if (totalStock < threshold * 1.5) priority = 'low';
+    const priority = getInventoryStockPriority({
+      inventoryControlEnabled: item.inventory_control_enabled === true,
+      totalStock,
+      minimumStock: item.minimum_stock_threshold || 0,
+      maximumStock: item.maximum_stock_threshold ?? null,
+    });
 
     return { ...item, totalStock, priority };
   }).filter(item => item.priority !== 'none');
 
   const criticalStockCount = stockLevels.filter(s => s.priority === 'high' || s.priority === 'medium').length;
+  const acceptedBatchCount = (batches || []).filter((batch: Batch) => batch.clinical_status === 'accepted').length;
+  const stockedProductCount = new Set((batches || [])
+    .filter((batch: Batch) => batch.clinical_status === 'accepted'
+      && (batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0)
+      && getExpirationSemaforo(batch.adjusted_expiration_date || batch.expiration_date, batch.status, batch.clinical_status).state !== 'expired')
+    .map((batch: Batch) => batch.item_id)).size;
 
   const expirationAlerts = (batches || [])
     .filter(batch => (batch.current_stock > 0 || (batch.opened_units_remaining || 0) > 0) && batch.clinical_status === "accepted")
@@ -124,15 +131,23 @@ export default async function DashboardPage() {
           {totalAlerts > 0 ? <AlertTriangle className="ui-icon" aria-hidden="true" /> : <CheckCircle2 className="ui-icon" aria-hidden="true" />}
         </div>
         <div className="dashboard-alert-copy">
-          <strong>{totalAlerts > 0 ? `${totalAlerts} alertas requieren revisión` : "Inventario dentro de parámetros"}</strong>
+          <strong>
+            {totalAlerts > 0
+              ? `${totalAlerts} alertas requieren revisión`
+              : controlledItems.length === 0
+                ? "Control de inventario sin activar"
+                : "Inventario dentro de parámetros"}
+          </strong>
           <span>
             {totalAlerts > 0
               ? `${criticalStockCount} productos bajo el mínimo, ${overStockCount} sobre el máximo y ${criticalExpiry} lotes vencidos.`
-              : "No se detectan productos bajo el mínimo o sobre el máximo ni lotes vencidos."}
+              : controlledItems.length === 0
+                ? `${items?.length || 0} productos en catálogo; activa el control en los que deban generar alertas.`
+                : "No se detectan productos controlados bajo el mínimo o sobre el máximo ni lotes vencidos."}
           </span>
         </div>
-        <Link href="/dashboard/inventario?view=stock" className="dashboard-alert-link">
-          Revisar inventario <span aria-hidden="true">→</span>
+        <Link href={controlledItems.length === 0 ? "/dashboard/configuracion?tab=productos" : "/dashboard/inventario?view=stock"} className="dashboard-alert-link">
+          {controlledItems.length === 0 ? "Configurar productos" : "Revisar inventario"} <span aria-hidden="true">→</span>
         </Link>
       </section>
 
@@ -156,7 +171,7 @@ export default async function DashboardPage() {
 
         <div className="kpi-card">
           <div className="kpi-card-header">
-            <h3 className="kpi-card-label">Productos Únicos</h3>
+            <h3 className="kpi-card-label">Productos en Catálogo</h3>
             <div className="kpi-icon kpi-icon-blue">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
@@ -164,7 +179,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <div className="kpi-value">{items?.length || 0}</div>
-          <p className="kpi-meta kpi-meta-muted">En catálogo maestro</p>
+          <p className="kpi-meta kpi-meta-muted">{controlledItems.length} con control de inventario</p>
         </div>
 
         <div className="kpi-card">
@@ -184,7 +199,7 @@ export default async function DashboardPage() {
 
         <div className="kpi-card">
           <div className="kpi-card-header">
-            <h3 className="kpi-card-label">Lotes Aceptados</h3>
+            <h3 className="kpi-card-label">Productos con Existencias</h3>
             <div className="kpi-icon kpi-icon-green">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -194,9 +209,9 @@ export default async function DashboardPage() {
             </div>
           </div>
           <div className="kpi-value">
-            {batches?.filter((b: Batch) => b.clinical_status === 'accepted').length || 0}
+            {stockedProductCount}
           </div>
-          <p className="kpi-meta kpi-meta-success">Listos para uso clínico</p>
+          <p className="kpi-meta kpi-meta-success">{acceptedBatchCount} lotes aceptados</p>
         </div>
 
         <div className="kpi-card">
@@ -242,8 +257,12 @@ export default async function DashboardPage() {
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
                   </div>
-                  <p className="empty-state-title">Estado Saludable</p>
-                  <p className="empty-state-text">Todos los productos superan el mínimo establecido.</p>
+                  <p className="empty-state-title">{controlledItems.length === 0 ? "Sin productos controlados" : "Estado Saludable"}</p>
+                  <p className="empty-state-text">
+                    {controlledItems.length === 0
+                      ? "Los productos de catálogo no generan alertas hasta activar su control de inventario."
+                      : "Todos los productos controlados superan el mínimo establecido."}
+                  </p>
                 </div>
               ) : (
                 <table className="inline-table">

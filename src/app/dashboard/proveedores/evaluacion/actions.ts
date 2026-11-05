@@ -3,12 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ComplianceService } from "@/lib/services/compliance";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 import { calculateSupplierEvaluation } from "@/lib/validation/supplier-evaluation";
 import { isValidDateKey } from "@/lib/dates";
 
 export async function submitSupplierEvaluation(formData: FormData) {
-  await requireRole(["admin", "supervisor"]);
+  await requirePermission("suppliers.evaluate");
   const supplier_id = String(formData.get("supplier_id") || "");
   const supplier_email = String(formData.get("supplier_email") || "").trim();
   const evaluation_date = String(formData.get("evaluation_date") || "");

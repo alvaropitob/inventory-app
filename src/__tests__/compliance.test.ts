@@ -21,6 +21,7 @@ describe('ComplianceService', () => {
     single: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
+    rpc: vi.fn().mockReturnThis(),
   };
 
   beforeEach(() => {
@@ -54,11 +55,9 @@ describe('ComplianceService', () => {
   });
 
   describe('reportSafetyIncident', () => {
-    it('should block a batch if the incident is a recall', async () => {
+    it('should report the incident and reject the batch through one database function', async () => {
       mockSupabase.auth.getUser.mockResolvedValueOnce({ data: { user: { id: 'user-1' } } });
       mockSupabase.single.mockResolvedValueOnce({ data: { id: 'incident-1' }, error: null });
-      mockSupabase.update.mockReturnThis();
-      mockSupabase.eq.mockResolvedValueOnce({ error: null });
 
       await ComplianceService.reportSafetyIncident({
         batch_id: 'batch-1',
@@ -66,8 +65,15 @@ describe('ComplianceService', () => {
         description: 'Dangerous defect',
       });
 
-      expect(mockSupabase.from).toHaveBeenCalledWith('inventory_batches');
-      expect(mockSupabase.update).toHaveBeenCalledWith({ clinical_status: 'rejected' });
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('fn_report_safety_incident', {
+        p_batch_id: 'batch-1',
+        p_incident_type: 'recall',
+        p_description: 'Dangerous defect',
+        p_action_taken: null,
+        p_reported_by: 'user-1',
+      });
+      expect(mockSupabase.from).not.toHaveBeenCalledWith('inventory_batches');
+      expect(mockSupabase.update).not.toHaveBeenCalled();
     });
   });
 });

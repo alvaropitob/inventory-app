@@ -78,34 +78,25 @@ export const EquipmentService = {
 
   async addMaintenanceRecord(data: Partial<MaintenanceRecord>) {
     const supabase = await createClient();
-    
-    // 1. Insert record
+    if (!data.equipment_id || !data.type || !data.execution_date || !data.scheduled_date || !data.performed_by) {
+      throw new Error('Faltan datos obligatorios para registrar el mantenimiento.');
+    }
+
     const { data: record, error } = await supabase
-      .from('maintenance_records')
-      .insert(data)
-      .select()
+      .rpc('fn_add_maintenance_record', {
+        p_equipment_id: data.equipment_id,
+        p_type: data.type,
+        p_execution_date: data.execution_date,
+        p_scheduled_date: data.scheduled_date,
+        p_performed_by: data.performed_by,
+        p_provider_name: data.provider_name ?? null,
+        p_description: data.description ?? null,
+        p_result: data.result ?? null,
+        p_next_due_date: data.next_due_date ?? null,
+      })
       .single();
-      
+
     if (error) throw error;
-
-    // 2. Update equipment dates if applicable
-    const updateData: Partial<Equipment> = {};
-    if (data.type === 'preventive') {
-      updateData.last_preventive_maintenance = data.execution_date;
-      updateData.next_preventive_maintenance = data.next_due_date;
-    } else if (data.type === 'calibration') {
-      updateData.last_calibration = data.execution_date;
-      updateData.next_calibration = data.next_due_date;
-    }
-
-    if (Object.keys(updateData).length > 0) {
-      const { error: updateError } = await supabase
-        .from('equipments')
-        .update(updateData)
-        .eq('id', data.equipment_id);
-      if (updateError) throw updateError;
-    }
-
     return record;
   }
 };

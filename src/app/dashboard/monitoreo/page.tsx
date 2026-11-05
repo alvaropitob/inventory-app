@@ -6,6 +6,7 @@ import * as Actions from "./actions";
 import ContextualHelp from "@/components/ContextualHelp";
 import EnvironmentalHumidityField from "@/components/EnvironmentalHumidityField";
 import { BUSINESS_TIME_ZONE, getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { hasPermission } from "@/lib/permissions";
 import {
   calculateLeveyJenningsParams,
   calculateChartScale,
@@ -79,7 +80,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
 
       <div className="equipment-grid">
         {/* Formulario de Registro */}
-        <div className="form-card">
+        {hasPermission(user.role, "environmental.record") && <div className="form-card">
           <div className="form-card-header">
             <h2 className="form-card-title">Nueva Lectura</h2>
             <ContextualHelp content={{
@@ -135,7 +136,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
               Guardar Registro
             </button>
           </form>
-        </div>
+        </div>}
 
         {/* Historial Reciente */}
         <div className="table-card">
@@ -153,7 +154,7 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
           </div>
           {rangeSaved === "1" && <p className="alert-success" role="status" style={{ margin: "0 1.5rem 1rem" }}>Rango de temperatura actualizado para {selectedLocation?.name}.</p>}
           {rangeError && <p className="alert-error" role="alert" style={{ margin: "0 1.5rem 1rem" }}>{rangeError}</p>}
-          {selectedLocationId && user.role === "admin" && (
+          {selectedLocationId && hasPermission(user.role, "environmental.range.manage") && (
             <form action={Actions.updateTemperatureRange} className="environmental-range-form">
               <input type="hidden" name="location_id" value={selectedLocationId} />
               <div>

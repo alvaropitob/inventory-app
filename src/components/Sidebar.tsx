@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { hasPermission } from "@/lib/permissions";
 
 
 interface SidebarProps {
@@ -60,7 +61,6 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
     }
   };
 
-  const isAdmin = user.role === "admin";
   const navOrder = [
     "Dashboard",
     "Inventario",
@@ -106,7 +106,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
-      show: isAdmin,
+      show: hasPermission(user.role, "users.manage"),
     },
     {
       name: "Inventario",
@@ -125,7 +125,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
         { name: "Calidad", href: "/dashboard/inventario/calidad" },
         { name: "Entrada manual", href: "/dashboard/inventario?view=entradas" },
         { name: "Salidas", href: "/dashboard/inventario?view=salidas" },
-        ...(["admin", "supervisor"].includes(user.role) ? [{ name: "Bajas y disposición final", href: "/dashboard/inventario?view=bajas" }] : []),
+        ...(hasPermission(user.role, "inventory.dispose") ? [{ name: "Bajas y disposición final", href: "/dashboard/inventario?view=bajas" }] : []),
         { name: "Traslados", href: "/dashboard/inventario?view=traslados" },
         { name: "Trazabilidad", href: "/dashboard/inventario?view=movimientos" },
       ]
@@ -227,7 +227,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
       ),
-      show: isAdmin || user.role === "auditor",
+      show: hasPermission(user.role, "audit.logs.view"),
       subItems: [
         { name: "Logs de Auditoría", href: "/dashboard/auditoria" },
         { name: "Checklist de Cumplimiento", href: "/dashboard/auditoria/checklist" },
@@ -243,7 +243,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <circle cx="12" cy="12" r="3" />
         </svg>
       ),
-      show: isAdmin,
+      show: hasPermission(user.role, "configuration.manage"),
     },
   ];
 

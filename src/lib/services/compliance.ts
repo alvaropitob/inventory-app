@@ -253,21 +253,20 @@ export const ComplianceService = {
         if (!user) throw new Error("Usuario no autenticado");
 
         const { data: incident, error: incidentError } = await supabase
-            .from('safety_incidents')
-            .insert({
-                batch_id: data.batch_id,
-                incident_type: data.incident_type,
-                description: data.description,
-                action_taken: data.action_taken,
-                reported_by: user.id
+            .rpc('fn_report_safety_incident', {
+                p_batch_id: data.batch_id,
+                p_incident_type: data.incident_type,
+                p_description: data.description,
+                p_action_taken: data.action_taken ?? null,
+                p_reported_by: user.id,
             })
-            .select()
             .single();
 
         if (incidentError) throw incidentError;
+        const savedIncident = incident as unknown as SafetyIncident;
 
         // Audit Log
-        const id = incident.id; // Corrected ID access
+        const id = savedIncident.id;
         await AuditService.logAction({
             table_name: 'safety_incidents',
             record_id: id,
@@ -277,16 +276,7 @@ export const ComplianceService = {
             notes: `Incidente reportado: ${data.incident_type}`
         });
 
-        if (data.incident_type === 'recall' || data.incident_type === 'quality_failure') {
-            const { error: batchUpdateError } = await supabase
-                .from('inventory_batches')
-                .update({ clinical_status: 'rejected' })
-                .eq('id', data.batch_id);
-
-            if (batchUpdateError) throw batchUpdateError;
-        }
-
-        return incident;
+        return savedIncident;
     },
 
     async getSafetyIncidents() {
@@ -359,22 +349,8 @@ export const ComplianceService = {
 
         if (error) throw error;
 
-        // A completed quality check must leave the verification queue. A passed
-        // batch becomes available for inventory use; a failed one stays blocked.
-        const nextStatus = data.result === 'pass' ? 'accepted' : 'rejected';
-        const nextAcceptanceStatus = data.result === 'pass' ? 'passed' : 'failed';
-        const { error: statusError } = await supabase
-            .from('inventory_batches')
-            .update({
-                status: nextStatus,
-                clinical_status: nextStatus,
-                acceptance_test_status: nextAcceptanceStatus,
-                verified_by: user.id
-            })
-            .eq('id', data.batch_id)
-            .eq('clinical_status', 'quarantine');
-
-        if (statusError) throw statusError;
+        // The database trigger on quality_verifications atomically moves the
+        // associated batch out of quarantine and records the verifier.
 
         // Audit Log
         await AuditService.logAction({

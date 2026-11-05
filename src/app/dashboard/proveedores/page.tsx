@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { CatalogService } from "@/lib/services/catalog";
 import * as Actions from "./actions";
+import { hasPermission } from "@/lib/permissions";
 import { AlertTriangle, CheckCircle2, Mail, MapPin, Star } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -21,12 +22,13 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
   if (!user) {
     redirect("/auth/login");
   }
+  const canManageSuppliers = hasPermission(user.role, "suppliers.manage");
 
   const { editId, search, error, success } = await searchParams;
   const { data: rawSuppliers } = await CatalogService.getSuppliers();
   const suppliers = rawSuppliers || [];
 
-  const editingSupplier = editId ? suppliers.find((s) => s.id === editId) : null;
+  const editingSupplier = canManageSuppliers && editId ? suppliers.find((s) => s.id === editId) : null;
 
   const filteredSuppliers = suppliers.filter((s) => {
     if (!search) return true;
@@ -138,7 +140,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                   <th>Contacto</th>
                   <th>Teléfono</th>
                   <th style={{ textAlign: "center" }}>Estado</th>
-                  <th style={{ textAlign: "right" }}>Acciones</th>
+                  {canManageSuppliers && <th style={{ textAlign: "right" }}>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
@@ -173,7 +175,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                         {s.is_active ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td style={{ textAlign: "right" }}>
+                    {canManageSuppliers && <td style={{ textAlign: "right" }}>
                       <div style={{ display: "inline-flex", gap: "0.5rem" }}>
                         <Link
                           href={`/dashboard/proveedores?editId=${s.id}#formulario-proveedor`}
@@ -196,12 +198,12 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
                           </button>
                         </form>
                       </div>
-                    </td>
+                    </td>}
                   </tr>
                 ))}
                 {filteredSuppliers.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: "center", color: "var(--text-muted)" }}>
+                    <td colSpan={canManageSuppliers ? 6 : 5} style={{ textAlign: "center", color: "var(--text-muted)" }}>
                       No se encontraron proveedores que coincidan con la búsqueda.
                     </td>
                   </tr>
@@ -212,7 +214,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
         </div>
 
         {/* FORMULARIO LATERAL (CREAR / EDITAR) */}
-        <div
+        {canManageSuppliers && <div
           className="providers-form-card"
           id="formulario-proveedor"
         >
@@ -317,7 +319,7 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
               {editingSupplier ? "Actualizar Proveedor" : "Guardar Proveedor"}
             </button>
           </form>
-        </div>
+        </div>}
       </div>
     </div>
   );

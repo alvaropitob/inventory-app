@@ -2,13 +2,14 @@ import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { BadgeCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { hasPermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AuditoriaPage({ searchParams }: { searchParams: Promise<{ from?: string; to?: string; user?: string }> }) {
   const { from, to, user: selectedUser } = await searchParams;
   const user = await getCurrentUserProfile();
-  if (!user || (user.role !== 'admin' && user.role !== 'auditor')) {
+  if (!user || !hasPermission(user.role, "audit.logs.view")) {
     redirect("/dashboard");
   }
 

@@ -3,11 +3,11 @@
 import { CatalogService } from "@/lib/services/catalog";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 import { validateCatalogProduct } from "@/lib/validation/catalog";
 
 export async function handleSectionAction(formData: FormData) {
-  await requireRole(["admin"]);
+  await requirePermission("configuration.manage");
   const name = formData.get("name") as string;
   const desc = formData.get("description") as string;
   const id = formData.get("id") as string;
@@ -23,7 +23,7 @@ export async function handleSectionAction(formData: FormData) {
 }
 
 export async function handleSupplierAction(formData: FormData) {
-  await requireRole(["admin"]);
+  await requirePermission("suppliers.manage");
   const data = {
     id: (formData.get("id") as string) || undefined,
     name: formData.get("name") as string,
@@ -37,7 +37,7 @@ export async function handleSupplierAction(formData: FormData) {
 }
 
 export async function handleCategoryAction(formData: FormData) {
-  await requireRole(["admin"]);
+  await requirePermission("configuration.manage");
   const id = formData.get("id") as string;
   const name = formData.get("name") as string;
   const desc = formData.get("description") as string;
@@ -47,7 +47,7 @@ export async function handleCategoryAction(formData: FormData) {
 }
 
 export async function handleLocationAction(formData: FormData) {
-  await requireRole(["admin"]);
+  await requirePermission("configuration.manage");
   const sectionId = String(formData.get("section_id") || "").trim();
   const rawTemperatureMin = String(formData.get("temperature_min") || "").trim();
   const rawTemperatureMax = String(formData.get("temperature_max") || "").trim();
@@ -81,7 +81,7 @@ export async function handleLocationAction(formData: FormData) {
 }
 
 export async function handleCatalogAction(formData: FormData) {
-  await requireRole(["admin", "supervisor"]);
+  await requirePermission("catalog.manage");
   const id = formData.get("id") as string;
   const sectionId = formData.get("section_id") as string;
   if (!sectionId) throw new Error("Selecciona un área activa para el producto.");
@@ -140,6 +140,7 @@ export async function handleCatalogAction(formData: FormData) {
     shelf_life: readText("shelf_life") || null,
     minimum_stock_threshold: minimumStock,
     maximum_stock_threshold: maximumStock,
+    inventory_control_enabled: formData.get("inventory_control_enabled") === "on",
     estimated_unit_price: Number(formData.get("estimated_unit_price")) || 0,
   };
 
@@ -149,7 +150,7 @@ export async function handleCatalogAction(formData: FormData) {
 }
 
 export async function toggleStatus(id: string, currentStatus: boolean, type: 'section' | 'supplier' | 'category' | 'location' | 'product') {
-  await requireRole(type === "product" ? ["admin", "supervisor"] : ["admin"]);
+  await requirePermission(type === "product" ? "catalog.toggle" : "configuration.manage");
   const newStatus = !currentStatus;
   if (type === 'section') await CatalogService.toggleSection(id, newStatus);
   else if (type === 'supplier') await CatalogService.toggleSupplier(id, newStatus);
@@ -161,7 +162,7 @@ export async function toggleStatus(id: string, currentStatus: boolean, type: 'se
 }
 
 export async function handleDelete(id: string, type: 'section' | 'supplier' | 'category' | 'location' | 'product') {
-  await requireRole(["admin"]);
+  await requirePermission(type === "product" ? "catalog.delete" : "configuration.manage");
   if (type === 'section') await CatalogService.deleteSection(id);
   else if (type === 'supplier') await CatalogService.deleteSupplier(id);
   else if (type === 'category') await CatalogService.deleteCategory(id);

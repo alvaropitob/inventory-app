@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatDateKeyInBusinessTimeZone } from "@/lib/dates";
 import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
+import { getInventoryStockPriority } from "@/lib/inventory-stock-priority";
 
 interface Batch {
   id: string;
@@ -19,7 +20,7 @@ interface Batch {
   location_id?: string | null;
   status?: string | null;
   clinical_status?: string | null;
-  item?: { technical_name: string; commercial_name: string; internal_code: string; commercial_presentation?: string | null; minimum_stock_threshold?: number; maximum_stock_threshold?: number | null; section_id?: string; sections?: { name: string } | null } | null;
+  item?: { technical_name: string; commercial_name: string; internal_code: string; commercial_presentation?: string | null; minimum_stock_threshold?: number; maximum_stock_threshold?: number | null; inventory_control_enabled?: boolean; section_id?: string; sections?: { name: string } | null } | null;
   location?: { name: string; section_id?: string | null } | null;
 }
 
@@ -43,6 +44,7 @@ interface CatalogItem {
   shelf_life?: string | null;
   minimum_stock_threshold?: number | null;
   maximum_stock_threshold?: number | null;
+  inventory_control_enabled?: boolean;
   estimated_unit_price?: number | null;
   is_active?: boolean;
   sections?: { name: string } | { name: string }[] | null;
@@ -68,6 +70,7 @@ interface GroupedItem {
   internal_code: string;
   minimum_stock_threshold?: number;
   maximum_stock_threshold?: number | null;
+  inventory_control_enabled: boolean;
   id: string;
   totalStock: number;
   itemBatches: Batch[];
@@ -138,6 +141,7 @@ export default function RealtimeStockTable({
         commercial_name: batch.item?.commercial_name || '',
         internal_code: batch.item?.internal_code || '',
         minimum_stock_threshold: batch.item?.minimum_stock_threshold,
+        inventory_control_enabled: batch.item?.inventory_control_enabled === true,
         id: itemId,
         maximum_stock_threshold: batch.item?.maximum_stock_threshold,
         totalStock: 0,
@@ -196,9 +200,15 @@ export default function RealtimeStockTable({
         </thead>
         <tbody>
           {sortedStock.map((item: GroupedItem) => {
-            const isLowStock = item.totalStock <= (item.minimum_stock_threshold || 10);
+            const stockPriority = getInventoryStockPriority({
+              inventoryControlEnabled: item.inventory_control_enabled,
+              totalStock: item.totalStock,
+              minimumStock: item.minimum_stock_threshold || 0,
+              maximumStock: item.maximum_stock_threshold ?? null,
+            });
+            const isLowStock = stockPriority === "high" || stockPriority === "medium";
             const isOutOfStock = item.totalStock === 0;
-            const isOverStock = item.maximum_stock_threshold != null && item.totalStock > item.maximum_stock_threshold;
+            const isOverStock = stockPriority === "low" && item.maximum_stock_threshold != null && item.totalStock > item.maximum_stock_threshold;
             
             return (
               <tr
@@ -234,7 +244,9 @@ export default function RealtimeStockTable({
                   ))}
                 </td>
                 <td className="inventory-stock-status" style={{ textAlign: 'center' }}>
-                    {isOutOfStock ? (
+                    {!item.inventory_control_enabled ? (
+                      <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 600, background: '#e2e8f0', color: '#475569' }}>SIN CONTROL</span>
+                    ) : isOutOfStock ? (
                       <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>AGOTADO</span>
                     ) : isOverStock ? (
                       <span style={{ padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 600, background: '#fee2e2', color: '#991b1b' }}>SOBRE MÁXIMO</span>
@@ -293,6 +305,7 @@ export default function RealtimeStockTable({
                   <div><dt>Proveedor maestro</dt><dd>{displayValue(getRelatedName(selectedProduct.suppliers) || suppliers.find(s => s.id === selectedProduct.supplier_id)?.name)}</dd></div>
                   <div><dt>Stock mínimo</dt><dd>{displayValue(selectedProduct.minimum_stock_threshold)}</dd></div>
                   <div><dt>Stock máximo</dt><dd>{displayValue(selectedProduct.maximum_stock_threshold)}</dd></div>
+                  <div><dt>Control de inventario</dt><dd>{selectedProduct.inventory_control_enabled ? "Activo" : "Solo catálogo"}</dd></div>
                   <div><dt>Precio estimado</dt><dd>{selectedProduct.estimated_unit_price == null ? "No registrado" : `$ ${selectedProduct.estimated_unit_price.toLocaleString("es-CO")}`}</dd></div>
                   <div><dt>Estado del producto</dt><dd>{selectedProduct.is_active === false ? "Inactivo" : "Activo"}</dd></div>
                 </dl>

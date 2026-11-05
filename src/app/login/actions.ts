@@ -1,12 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserProfile } from "@/lib/services/user";
 
 export async function login(formData: FormData) {
-  console.log("LOGIN ATTEMPT STARTED");
   const supabase = await createClient();
 
   const data = {
@@ -17,11 +16,13 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data);
   
   if (error) {
-    console.error("LOGIN ERROR:", error);
-    redirect("/error?message=" + encodeURIComponent(error.message));
+    redirect("/login?error=credentials");
   }
 
-  revalidatePath("/", "layout");
+  if (!(await getCurrentUserProfile())) {
+    await supabase.auth.signOut();
+    redirect("/login?access=pending");
+  }
   redirect("/dashboard");
 }
 

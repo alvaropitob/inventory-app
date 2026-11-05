@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -11,7 +11,22 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("access") === "pending") {
+      setStatusMsg("Tu cuenta está pendiente de aprobación o no tiene acceso activo. Contacta al administrador de MediCore.");
+    } else if (query.get("access") === "gmail-only") {
+      setStatusMsg("El registro solo admite cuentas Google con dirección @gmail.com.");
+    } else if (query.get("password") === "updated") {
+      setStatusMsg("Contraseña actualizada. Ya puedes iniciar sesión.");
+    }
+    if (query.get("error") === "credentials") {
+      setErrorMsg("No se pudo iniciar sesión. Verifica el correo y la contraseña.");
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,9 +41,15 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setErrorMsg(error.message === "Invalid login credentials"
-          ? "Credenciales incorrectas. Verifica tu correo y contraseña."
-          : error.message);
+        setErrorMsg("No se pudo iniciar sesión. Verifica el correo y la contraseña.");
+        setLoading(false);
+        return;
+      }
+
+      const accessResponse = await fetch("/api/auth/access", { cache: "no-store" });
+      if (!accessResponse.ok) {
+        await supabase.auth.signOut();
+        setStatusMsg("Tu cuenta está pendiente de aprobación o no tiene acceso activo. Contacta al administrador de MediCore.");
         setLoading(false);
         return;
       }
@@ -38,6 +59,28 @@ export default function LoginPage() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error inesperado al iniciar sesión";
       setErrorMsg(message);
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordRecovery = async () => {
+    setErrorMsg(null);
+    setStatusMsg(null);
+    if (!email.trim()) {
+      setErrorMsg("Escribe tu correo institucional para enviarte el enlace de recuperación.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+      });
+      if (error) throw error;
+      setStatusMsg("Si el correo corresponde a una cuenta, recibirás instrucciones para restablecer la contraseña.");
+    } catch {
+      setStatusMsg("Si el correo corresponde a una cuenta, recibirás instrucciones para restablecer la contraseña.");
+    } finally {
       setLoading(false);
     }
   };
@@ -89,6 +132,7 @@ export default function LoginPage() {
             {errorMsg}
           </div>
         )}
+        {statusMsg && <div role="status" style={{ background: "#eff6ff", border: "1px solid #93c5fd", color: "#1e3a8a", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: 'var(--fs-base)', marginBottom: "1rem" }}>{statusMsg}</div>}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
@@ -123,6 +167,11 @@ export default function LoginPage() {
             {loading ? "Iniciando sesión..." : "Iniciar sesión"}
           </button>
         </form>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: ".75rem" }}>
+          <button type="button" onClick={handlePasswordRecovery} disabled={loading} style={{ border: 0, background: "none", color: "var(--primary-dark)", textDecoration: "underline", cursor: loading ? "wait" : "pointer", padding: 0, font: "inherit", fontSize: "var(--fs-sm)" }}>
+            {loading ? "Procesando..." : "¿Olvidaste tu contraseña?"}
+          </button>
+        </div>
 
         <div style={{ textAlign: "center", margin: "1.5rem 0", color: "var(--text-muted)", fontSize: 'var(--fs-base)', display: "flex", alignItems: "center" }}>
           <div style={{ flex: 1, height: "1px", background: "var(--border)" }}></div>
@@ -143,10 +192,8 @@ export default function LoginPage() {
         </div>
 
         <div className="auth-footer">
-          <p>
-            ¿No tienes una cuenta?{" "}
-            <Link href="/register">Regístrate</Link>
-          </p>
+          <p>Acceso exclusivo para personal autorizado.</p>
+          <p>¿Aún no tienes cuenta? <Link href="/register">Regístrate con Google</Link></p>
         </div>
       </div>
     </div>

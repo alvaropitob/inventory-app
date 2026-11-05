@@ -3,8 +3,14 @@ import { CatalogService } from "@/lib/services/catalog";
 import EquipmentList from "@/components/EquipmentList";
 import EquipmentForm from "@/components/EquipmentForm";
 import ContextualHelp from "@/components/ContextualHelp";
+import { getCurrentUserProfile } from "@/lib/services/user";
+import { redirect } from "next/navigation";
+import { hasPermission } from "@/lib/permissions";
 
 export default async function EquipmentPage() {
+  const user = await getCurrentUserProfile();
+  if (!user) redirect("/auth/login");
+  const canManageEquipment = hasPermission(user.role, "equipment.manage");
   const [equipments, locations, sections] = await Promise.all([
     EquipmentService.getEquipments(),
     CatalogService.getLocations(),
@@ -21,7 +27,7 @@ export default async function EquipmentPage() {
       </div>
 
       <div className="equipment-grid">
-        <div className="form-card">
+        {canManageEquipment && <div className="form-card">
           <div className="form-card-header">
             <h2 className="form-card-title">
               Registro de Equipo
@@ -40,7 +46,7 @@ export default async function EquipmentPage() {
           <div className="form-card-body">
             <EquipmentForm locations={locations.data || []} sections={sections.data || []} />
           </div>
-        </div>
+        </div>}
 
         <div className="table-card">
           <EquipmentList equipments={equipments.data || []} />

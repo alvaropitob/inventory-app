@@ -2,10 +2,16 @@ import { OrderService } from "@/lib/services/orders";
 import Link from "next/link";
 import ContextualHelp from "@/components/ContextualHelp";
 import { AlertTriangle } from "lucide-react";
+import { getCurrentUserProfile } from "@/lib/services/user";
+import { redirect } from "next/navigation";
+import { hasPermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
 export default async function RecepcionPage() {
+  const user = await getCurrentUserProfile();
+  if (!user) redirect("/auth/login");
+  const canRecordReception = hasPermission(user.role, "reception.record");
   try {
     const allOrders = await OrderService.getOrders();
     const pendingOrders = (allOrders || []).filter(
@@ -57,7 +63,7 @@ export default async function RecepcionPage() {
                     <th>Proveedor</th>
                     <th>Fecha Esperada</th>
                     <th className="cell-center">Estado</th>
-                    <th className="cell-right">Acción</th>
+                    {canRecordReception && <th className="cell-right">Acción</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -72,19 +78,19 @@ export default async function RecepcionPage() {
                             {order.status === 'requested' ? 'Solicitado' : 'Rec. Parcial'}
                           </span>
                         </td>
-                        <td className="cell-right">
+                        {canRecordReception && <td className="cell-right">
                           <Link
                             href={`/dashboard/recepcion/${order.id}`}
                             className="btn-primary reception-start-link"
                           >
                             Iniciar Inspección
                           </Link>
-                        </td>
+                        </td>}
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="workflow-empty-state">
+                      <td colSpan={canRecordReception ? 5 : 4} className="workflow-empty-state">
                         <strong>Sin recepciones pendientes</strong>
                         <span>No hay pedidos que requieran inspección técnica.</span>
                       </td>

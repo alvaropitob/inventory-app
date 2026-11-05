@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { StockService } from "@/lib/services/stock";
 import * as Actions from "../../actions";
+import { hasPermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function ReportarIncidentePage({ params }: PageProps) {
   if (!user) {
     redirect("/auth/login");
   }
+  const canReportIncident = hasPermission(user.role, "safety.incident.submit");
 
   const { batchId } = await params;
   const { data: batch, error } = await StockService.getBatchById(batchId);
@@ -60,7 +62,7 @@ export default async function ReportarIncidentePage({ params }: PageProps) {
             </div>
           </div>
 
-          <form action={Actions.submitSafetyIncident} className="incident-form-body">
+          {canReportIncident ? <form action={Actions.submitSafetyIncident} className="incident-form-body">
             <input type="hidden" name="batch_id" value={batchId} />
 
             <div>
@@ -116,7 +118,7 @@ export default async function ReportarIncidentePage({ params }: PageProps) {
                 Confirmar y Reportar Incidente
               </button>
             </div>
-          </form>
+          </form> : <p className="incident-form-body" role="status">No tienes permiso para registrar incidentes. Solicita apoyo a un usuario autorizado.</p>}
         </div>
       </div>
     </div>

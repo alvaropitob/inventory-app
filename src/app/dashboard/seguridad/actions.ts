@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ComplianceService, IncidentType } from "@/lib/services/compliance";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 
 export async function submitSafetyIncident(formData: FormData) {
-    await requireRole(["admin", "operator", "supervisor"]);
+    await requirePermission("safety.incident.submit");
     const batch_id = formData.get("batch_id") as string;
     const incident_type = formData.get("incident_type") as IncidentType;
     const description = formData.get("description") as string;
@@ -36,7 +36,7 @@ export async function submitSafetyIncident(formData: FormData) {
 }
 
 export async function saveMonthlyAlertReport(formData: FormData) {
-    await requireRole(["admin", "supervisor"]);
+    await requirePermission("safety.monthly.manage");
     const monthValue = String(formData.get("period_month") || "");
     if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthValue)) throw new Error("Selecciona un mes válido.");
 

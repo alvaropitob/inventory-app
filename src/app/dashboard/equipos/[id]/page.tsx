@@ -4,9 +4,15 @@ import MaintenanceHistory from "@/components/MaintenanceHistory";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
+import { getCurrentUserProfile } from "@/lib/services/user";
+import { redirect } from "next/navigation";
+import { hasPermission } from "@/lib/permissions";
 
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const user = await getCurrentUserProfile();
+  if (!user) redirect("/auth/login");
+  const canMaintainEquipment = hasPermission(user.role, "equipment.maintain");
   const equipment = await EquipmentService.getEquipmentById(id);
 
   if (!equipment.data) {
@@ -31,14 +37,14 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
 
       <div className="eq-detail-grid">
         <div className="equipment-detail-stack">
-          <div className="form-card">
+          {canMaintainEquipment && <div className="form-card">
             <div className="form-card-header">
               <h2 className="form-card-title">Nueva Intervención</h2>
             </div>
             <div className="form-card-body">
               <MaintenanceRegistryForm equipmentId={id} />
             </div>
-          </div>
+          </div>}
 
           <div className="form-card">
             <div className="form-card-header">

@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { ComplianceService } from "@/lib/services/compliance";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 
 export async function submitQualityVerification(formData: FormData) {
-    await requireRole(["admin", "supervisor"]);
+    await requirePermission("quality.verify");
     const batch_id = formData.get("batch_id") as string;
     const result = formData.get("result") as 'pass' | 'fail';
     const control_lot = formData.get("control_lot") as string;

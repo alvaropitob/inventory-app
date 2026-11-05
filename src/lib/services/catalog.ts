@@ -32,6 +32,7 @@ export interface CatalogItem {
   usage_unit?: string | null;
   minimum_stock_threshold?: number;
   maximum_stock_threshold?: number | null;
+  inventory_control_enabled?: boolean;
   estimated_unit_price?: number;
   sanitary_registration?: string | null;
   product_type?: 'medicamento' | 'dispositivo_medico' | 'reactivo' | 'insumo';

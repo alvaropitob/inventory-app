@@ -1,9 +1,9 @@
 "use server";
 
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 
 export async function getAuditLogs() {
-  const { supabase } = await requireRole(["admin", "supervisor", "auditor"]);
+  const { supabase } = await requirePermission("audit.logs.view");
 
   const { data, error } = await supabase
     .from('audit_logs')

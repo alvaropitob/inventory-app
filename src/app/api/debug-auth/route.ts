@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 
 export async function GET() {
   try {
-    await requireRole(["admin"]);
+    await requirePermission("configuration.manage");
   } catch {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }

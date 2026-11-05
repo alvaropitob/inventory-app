@@ -3,10 +3,10 @@
 import { CatalogService } from "@/lib/services/catalog";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 
 export async function handleSupplierAction(formData: FormData) {
-  await requireRole(["admin"]);
+  await requirePermission("suppliers.manage");
   const id = formData.get("id") as string;
   const name = formData.get("name") as string;
   const taxId = formData.get("tax_id") as string;
@@ -42,13 +42,13 @@ export async function handleSupplierAction(formData: FormData) {
 }
 
 export async function toggleSupplierStatus(id: string, currentStatus: boolean) {
-  await requireRole(["admin"]);
+  await requirePermission("suppliers.manage");
   await CatalogService.toggleSupplier(id, !currentStatus);
   revalidatePath("/dashboard/proveedores");
 }
 
 export async function deleteSupplierAction(id: string) {
-  await requireRole(["admin"]);
+  await requirePermission("suppliers.manage");
   await CatalogService.deleteSupplier(id);
   revalidatePath("/dashboard/proveedores");
 }

@@ -2,11 +2,11 @@
 
 import { EquipmentService, Equipment, MaintenanceRecord } from "@/lib/services/equipment";
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 import { isValidDateKey } from "@/lib/dates";
 
 export async function handleEquipmentAction(formData: FormData) {
-  await requireRole(["admin", "supervisor"]);
+  await requirePermission("equipment.manage");
   const id = formData.get("id") as string;
   const invimaExpirationDate = String(formData.get("invima_expiration_date") || "");
   if (invimaExpirationDate && !isValidDateKey(invimaExpirationDate)) {
@@ -42,7 +42,7 @@ export async function handleEquipmentAction(formData: FormData) {
 }
 
 export async function handleMaintenanceAction(formData: FormData) {
-  const { user } = await requireRole(["admin", "supervisor", "operator"]);
+  const { user } = await requirePermission("equipment.maintain");
   const equipmentId = formData.get("equipment_id") as string;
   const executionDate = String(formData.get("execution_date") || "");
   const scheduledDate = String(formData.get("scheduled_date") || "");

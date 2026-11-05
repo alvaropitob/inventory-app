@@ -4,7 +4,7 @@ import { ComplianceService } from "@/lib/services/compliance";
 import { CatalogService } from "@/lib/services/catalog";
 import { OrderService } from "@/lib/services/orders";
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 
 export async function submitTechnicalReception(data: {
     order_id: string;
@@ -25,7 +25,7 @@ export async function submitTechnicalReception(data: {
         unit_price: number;
     }[];
 }) {
-    await requireRole(["admin", "operator"]);
+    await requirePermission("reception.record");
     if (!data.order_id || !Array.isArray(data.items) || data.items.length === 0 || data.items.length > 500 ||
         !Number.isFinite(data.reception_temperature) || !data.invoice_number?.trim() || data.items.some(item =>
           !item.catalog_item_id || !item.lot_number?.trim() || (item.sanitary_registration?.length ?? 0) > 200 || !Number.isSafeInteger(item.quantity_received) || item.quantity_received <= 0 ||

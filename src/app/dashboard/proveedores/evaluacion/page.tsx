@@ -5,6 +5,7 @@ import { ComplianceService } from "@/lib/services/compliance";
 import * as Actions from "./actions";
 import SupplierEvaluationFields from "@/components/SupplierEvaluationFields";
 import { getDateKeyInBusinessTimeZone } from "@/lib/dates";
+import { hasPermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,7 @@ const scoreOptions = [
 export default async function EvaluacionProveedoresPage() {
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
+  const canEvaluate = hasPermission(user.role, "suppliers.evaluate");
 
   const [suppliers, evaluations] = await Promise.all([
     CatalogService.getSuppliers(),
@@ -87,7 +89,7 @@ export default async function EvaluacionProveedoresPage() {
           </div>
         </div>
 
-        <div className="form-card supplier-evaluation-form-card">
+        {canEvaluate && <div className="form-card supplier-evaluation-form-card">
           <div className="form-card-header"><h2 className="form-card-title supplier-evaluation-form-title">Nueva evaluación</h2></div>
           <form action={Actions.submitSupplierEvaluation} className="form-card-body form-fields evaluation-form">
             <SupplierEvaluationFields suppliers={suppliers.data?.map(s => ({ id: s.id, name: s.name, contact_email: s.contact_email })) || []} />
@@ -122,7 +124,7 @@ export default async function EvaluacionProveedoresPage() {
             <div><label className="form-label">Observaciones</label><textarea name="comments" rows={4} className="form-textarea" placeholder="Observaciones y acciones de seguimiento" /></div>
             <button type="submit" className="btn-primary btn-block">Guardar evaluación</button>
           </form>
-        </div>
+        </div>}
       </div>
     </div>
   );

@@ -1,9 +1,15 @@
 import { CatalogService } from "@/lib/services/catalog";
 import NewOrderForm from "@/components/NewOrderForm";
+import { getCurrentUserProfile } from "@/lib/services/user";
+import { redirect } from "next/navigation";
+import { hasPermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewOrderPage() {
+  const user = await getCurrentUserProfile();
+  if (!user) redirect("/auth/login");
+  if (!hasPermission(user.role, "orders.manage")) redirect("/dashboard/pedidos");
   const { data: suppliers } = await CatalogService.getSuppliers();
   const { data: items } = await CatalogService.getCatalogItems();
 

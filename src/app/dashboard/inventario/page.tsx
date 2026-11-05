@@ -15,6 +15,7 @@ import InventoryDispositionForm from "@/components/InventoryDispositionForm";
 import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
 import { getDispositionCauseLabel, getDisposalRouteLabel } from "@/lib/disposal-options";
+import { hasPermission } from "@/lib/permissions";
 import { AlertTriangle, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, Boxes, ClipboardList, FileText, History, Package, PackagePlus, PackageX, Trash2, X } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +44,7 @@ interface CatalogItem {
   purchase_unit?: string | null;
   minimum_stock_threshold?: number | null;
   maximum_stock_threshold?: number | null;
+  inventory_control_enabled?: boolean;
   estimated_unit_price?: number | null;
   sections?: { name: string } | null;
   is_active?: boolean;
@@ -132,7 +134,10 @@ export default async function InventarioPage({
   const { editId, view, error, from, to, user: userFilter, product, location, movementType } = await searchParams;
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
-  const canManageDisposal = user.role === "admin" || user.role === "supervisor";
+  const canManageCatalog = hasPermission(user.role, "catalog.manage");
+  const canConsumeInventory = hasPermission(user.role, "inventory.consume");
+  const canTransferInventory = hasPermission(user.role, "inventory.transfer");
+  const canManageDisposal = hasPermission(user.role, "inventory.dispose");
 
   const [
     { data: catalogItems },
@@ -306,7 +311,7 @@ export default async function InventarioPage({
         {/* ====== ENTRADAS ====== */}
         {currentView === 'entradas' && (
           <>
-            <CollapsibleSection
+            {canManageCatalog && <CollapsibleSection
               title="Registro manual de producto y existencias"
               subtitle="Usa esta opción para altas no asociadas a un pedido. Las compras a proveedores se registran desde Pedidos y Recepción Técnica."
               icon={<Package className="ui-icon" aria-hidden="true" />}
@@ -389,7 +394,7 @@ export default async function InventarioPage({
                         </div>
                         <div className="form-grid-2">
                           <div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><label className="form-label" htmlFor="inventory-min-stock">Stock mínimo</label><ContextualHelp content="Umbral de reposición en unidades de compra. Si el stock utilizable queda por debajo, el panel genera una alerta. Un valor de cero no oculta una alerta por stock utilizable igual a cero y no bloquea ni habilita salidas." /></div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><label className="form-label" htmlFor="inventory-min-stock">Stock mínimo</label><ContextualHelp content="Umbral de reposición en unidades de compra. Solo genera alertas si el control de inventario está activo." /></div>
                             <input id="inventory-min-stock" className="form-input" type="number" min="0" step="1" name="minimum_stock_threshold" defaultValue={editingItem?.minimum_stock_threshold || 0} />
                           </div>
                           <div>
@@ -397,6 +402,15 @@ export default async function InventarioPage({
                             <input id="inventory-max-stock" className="form-input" type="number" min="0" step="1" name="maximum_stock_threshold" defaultValue={editingItem?.maximum_stock_threshold ?? ""} />
                           </div>
                         </div>
+                        <label className="form-checkbox-label">
+                          <input
+                            type="checkbox"
+                            name="inventory_control_enabled"
+                            defaultChecked={editingItem ? !!editingItem.inventory_control_enabled : true}
+                          />
+                          Controlar existencias y generar alertas
+                        </label>
+                        <p className="form-help-text">Al registrar una entrada de inventario, el control se activa automáticamente.</p>
                         <div><label className="form-label">Precio unitario estimado ($)</label><input className="form-input" type="number" min="0" step="0.01" name="estimated_unit_price" defaultValue={editingItem?.estimated_unit_price || 0} /></div>
                       </div>
                     </div>
@@ -440,7 +454,7 @@ export default async function InventarioPage({
                   </div>
                 </form>
               </div>
-            </CollapsibleSection>
+            </CollapsibleSection>}
 
             <CollapsibleSection
               title="Catálogo Vigente"
@@ -458,6 +472,7 @@ export default async function InventarioPage({
                           <th>Área</th>
                           <th>Presentación</th>
                           <th>Mín. Stock</th>
+                          <th>Control</th>
                           <th>Acciones</th>
                         </tr>
                       </thead>
@@ -472,6 +487,7 @@ export default async function InventarioPage({
                             <td style={{ color: 'var(--primary)', fontWeight: 600 }}>{i.sections?.name}</td>
                             <td>{i.purchase_unit}</td>
                             <td style={{ fontWeight: 600 }}>{i.minimum_stock_threshold}</td>
+                            <td>{i.inventory_control_enabled ? "Activo" : "Solo catálogo"}</td>
                             <td>
                               <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <a href={`?view=entradas&editId=${i.id}`} className="action-btn-edit">Editar</a>
@@ -490,7 +506,7 @@ export default async function InventarioPage({
                         ))}
                         {(!catalogWithEntries || catalogWithEntries.length === 0) && (
                           <tr>
-                            <td colSpan={6} className="empty-state">
+                            <td colSpan={7} className="empty-state">
                               No hay productos registrados en el catálogo aún.
                             </td>
                           </tr>
@@ -538,7 +554,7 @@ export default async function InventarioPage({
         )}
 
         {/* ====== SALIDAS (FEFO ESTRICTO + ESCÁNER GS1-128) ====== */}
-        {currentView === 'salidas' && (
+        {currentView === 'salidas' && canConsumeInventory && (
           <CollapsibleSection
             title="Registrar Salida / Consumo Clínico"
             subtitle="Despacho con algoritmo estricto FEFO (First Expired, First Out), escáner GS1-128 y control de estabilidad post-apertura."
@@ -583,7 +599,7 @@ export default async function InventarioPage({
         )}
 
         {/* ====== TRASLADOS INTERNOS ====== */}
-        {currentView === 'traslados' && (
+        {currentView === 'traslados' && canTransferInventory && (
           <CollapsibleSection
             title="Traslado entre ubicaciones"
             subtitle="Traslade existencias a Sede Norte con trazabilidad del área y lote de origen."

@@ -2,6 +2,9 @@ import { OrderService, OrderStatus } from "@/lib/services/orders";
 import Link from "next/link";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import { formatAmount, formatNumber } from "@/lib/formatters";
+import { getCurrentUserProfile } from "@/lib/services/user";
+import { redirect } from "next/navigation";
+import { hasPermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +25,9 @@ export default async function PedidosPage({
 }: {
   searchParams: Promise<{ status?: string }>;
 }) {
+  const user = await getCurrentUserProfile();
+  if (!user) redirect("/auth/login");
+  const canManageOrders = hasPermission(user.role, "orders.manage");
   const { status } = await searchParams;
   const currentStatus = (status as OrderStatus) || "";
 
@@ -59,12 +65,12 @@ export default async function PedidosPage({
               'Creado por': o.creator?.full_name || 'Desconocido',
             }))}
           />
-          <Link href="/dashboard/pedidos/nuevo" className="btn-primary" style={{ textDecoration: 'none' }}>
+          {canManageOrders && <Link href="/dashboard/pedidos/nuevo" className="btn-primary" style={{ textDecoration: 'none' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14" /><path d="M12 5v14" />
             </svg>
             Nuevo Pedido
-          </Link>
+          </Link>}
         </div>
       </div>
 

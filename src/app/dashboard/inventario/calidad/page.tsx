@@ -4,6 +4,7 @@ import { getCurrentUserProfile } from "@/lib/services/user";
 import { ComplianceService } from "@/lib/services/compliance";
 import VerificationForm from "./VerificationForm";
 import * as Actions from "./actions";
+import { hasPermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export default async function CalidadPage() {
   if (!user) {
     redirect("/auth/login");
   }
+  const canVerify = hasPermission(user.role, "quality.verify");
 
   const pendingBatches = await ComplianceService.getPendingVerifications();
 
@@ -42,7 +44,7 @@ export default async function CalidadPage() {
                 <th>Ingreso</th>
                 <th>Producto</th>
                 <th>Lote / Ubicación</th>
-                <th>Acción</th>
+                {canVerify && <th>Acción</th>}
               </tr>
             </thead>
             <tbody>
@@ -57,7 +59,7 @@ export default async function CalidadPage() {
                     <div className="cell-primary">{batch.batch_number}</div>
                     <div className="cell-muted">{batch.location?.name}</div>
                   </td>
-                  <td style={{ position: 'relative' }}>
+                  {canVerify && <td style={{ position: 'relative' }}>
                     <details>
                       <summary className="verify-btn">Verificar</summary>
                       <div className="verify-dropdown">
@@ -69,12 +71,12 @@ export default async function CalidadPage() {
                         />
                       </div>
                     </details>
-                  </td>
+                  </td>}
                 </tr>
               ))}
               {pendingBatches.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="quality-empty-state">
+                  <td colSpan={canVerify ? 4 : 3} className="quality-empty-state">
                     <strong>Cola de verificación vacía</strong>
                     <span>No hay lotes en cuarentena pendientes de verificación.</span>
                   </td>

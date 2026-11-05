@@ -3,6 +3,8 @@ import TechnicalReceptionForm from "@/components/TechnicalReceptionForm";
 import { notFound } from "next/navigation";
 import { CatalogService } from "@/lib/services/catalog";
 import { getCurrentUserProfile } from "@/lib/services/user";
+import { hasPermission } from "@/lib/permissions";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -12,18 +14,20 @@ interface Props {
 
 export default async function TechnicalReceptionDetailPage({ params }: Props) {
   const { id } = await params;
+  const user = await getCurrentUserProfile();
+  if (!user) redirect("/auth/login");
 
   try {
-    const [order, locationsResponse, sectionsResponse, user] = await Promise.all([
+    const [order, locationsResponse, sectionsResponse] = await Promise.all([
       OrderService.getOrderById(id),
       CatalogService.getLocations(),
       CatalogService.getSections(),
-      getCurrentUserProfile(),
     ]);
 
     if (!order) {
       notFound();
     }
+    const canRecordReception = hasPermission(user.role, "reception.record");
 
     const formattedOrder = {
       id: order.id!,
@@ -55,14 +59,14 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="form-card">
+        {canRecordReception ? <div className="form-card">
           <TechnicalReceptionForm
             order={formattedOrder}
             locations={(locationsResponse.data || []).filter(location => location.is_active !== false)}
             sections={(sectionsResponse.data || []).filter(section => section.is_active)}
-            canManageLocations={user?.role === "admin"}
+      canManageLocations={Boolean(user && hasPermission(user.role, "configuration.manage"))}
           />
-        </div>
+        </div> : <div className="alert-error" role="status">No tienes permiso para registrar recepciones técnicas.</div>}
       </div>
     );
   } catch (err) {

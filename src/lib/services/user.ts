@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import { isAppRole, type AppRole } from "@/lib/permissions";
 
 export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
   username: string;
-  role: string;
+  role: AppRole;
   avatarUrl: string | null;
 }
 
@@ -28,36 +29,28 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
       email,
       full_name,
       username,
+      is_active,
       roles (
         id,
-        name
+        name,
+        is_active
       )
     `)
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (error || !dbUser) {
-    console.error("Error fetching user profile:", error);
-    // Fallback if the record hasn't synced yet or query fails
-    return {
-      id: user.id,
-      email: user.email || "",
-      fullName: user.user_metadata?.full_name || user.user_metadata?.name || "Usuario",
-      username: user.email || "",
-      role: "operator",
-      avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-    };
-  }
+  if (error || !dbUser || dbUser.is_active !== true) return null;
 
   const rolesData = dbUser.roles;
-  const roleName = (Array.isArray(rolesData) ? rolesData[0]?.name : (rolesData as { name: string })?.name) || "operator";
+  const primaryRole = Array.isArray(rolesData) ? rolesData[0] : rolesData as { name: string; is_active: boolean } | null;
+  if (!primaryRole?.is_active || !isAppRole(primaryRole.name)) return null;
 
   return {
     id: dbUser.id,
     email: dbUser.email,
     fullName: dbUser.full_name || "Usuario",
     username: dbUser.username,
-    role: roleName,
+    role: primaryRole.name,
     // Avatar is still fetched from Google metadata for simplicity
     avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
   };

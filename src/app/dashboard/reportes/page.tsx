@@ -103,6 +103,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
       internal_code: string;
       purchase_unit?: string | null;
       minimum_stock_threshold?: number | null;
+      inventory_control_enabled?: boolean;
       sections?: { name: string };
     };
     location?: { name: string };
@@ -197,7 +198,8 @@ export default async function ReportesPage({ searchParams }: PageProps) {
     const minStock = item.minimum_stock_threshold || 1;
     const maxStock = item.maximum_stock_threshold ?? null;
     let estado = "Suficiente";
-    if (totalStock === 0) estado = "Desabastecido (Crítico)";
+    if (!item.inventory_control_enabled) estado = "Solo catálogo (control inactivo)";
+    else if (totalStock === 0) estado = "Desabastecido (Crítico)";
     else if (totalStock <= minStock) estado = "Stock Mínimo (Alerta)";
 
     else if (maxStock !== null && totalStock > maxStock) estado = "Sobre stock (Alerta)";

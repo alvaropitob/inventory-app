@@ -6,11 +6,11 @@ import { dispositionCauses, disposalRoutes } from "@/lib/disposal-options";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 import { validateCatalogProduct } from "@/lib/validation/catalog";
 
 export async function handleCatalogAction(formData: FormData) {
-  await requireRole(["admin", "supervisor"]);
+  await requirePermission("catalog.manage");
   const id = formData.get("id") as string;
   const sectionId = formData.get("section_id") as string;
   const productType = String(formData.get("product_type") || "");
@@ -46,6 +46,7 @@ export async function handleCatalogAction(formData: FormData) {
       purchase_unit: (formData.get("purchase_unit") as string) || "Unidad",
       minimum_stock_threshold: Number(formData.get("minimum_stock_threshold") || 0),
       maximum_stock_threshold: formData.get("maximum_stock_threshold") ? Number(formData.get("maximum_stock_threshold")) : null,
+      inventory_control_enabled: formData.get("inventory_control_enabled") === "on",
       estimated_unit_price: Number(formData.get("estimated_unit_price") || 0),
       category_id: (selectedSection as { category_id: string | null })?.category_id || null,
       section_id: sectionId || null, 
@@ -120,13 +121,13 @@ export async function handleCatalogAction(formData: FormData) {
 }
 
 export async function handleDelete(id: string) {
-  await requireRole(["admin"]);
+  await requirePermission("catalog.delete");
   await CatalogService.deleteCatalogItem(id);
   revalidatePath("/dashboard/inventario");
 }
 
 export async function toggleStatus(id: string, currentStatus: boolean) {
-  await requireRole(["admin", "supervisor"]);
+  await requirePermission("catalog.toggle");
   await CatalogService.toggleCatalogItem(id, !currentStatus);
   revalidatePath("/dashboard/inventario");
 }
@@ -142,7 +143,7 @@ export async function handleConsumeAction(formData: FormData) {
   const reconstituted = formData.get("reconstituted") === "true";
 
   try {
-    const { user } = await requireRole(["admin", "operator"]);
+    const { user } = await requirePermission("inventory.consume");
     if (!batchId) throw new Error("Lote no válido");
 
     const isFractional = formData.get("is_fractional") === "true";
@@ -214,7 +215,7 @@ export async function handleConsumeAction(formData: FormData) {
 
 export async function handleDiscardAction(formData: FormData) {
   try {
-    const { user } = await requireRole(["admin", "supervisor"]);
+    const { user } = await requirePermission("inventory.dispose");
     const batchId = String(formData.get("batch_id") || "").trim();
     const requestId = String(formData.get("request_id") || "").trim();
     const quantityPackages = Number(formData.get("quantity_packages"));
@@ -266,7 +267,7 @@ export async function handleTransferAction(formData: FormData) {
   const reason = formData.get("reason") as string;
 
   try {
-    const { user } = await requireRole(["admin", "supervisor", "operator"]);
+    const { user } = await requirePermission("inventory.transfer");
     if (!batchId || !destinationLocationId || !Number.isSafeInteger(quantity) || quantity <= 0) {
       throw new Error("Lote, ubicación destino o cantidad no válidos");
     }

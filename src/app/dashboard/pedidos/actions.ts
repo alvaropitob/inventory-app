@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { OrderService, OrderStatus } from "@/lib/services/orders";
-import { requireRole } from "@/lib/supabase/authorization";
+import { requirePermission } from "@/lib/supabase/authorization";
 
 export async function createPurchaseOrder(formData: FormData) {
-  const { user } = await requireRole(["admin", "supervisor"]);
+  const { user } = await requirePermission("orders.manage");
 
   const supplier_id = formData.get("supplier_id") as string;
   if (!supplier_id) {
@@ -62,7 +62,7 @@ export async function createPurchaseOrder(formData: FormData) {
 
 export async function updateOrderStatusAction(id: string, status: OrderStatus) {
   try {
-    await requireRole(["admin", "supervisor"]);
+    await requirePermission("orders.manage");
     if (!/^[0-9a-f-]{36}$/i.test(id) || !["draft", "requested", "partially_received", "completed", "cancelled"].includes(status)) {
       return { error: "Pedido o estado inválido" };
     }

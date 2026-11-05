@@ -9,6 +9,7 @@ import * as Actions from "./actions";
 import ProductMaintenanceList from "@/components/ProductMaintenanceList";
 import ProductTechnicalFields from "@/components/ProductTechnicalFields";
 import ContextualHelp from "@/components/ContextualHelp";
+import { hasPermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,7 @@ interface CatalogItem {
   purchase_unit: string | null;
   minimum_stock_threshold: number | null;
   maximum_stock_threshold: number | null;
+  inventory_control_enabled: boolean;
   estimated_unit_price: number | null;
   supplier_id: string | null;
   product_type: "medicamento" | "dispositivo_medico" | "reactivo" | "insumo";
@@ -106,7 +108,7 @@ export default async function ConfiguracionPage({
   const { tab, editId, sectionId } = await searchParams;
   const user = await getCurrentUserProfile();
 
-  if (!user || user.role !== "admin") {
+  if (!user || !hasPermission(user.role, "configuration.manage")) {
     redirect("/dashboard");
   }
 
@@ -478,8 +480,19 @@ export default async function ConfiguracionPage({
                 supplierId={(editingItem as CatalogItem | null)?.supplier_id || ""}
                 configurationMode
               />
+              <div className="form-group">
+                <label className="form-checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="inventory_control_enabled"
+                    defaultChecked={!!(editingItem as CatalogItem | null)?.inventory_control_enabled}
+                  />
+                  Controlar existencias de este producto
+                </label>
+                <p className="form-help-text">Los productos del catálogo sin este control no generan alertas de stock. Al registrar su primera entrada, el control se activa automáticamente.</p>
+              </div>
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><label className="form-label" htmlFor="config-min-stock">Stock Mínimo</label><ContextualHelp content="Umbral de reposición en unidades de compra. El panel alerta cuando el stock utilizable es menor; si el stock utilizable es cero, se mantiene la alerta aunque el mínimo esté en cero. Este valor no bloquea ni habilita salidas." /></div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><label className="form-label" htmlFor="config-min-stock">Stock Mínimo</label><ContextualHelp content="Umbral de reposición en unidades de compra. Solo genera alertas si el control de inventario está activo." /></div>
                 <input id="config-min-stock" className="form-input" type="number" min="0" step="1" name="minimum_stock_threshold" defaultValue={(editingItem as CatalogItem)?.minimum_stock_threshold || 0} />
               </div>
               <div>
