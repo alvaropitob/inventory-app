@@ -304,8 +304,14 @@ export default async function MonitoreoPage({ searchParams }: { searchParams: Pr
                     <td className="cell-center cell-secondary">
                       {log.humidity != null ? `${log.humidity}%` : 'N/A'}
                     </td>
-                    <td className="audit-detail" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {log.notes || '-'}
+                    <td style={{ minWidth: '220px', maxWidth: '420px', lineHeight: 1.45 }}>
+                      {log.notes?.trim() ? (
+                        <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 'var(--fs-sm)' }}>
+                          {log.notes}
+                        </div>
+                      ) : (
+                        <span className="cell-secondary">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
