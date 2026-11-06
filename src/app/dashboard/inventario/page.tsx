@@ -187,7 +187,7 @@ export default async function InventarioPage({
     sectionOrder.includes(normalizeSectionName(section.name))
   );
   const northLocations = (locations || []).filter((location: { is_active?: boolean; name: string }) =>
-    location.is_active !== false && location.name.trim().toLocaleLowerCase() === "sede norte"
+    location.is_active !== false && /^sede norte(?:\s|$)/i.test(location.name.trim())
   );
 
   let latestBatch = null;

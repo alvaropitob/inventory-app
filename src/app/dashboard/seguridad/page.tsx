@@ -16,7 +16,7 @@ function IncidentTypeBadge({ type }: { type: string }) {
   return <span className={`pill-badge ${cls}`}>{type}</span>;
 }
 
-export default async function SeguridadPage({ searchParams }: { searchParams: Promise<{ year?: string; edit?: string }> }) {
+export default async function SeguridadPage({ searchParams }: { searchParams: Promise<{ year?: string; edit?: string; saved?: string }> }) {
   const user = await getCurrentUserProfile();
   if (!user) {
     redirect("/auth/login");
@@ -62,6 +62,11 @@ export default async function SeguridadPage({ searchParams }: { searchParams: Pr
   const averageVigilancePercentage = monthlyRows.length
     ? monthlyRows.reduce((total, report) => total + Number(report.vigilance_percentage || 0), 0) / monthlyRows.length
     : 0;
+  const managedAlertRows = yearReports.flatMap(report => [
+    ["Reactivovigilancia", report.managed_reactivovigilance],
+    ["Tecnovigilancia", report.managed_tecnovigilance],
+    ["Farmacovigilancia", report.managed_pharmacovigilance],
+  ].filter(([, count]) => Number(count) > 0).map(([type, count]) => ({ report, type, count })));
 
   return (
     <div className="dashboard-main">
@@ -75,6 +80,7 @@ export default async function SeguridadPage({ searchParams }: { searchParams: Pr
       {canManageMonthlyReports && <div className="form-card" style={{ marginBottom: "1.5rem" }}>
         <div className="form-card-header"><h2 className="form-card-title">Resumen mensual de alertas</h2></div>
         <div id="monthly-alert-form">
+          {params.saved === "1" && editMonth && <p role="status" className="cell-secondary" style={{ color: "var(--success)", padding: "0 1.25rem" }}>Resumen de {new Date(`${editMonth}-01T12:00:00`).toLocaleDateString("es-CO", { month: "long", year: "numeric" })} guardado correctamente.</p>}
           <MonthlyAlertForm key={editMonth || "current-month"} reports={monthlyReports} action={saveMonthlyAlertReport} initialMonth={editMonth} />
         </div>
       </div>}
@@ -90,7 +96,7 @@ export default async function SeguridadPage({ searchParams }: { searchParams: Pr
         </div>
         <div className="table-responsive">
           <table className="data-table">
-            <thead><tr><th>Mes</th><th>Reportes de alertas sanitarias verificadas: dispositivos médicos y reactivos</th><th>Reportes de informes de seguridad verificados: dispositivos médicos y reactivos</th><th>Reportes de alertas e informes de seguridad verificadas: medicamentos y productos biológicos</th><th>Reactivovigilancia gestionada</th><th>Tecnovigilancia gestionada</th><th>Farmacovigilancia gestionada</th><th>% vigilancia</th>{canManageMonthlyReports && <th>Acción</th>}</tr></thead>
+            <thead><tr><th>Mes</th><th>Reportes de alertas sanitarias verificadas: dispositivos médicos y reactivos</th><th>Reportes de informes de seguridad verificados: dispositivos médicos y reactivos</th><th>Reportes de alertas e informes de seguridad verificadas: medicamentos y productos biológicos</th><th>Reactivovigilancia gestionada</th><th>Tecnovigilancia gestionada</th><th>Farmacovigilancia gestionada</th><th>% vigilancia</th><th>Observaciones</th>{canManageMonthlyReports && <th>Acción</th>}</tr></thead>
             <tbody>
               {monthlyRows.map(report => {
                 const month = report.period_month.slice(0, 7);
@@ -98,10 +104,34 @@ export default async function SeguridadPage({ searchParams }: { searchParams: Pr
                 return <tr key={report.id}>
                 <td>{new Date(`${report.period_month}T12:00:00`).toLocaleDateString("es-CO", { month: "short", year: "numeric" })}</td>
                 <td>{report.verified_device_reagent_alerts}</td><td>{report.verified_device_reagent_security_reports}</td><td>{report.verified_medicine_biological_reports}</td>
-                <td>{report.managed_reactivovigilance}</td><td>{report.managed_tecnovigilance}</td><td>{report.managed_pharmacovigilance}</td><td>{Number(report.vigilance_percentage).toFixed(1)}%</td>
+                <td>{report.managed_reactivovigilance}</td><td>{report.managed_tecnovigilance}</td><td>{report.managed_pharmacovigilance}</td><td>{Number(report.vigilance_percentage).toFixed(1)}%</td><td style={{ minWidth: "260px", maxWidth: "420px" }}>{report.notes?.trim() ? <details><summary style={{ cursor: "pointer", color: "var(--primary)" }}>Ver observación</summary><p style={{ whiteSpace: "pre-wrap", margin: ".5rem 0 0", lineHeight: 1.5 }}>{report.notes}</p></details> : <span className="cell-secondary">—</span>}</td>
                 {canManageMonthlyReports && <td>{savedReport ? <a className="btn-secondary" href={`?year=${selectedYear}&edit=${month}#monthly-alert-form`}>Editar</a> : <span className="cell-secondary">—</span>}</td>}
               </tr>})}
-              <tr><th>TOTAL</th><th>{monthlyTotals.verified_device_reagent_alerts}</th><th>{monthlyTotals.verified_device_reagent_security_reports}</th><th>{monthlyTotals.verified_medicine_biological_reports}</th><th>{monthlyTotals.managed_reactivovigilance}</th><th>{monthlyTotals.managed_tecnovigilance}</th><th>{monthlyTotals.managed_pharmacovigilance}</th><th>{averageVigilancePercentage.toFixed(1)}%</th>{canManageMonthlyReports && <th>—</th>}</tr>
+              <tr><th>TOTAL</th><th>{monthlyTotals.verified_device_reagent_alerts}</th><th>{monthlyTotals.verified_device_reagent_security_reports}</th><th>{monthlyTotals.verified_medicine_biological_reports}</th><th>{monthlyTotals.managed_reactivovigilance}</th><th>{monthlyTotals.managed_tecnovigilance}</th><th>{monthlyTotals.managed_pharmacovigilance}</th><th>{averageVigilancePercentage.toFixed(1)}%</th><th>—</th>{canManageMonthlyReports && <th>—</th>}</tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="table-card" style={{ marginBottom: "1.5rem" }}>
+        <div className="card-section-header">
+          <h2 className="card-section-title">Alertas e informes de seguridad gestionados · {selectedYear}</h2>
+        </div>
+        <div className="table-responsive">
+          <table className="data-table">
+            <thead><tr><th>Mes</th><th>Tipo de vigilancia</th><th>Cantidad gestionada</th><th>Observaciones</th>{canManageMonthlyReports && <th>Acción</th>}</tr></thead>
+            <tbody>
+              {managedAlertRows.map(({ report, type, count }) => {
+                const month = report.period_month.slice(0, 7);
+                return <tr key={`${report.id}-${type}`}>
+                  <td>{new Date(`${report.period_month}T12:00:00`).toLocaleDateString("es-CO", { month: "long", year: "numeric" })}</td>
+                  <td>{type}</td>
+                  <td>{count}</td>
+                  <td style={{ minWidth: "260px", maxWidth: "420px" }}>{report.notes?.trim() ? <details><summary style={{ cursor: "pointer", color: "var(--primary)" }}>Ver observación</summary><p style={{ whiteSpace: "pre-wrap", margin: ".5rem 0 0", lineHeight: 1.5 }}>{report.notes}</p></details> : <span className="cell-secondary">—</span>}</td>
+                  {canManageMonthlyReports && <td><a className="btn-secondary" href={`?year=${selectedYear}&edit=${month}#monthly-alert-form`}>Editar resumen</a></td>}
+                </tr>;
+              })}
+              {managedAlertRows.length === 0 && <tr><td colSpan={canManageMonthlyReports ? 5 : 4} className="workflow-empty-state"><strong>Sin alertas o informes gestionados registrados</strong><span>Al guardar una cantidad mayor que cero en Reactivovigilancia, Tecnovigilancia o Farmacovigilancia, aparecerá aquí el resumen mensual.</span></td></tr>}
             </tbody>
           </table>
         </div>

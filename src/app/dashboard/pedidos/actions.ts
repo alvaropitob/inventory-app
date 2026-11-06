@@ -54,6 +54,7 @@ export async function createPurchaseOrder(formData: FormData) {
     revalidatePath("/dashboard/pedidos");
     redirect(`/dashboard/pedidos/${order.id}`);
   } catch (error) {
+    if (error instanceof Error && (error as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw error;
     console.error("Create Order Error:", error);
     const message = encodeURIComponent(error instanceof Error ? error.message : "Error al procesar el pedido");
     redirect(`/dashboard/pedidos?error=${message}`);

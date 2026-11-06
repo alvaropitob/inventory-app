@@ -277,9 +277,9 @@ export async function handleTransferAction(formData: FormData) {
     const isSedeNorte = locations?.some((location: { id: string; name: string; is_active?: boolean }) =>
       location.id === destinationLocationId &&
       location.is_active !== false &&
-      location.name.trim().toLocaleLowerCase() === "sede norte"
+      /^sede norte(?:\s|$)/i.test(location.name.trim())
     );
-    if (!isSedeNorte) throw new Error("El destino del traslado debe ser la ubicación Sede Norte.");
+    if (!isSedeNorte) throw new Error("Selecciona una ubicación activa de Sede Norte.");
 
     const { error: transferError } = await StockService.transferStock({
       batch_id: batchId,

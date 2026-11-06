@@ -21,6 +21,7 @@ export interface Equipment {
   next_preventive_maintenance?: string;
   last_calibration?: string;
   next_calibration?: string;
+  last_corrective_maintenance?: { execution_date: string; next_due_date?: string };
   location?: { name: string };
   section?: { name: string };
 }
@@ -41,10 +42,38 @@ export interface MaintenanceRecord {
 export const EquipmentService = {
   async getEquipments() {
     const supabase = await createClient();
-    return await supabase
+    const { data: equipments, error } = await supabase
       .from('equipments')
       .select('*, location:locations(name), section:sections(name)')
       .order('name');
+    if (error) return { data: null, error };
+    if (!equipments?.length) return { data: [], error: null };
+
+    const { data: correctiveRecords, error: correctiveError } = await supabase
+      .from('maintenance_records')
+      .select('equipment_id, execution_date, next_due_date')
+      .eq('type', 'corrective')
+      .in('equipment_id', equipments.map(equipment => equipment.id))
+      .order('execution_date', { ascending: false });
+    if (correctiveError) return { data: null, error: correctiveError };
+
+    const latestCorrectiveByEquipment = new Map<string, { execution_date: string; next_due_date?: string }>();
+    for (const record of correctiveRecords || []) {
+      if (!latestCorrectiveByEquipment.has(record.equipment_id)) {
+        latestCorrectiveByEquipment.set(record.equipment_id, {
+          execution_date: record.execution_date,
+          next_due_date: record.next_due_date ?? undefined,
+        });
+      }
+    }
+
+    return {
+      data: equipments.map(equipment => ({
+        ...equipment,
+        last_corrective_maintenance: latestCorrectiveByEquipment.get(equipment.id),
+      })) as Equipment[],
+      error: null,
+    };
   },
 
   async getEquipmentById(id: string) {

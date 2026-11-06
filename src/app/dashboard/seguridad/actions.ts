@@ -65,4 +65,6 @@ export async function saveMonthlyAlertReport(formData: FormData) {
         notes: String(formData.get("notes") || "").trim() || undefined,
     });
     revalidatePath("/dashboard/seguridad");
+    const year = monthValue.slice(0, 4);
+    redirect(`/dashboard/seguridad?year=${year}&edit=${monthValue}&saved=1#monthly-alert-form`);
 }

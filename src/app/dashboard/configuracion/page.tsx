@@ -489,7 +489,7 @@ export default async function ConfiguracionPage({
                   />
                   Controlar existencias de este producto
                 </label>
-                <p className="form-help-text">Los productos del catálogo sin este control no generan alertas de stock. Al registrar su primera entrada, el control se activa automáticamente.</p>
+                <p className="form-help-text">Al activarlo, el sistema genera alertas si el producto se queda sin existencias, baja del mínimo o supera el máximo. Para productos de referencia, déjalo desactivado. Registrar una entrada activa el control automáticamente.</p>
               </div>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}><label className="form-label" htmlFor="config-min-stock">Stock Mínimo</label><ContextualHelp content="Umbral de reposición en unidades de compra. Solo genera alertas si el control de inventario está activo." /></div>

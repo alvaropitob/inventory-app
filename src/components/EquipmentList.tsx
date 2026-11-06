@@ -24,7 +24,7 @@ export default function EquipmentList({ equipments }: { equipments: Equipment[] 
             <th>Ubicación</th>
             <th className="cell-center">Estado</th>
             <th>Mantenimiento preventivo</th>
-            <th>Calibración</th>
+            <th>Mantenimiento correctivo</th>
             <th className="cell-right">Acciones</th>
           </tr>
         </thead>
@@ -52,7 +52,7 @@ export default function EquipmentList({ equipments }: { equipments: Equipment[] 
                 </td>
                 <td className="cell-center">{getStatusBadge(eq.status)}</td>
                 <td>Fecha de realización: {formatDateKeyInBusinessTimeZone(eq.last_preventive_maintenance)}<br />Próxima fecha: {formatDateKeyInBusinessTimeZone(eq.next_preventive_maintenance)}</td>
-                <td>Realizada: {formatDateKeyInBusinessTimeZone(eq.last_calibration)}<br />Próxima calibración: {formatDateKeyInBusinessTimeZone(eq.next_calibration)}</td>
+                <td>Última intervención: {formatDateKeyInBusinessTimeZone(eq.last_corrective_maintenance?.execution_date)}<br />Próxima fecha: {formatDateKeyInBusinessTimeZone(eq.last_corrective_maintenance?.next_due_date)}</td>
                 <td className="cell-right">
                   <Link 
                     href={`/dashboard/equipos/${eq.id}`}
