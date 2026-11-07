@@ -4,20 +4,30 @@ import { getCurrentUserProfile } from "@/lib/services/user";
 
 const createClientMock = vi.mocked(createClient);
 
-function mockSupabaseProfile({ authUser, profile, error = null }: {
+function mockSupabaseProfile({
+  authUser,
+  profile,
+  error = null,
+  permissionRows = [{ permission_code: "dashboard.view" }, { permission_code: "pqr.submit" }],
+  permissionError = null,
+}: {
   authUser: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null;
   profile: unknown;
   error?: unknown;
+  permissionRows?: { permission_code: string }[] | null;
+  permissionError?: unknown;
 }) {
   const maybeSingle = vi.fn().mockResolvedValue({ data: profile, error });
   const eq = vi.fn().mockReturnValue({ maybeSingle });
   const select = vi.fn().mockReturnValue({ eq });
+  const rpc = vi.fn().mockResolvedValue({ data: permissionRows, error: permissionError });
   const client = {
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: authUser } }) },
     from: vi.fn(() => ({ select })),
+    rpc,
   };
   createClientMock.mockResolvedValue(client as unknown as Awaited<ReturnType<typeof createClient>>);
-  return { client, maybeSingle };
+  return { client, maybeSingle, rpc };
 }
 
 describe("getCurrentUserProfile access checks", () => {
@@ -50,15 +60,20 @@ describe("getCurrentUserProfile access checks", () => {
     expect(await getCurrentUserProfile()).toBeNull();
   });
 
-  it("denies users with missing or unsupported roles", async () => {
+  it("denies users with missing roles or when permission resolution fails", async () => {
     mockSupabaseProfile({ authUser: { id: "u-1" }, profile: { is_active: true, roles: null } });
     expect(await getCurrentUserProfile()).toBeNull();
 
-    mockSupabaseProfile({ authUser: { id: "u-1" }, profile: { is_active: true, roles: { name: "custom-admin", is_active: true } } });
+    mockSupabaseProfile({
+      authUser: { id: "u-1" },
+      profile: { is_active: true, roles: { name: "custom-admin", is_active: true } },
+      permissionRows: null,
+      permissionError: new Error("rpc failed"),
+    });
     expect(await getCurrentUserProfile()).toBeNull();
   });
 
-  it("returns the database role for an active user", async () => {
+  it("returns the database role and resolved permissions for an active user", async () => {
     mockSupabaseProfile({
       authUser: { id: "u-1", email: "worker@example.test", user_metadata: { full_name: "Worker" } },
       profile: {
@@ -69,6 +84,7 @@ describe("getCurrentUserProfile access checks", () => {
         is_active: true,
         roles: { id: "role-1", name: "operator", is_active: true },
       },
+      permissionRows: [{ permission_code: "dashboard.view" }, { permission_code: "inventory.consume" }],
     });
     expect(await getCurrentUserProfile()).toMatchObject({
       id: "u-1",
@@ -76,6 +92,7 @@ describe("getCurrentUserProfile access checks", () => {
       username: "worker",
       fullName: "Worker",
       role: "operator",
+      permissions: ["dashboard.view", "inventory.consume"],
     });
   });
 });
