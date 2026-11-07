@@ -3,15 +3,15 @@ import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { hasPermission } from "@/lib/permissions";
 import { PQR_MODULES, PQR_PRIORITIES, PQR_TYPES } from "@/lib/pqr";
+import PqrSubmitForm from "@/components/PqrSubmitForm";
 import { createPqr } from "../actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function NuevaPqrPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function NuevaPqrPage() {
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
   if (!hasPermission(user.permissions, "pqr.submit")) redirect("/dashboard/pqr");
-  const { error } = await searchParams;
 
   return (
     <div className="dashboard-main">
@@ -23,9 +23,7 @@ export default async function NuevaPqrPage({ searchParams }: { searchParams: Pro
         <Link className="btn-secondary" href="/dashboard/pqr">Volver</Link>
       </div>
 
-      {error && <p className="alert-error" role="alert">{error}</p>}
-
-      <form action={createPqr} className="form-card">
+      <PqrSubmitForm mode="create" action={createPqr} submitLabel="Enviar solicitud" className="form-card" style={{ padding: "0 0 1.25rem" }}>
         <div className="form-card-header"><h2 className="form-card-title">Datos de la solicitud</h2></div>
         <div className="form-card-body" style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
           <label className="form-label">Tipo
@@ -54,11 +52,7 @@ export default async function NuevaPqrPage({ searchParams }: { searchParams: Pro
           </label>
           <p className="form-hint" style={{ gridColumn: "1 / -1" }}>No incluyas contraseñas ni datos personales de pacientes.</p>
         </div>
-        <div className="form-card-body" style={{ display: "flex", gap: ".75rem", justifyContent: "flex-end" }}>
-          <Link className="btn-secondary" href="/dashboard/pqr">Cancelar</Link>
-          <button className="btn-primary" type="submit">Enviar solicitud</button>
-        </div>
-      </form>
+      </PqrSubmitForm>
     </div>
   );
 }

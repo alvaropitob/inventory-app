@@ -4,10 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/services/user";
 import { hasPermission } from "@/lib/permissions";
 import {
-  PQR_PRIORITIES, PQR_STATUSES, PQR_TICKET_COLUMNS, formatPqrDate, formatPqrDuration, isUuid, pqrCode,
-  pqrPriority, pqrStatus, pqrTypeLabel, type PqrEvent, type PqrTicket,
+  PQR_ATTACHMENT_BUCKET, PQR_PRIORITIES, PQR_STATUSES, PQR_TICKET_COLUMNS, formatPqrDate, formatPqrDuration, isUuid, pqrCode,
+  pqrPriority, pqrStatus, pqrTypeLabel, type PqrAttachment, type PqrEvent, type PqrTicket,
 } from "@/lib/pqr";
 import { addPqrComment, managePqr, reopenPqr } from "../actions";
+import PqrSubmitForm from "@/components/PqrSubmitForm";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,31 @@ export default async function PqrDetailPage({ params, searchParams }: {
   ]);
   const events = (eventData ?? []) as PqrEvent[];
   const assignable = (assignees.data ?? []) as { id: string; full_name: string }[];
+
+  const { data: attachmentData } = await supabase
+    .from("pqr_attachments")
+    .select("id, ticket_id, event_id, storage_path, file_name, mime_type, size_bytes, is_internal, created_at")
+    .eq("ticket_id", id).order("created_at", { ascending: true });
+  const attachments = (attachmentData ?? []) as PqrAttachment[];
+  const signed = attachments.length
+    ? await supabase.storage.from(PQR_ATTACHMENT_BUCKET).createSignedUrls(attachments.map((item) => item.storage_path), 3600)
+    : { data: [] as { path: string | null; signedUrl: string }[] };
+  const urlByPath = new Map((signed.data ?? []).filter((item) => item.path).map((item) => [item.path as string, item.signedUrl]));
+  const attachmentsByEvent = new Map<string, PqrAttachment[]>();
+  for (const item of attachments) {
+    const key = item.event_id ?? "none";
+    attachmentsByEvent.set(key, [...(attachmentsByEvent.get(key) ?? []), item]);
+  }
+  const renderAttachments = (items: PqrAttachment[] | undefined) => items?.length ? (
+    <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap", marginTop: ".5rem" }}>
+      {items.map((item) => urlByPath.get(item.storage_path) ? (
+        <a key={item.id} href={urlByPath.get(item.storage_path)} target="_blank" rel="noopener noreferrer" title={`Abrir ${item.file_name}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={urlByPath.get(item.storage_path)} alt={`Captura adjunta: ${item.file_name}`} loading="lazy" style={{ width: 150, height: 100, objectFit: "cover", borderRadius: 6, border: "1px solid var(--border)" }} />
+        </a>
+      ) : <span key={item.id} className="cell-secondary">{item.file_name} (no disponible)</span>)}
+    </div>
+  ) : null;
 
   const status = pqrStatus(ticket.status);
   const priority = pqrPriority(ticket.priority);
@@ -121,18 +147,21 @@ export default async function PqrDetailPage({ params, searchParams }: {
                   <div><strong>{event.actor_name}</strong> {describeEvent(event)}</div>
                   <div className="cell-secondary">{formatPqrDate(event.created_at)}{event.is_internal && " · solo visible para soporte"}</div>
                   {event.comment && <p style={{ whiteSpace: "pre-wrap", margin: ".4rem 0 0", lineHeight: 1.5 }}>{event.comment}</p>}
+                  {renderAttachments(attachmentsByEvent.get(event.id))}
                 </li>
               ))}
             </ol>
             {canComment && (
-              <form action={addPqrComment} style={{ display: "grid", gap: ".5rem", padding: "0 1.25rem 1.25rem" }}>
+              <PqrSubmitForm
+                mode="comment" action={addPqrComment} submitLabel="Publicar comentario" pendingLabel="Publicando…"
+                style={{ padding: "0 1.25rem 1.25rem" }}
+                footer={canManage ? <label className="form-checkbox-label" style={{ marginTop: ".75rem" }}><input type="checkbox" name="is_internal" /> Nota interna (el reportante no la verá)</label> : undefined}
+              >
                 <input type="hidden" name="ticket_id" value={ticket.id} />
                 <label className="form-label">Agregar comentario
                   <textarea className="form-textarea" name="comment" required minLength={2} maxLength={4000} rows={3} />
                 </label>
-                {canManage && <label className="form-checkbox-label"><input type="checkbox" name="is_internal" /> Nota interna (el reportante no la verá)</label>}
-                <div><button className="btn-primary" type="submit">Publicar comentario</button></div>
-              </form>
+              </PqrSubmitForm>
             )}
           </section>
         </div>

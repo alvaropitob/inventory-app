@@ -113,3 +113,34 @@ export function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_PATTERN.test(value);
 }
 
+
+export type PqrActionResult = { ok: true; ticketId: string } | { ok: false; error: string };
+
+export const PQR_ATTACHMENT_BUCKET = "pqr-attachments";
+export const PQR_MAX_FILE_BYTES = 5 * 1024 * 1024;
+export const PQR_MAX_FILES_PER_SUBMIT = 3;
+export const PQR_ATTACHMENT_MIMES = ["image/png", "image/jpeg", "image/webp"] as const;
+
+export interface PqrAttachment {
+  id: string;
+  ticket_id: string;
+  event_id: string | null;
+  storage_path: string;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number;
+  is_internal: boolean;
+  created_at: string;
+}
+
+/** Detects PNG/JPEG/WebP from the file signature, ignoring the name and declared type. */
+export async function detectImageType(file: Blob): Promise<{ mime: string; ext: string } | null> {
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const is = (...signature: number[]) => signature.every((value, index) => bytes[index] === value);
+  if (is(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return { mime: "image/png", ext: "png" };
+  if (is(0xff, 0xd8, 0xff)) return { mime: "image/jpeg", ext: "jpg" };
+  if (is(0x52, 0x49, 0x46, 0x46) && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
+    return { mime: "image/webp", ext: "webp" };
+  }
+  return null;
+}
