@@ -182,11 +182,11 @@ export default function RealtimeStockTable({
 
   return (
     <>
-    <div className="table-responsive">
-      <nav className="tabs-nav" aria-label="Filtrar stock por área" style={{ marginBottom: '1rem' }}>
+      <nav className="tabs-nav inventory-stock-section-tabs" aria-label="Filtrar stock por área" style={{ marginBottom: '1rem' }}>
         <button type="button" className={`tab-link ${selectedSection === "all" ? "tab-link-active" : ""}`} onClick={() => setSelectedSection("all")}>Todas las áreas</button>
         {sections.map(section => <button type="button" key={section.id} className={`tab-link ${selectedSection === section.id ? "tab-link-active" : ""}`} onClick={() => setSelectedSection(section.id)}>{section.name}</button>)}
       </nav>
+    <div className="table-responsive inventory-stock-table-wrap">
       <table className="inventory-stock-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--border)' }}>
@@ -222,7 +222,7 @@ export default function RealtimeStockTable({
                   <div style={{ fontWeight: 600, color: 'var(--navy)', fontSize: 'var(--fs-base)' }}>{item.technical_name}</div>
                   <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{item.commercial_name}</div>
                 </td>
-                <td style={{ textAlign: 'center' }}>
+                <td className="inventory-stock-details-cell" style={{ textAlign: 'center' }}>
                   <span style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, color: isOutOfStock || isOverStock ? 'var(--error)' : isLowStock ? 'var(--warning)' : 'var(--success)' }}>
                     {Number(item.totalStock.toFixed(2))}
                   </span>

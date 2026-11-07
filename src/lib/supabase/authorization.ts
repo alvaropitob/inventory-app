@@ -33,3 +33,11 @@ export async function requirePermission(permission: AppPermission) {
   }
   return context;
 }
+
+export async function requireAnyPermission(...permissions: AppPermission[]) {
+  const context = await getAuthorizationContext();
+  if (!permissions.some((permission) => hasPermission(context.permissions, permission))) {
+    throw new Error("No tienes permisos para realizar esta acción");
+  }
+  return context;
+}

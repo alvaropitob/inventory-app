@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/lib/supabase/authorization";
+import { requireAnyPermission, requirePermission } from "@/lib/supabase/authorization";
 import {
   PQR_ATTACHMENT_MIMES, PQR_MAX_FILE_BYTES, PQR_MAX_FILES_PER_SUBMIT, PQR_PRIORITIES, PQR_STATUSES, PQR_TYPES,
   isUuid, type PqrActionResult,
@@ -50,7 +50,7 @@ export async function createPqr(formData: FormData): Promise<PqrActionResult> {
 }
 
 export async function addPqrComment(formData: FormData): Promise<PqrActionResult> {
-  const { supabase } = await requirePermission("pqr.submit");
+  const { supabase } = await requireAnyPermission("pqr.submit", "pqr.manage");
   const ticketId = text(formData, "ticket_id");
   if (!isUuid(ticketId)) return fail("Solicitud no válida.");
   const comment = text(formData, "comment");
@@ -88,7 +88,7 @@ export async function registerPqrAttachments(ticketId: string, files: PqrUploade
 }
 
 export async function reopenPqr(formData: FormData) {
-  const { supabase } = await requirePermission("pqr.submit");
+  const { supabase } = await requireAnyPermission("pqr.submit", "pqr.manage");
   const ticketId = text(formData, "ticket_id");
   if (!isUuid(ticketId)) redirect("/dashboard/pqr");
   const path = `/dashboard/pqr/${ticketId}`;

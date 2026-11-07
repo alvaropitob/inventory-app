@@ -872,6 +872,7 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
   margin: 0 0 var(--sp-5);
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: thin;
 }
 .tab-link {
@@ -918,24 +919,30 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 /* =====================================================================
    8. TABLES
    ===================================================================== */
-.table-responsive { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.table-responsive { width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 .table-responsive > table { min-width: 640px; }
-.inventory-stock-table { min-width: 1100px !important; table-layout: fixed; }
+.inventory-stock-section-tabs { scrollbar-width: none; }
+.inventory-stock-section-tabs::-webkit-scrollbar { display: none; }
+.inventory-stock-table-wrap { overflow-x: auto; overflow-y: hidden; }
+.inventory-stock-table { min-width: 1170px !important; table-layout: fixed; }
 .inventory-stock-table th,
 .inventory-stock-table td { padding: 12px 14px; vertical-align: middle; line-height: 1.4; overflow-wrap: break-word; }
-.inventory-stock-table th:nth-child(1), .inventory-stock-table td:nth-child(1) { width: 140px; }
-.inventory-stock-table th:nth-child(2), .inventory-stock-table td:nth-child(2) { width: 285px; }
-.inventory-stock-table th:nth-child(3), .inventory-stock-table td:nth-child(3) { width: 135px; }
-.inventory-stock-table th:nth-child(4), .inventory-stock-table td:nth-child(4) { width: 370px; }
-.inventory-stock-table th:nth-child(5), .inventory-stock-table td:nth-child(5) { width: 170px; }
+.inventory-stock-table th { white-space: nowrap; }
+.inventory-stock-table th:nth-child(1), .inventory-stock-table td:nth-child(1) { width: 110px; }
+.inventory-stock-table th:nth-child(2), .inventory-stock-table td:nth-child(2) { width: 255px; }
+.inventory-stock-table th:nth-child(3), .inventory-stock-table td:nth-child(3) { width: 130px; }
+.inventory-stock-table th:nth-child(4), .inventory-stock-table td:nth-child(4) { width: 390px; }
+.inventory-stock-table th:nth-child(5), .inventory-stock-table td:nth-child(5) { width: 160px; }
+.inventory-stock-table th:nth-child(6), .inventory-stock-table td:nth-child(6) { width: 125px; white-space: nowrap; }
 .inventory-stock-code { white-space: nowrap; overflow-wrap: normal !important; }
+.inventory-stock-status { white-space: nowrap; }
 .inventory-stock-batch { display: grid; gap: 4px; min-width: 0; margin-bottom: 6px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); }
 .inventory-stock-batch:last-child { margin-bottom: 0; }
 .inventory-stock-batch-main { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 10px; }
 .inventory-stock-batch-number { min-width: 0; overflow-wrap: anywhere; font-weight: var(--fw-medium); }
 .inventory-stock-batch-main strong { white-space: nowrap; }
 .inventory-stock-batch-meta { display: flex; flex-wrap: wrap; gap: 2px 12px; color: var(--text-muted); font-size: var(--fs-xs); }
-.inventory-product-details-trigger { padding: 0.45rem 0.75rem; border: 1px solid var(--primary); border-radius: var(--radius-sm); background: var(--surface); color: var(--primary-dark); font: inherit; font-size: var(--fs-sm); font-weight: var(--fw-semibold); cursor: pointer; }
+.inventory-product-details-trigger { padding: 0.45rem 0.75rem; border: 1px solid var(--primary); border-radius: var(--radius-sm); background: var(--surface); color: var(--primary-dark); font: inherit; font-size: var(--fs-sm); font-weight: var(--fw-semibold); white-space: nowrap; cursor: pointer; }
 .inventory-product-details-trigger:hover { background: var(--primary-light); }
 .inventory-product-details-trigger:focus-visible, .inventory-product-dialog button:focus-visible { outline: 3px solid var(--focus-ring, #0f766e); outline-offset: 2px; }
 .inventory-product-dialog-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 1.5rem; background: rgb(15 23 42 / 58%); }
@@ -953,7 +960,7 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
 .inventory-product-detail-grid > div { min-width: 0; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-soft); }
 .inventory-product-detail-grid dt { margin-bottom: 0.25rem; color: var(--text-muted); font-size: var(--fs-xs); }
 .inventory-product-detail-grid dd { margin: 0; color: var(--text-main); font-size: var(--fs-sm); font-weight: var(--fw-medium); overflow-wrap: anywhere; }
-.inventory-product-detail-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.inventory-product-detail-table-wrap { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .inventory-product-detail-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 .inventory-product-detail-table th, .inventory-product-detail-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
 .inventory-product-detail-table th { background: var(--surface-soft); color: var(--navy); font-weight: var(--fw-semibold); white-space: nowrap; }

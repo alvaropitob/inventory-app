@@ -5,12 +5,13 @@ import { getCurrentUserProfile } from "@/lib/services/user";
 import { hasPermission } from "@/lib/permissions";
 import {
   PQR_PRIORITIES, PQR_TICKET_COLUMNS, PQR_TYPES, formatPqrDate, formatPqrDuration,
-  isPqrOpen, pqrCode, pqrPriority, pqrStatus, pqrTypeLabel, type PqrTicket,
+  pqrCode, pqrPriority, pqrStatus, pqrTypeLabel, type PqrTicket,
 } from "@/lib/pqr";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ state?: string; scope?: string; type?: string; priority?: string; q?: string; error?: string }>;
+type SearchParams = Promise<{ state?: string; scope?: string; type?: string; priority?: string; q?: string; page?: string; error?: string }>;
+const PAGE_SIZE = 50;
 
 export default async function PqrPage({ searchParams }: { searchParams: SearchParams }) {
   const user = await getCurrentUserProfile();
@@ -22,45 +23,49 @@ export default async function PqrPage({ searchParams }: { searchParams: SearchPa
   const params = await searchParams;
   const state = ["open", "done", "all"].includes(params.state ?? "") ? params.state! : "open";
   const scope = canManage && ["all", "mine", "assigned"].includes(params.scope ?? "") ? params.scope! : canManage ? "all" : "mine";
-  const query = (params.q ?? "").trim().toLowerCase().slice(0, 80);
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("pqr_tickets")
-    .select(PQR_TICKET_COLUMNS)
-    .order("created_at", { ascending: false })
-    .limit(1000);
-  const all = (data ?? []) as PqrTicket[];
-  const base = all.filter((ticket) => {
-    if (scope === "mine") return ticket.reporter_id === user.id;
-    if (scope === "assigned") return ticket.assigned_to === user.id;
-    return true;
-  });
-
-  const rows = base.filter((ticket) => {
-    if (state === "open" && !isPqrOpen(ticket.status)) return false;
-    if (state === "done" && isPqrOpen(ticket.status)) return false;
-    if (params.type && ticket.ticket_type !== params.type) return false;
-    if (params.priority && ticket.priority !== params.priority) return false;
-    if (query && !`${pqrCode(ticket.ticket_number)} ${ticket.title} ${ticket.reporter_name} ${ticket.module}`.toLowerCase().includes(query)) return false;
-    return true;
-  });
-
-  const openTickets = base.filter((ticket) => isPqrOpen(ticket.status));
-  const urgentOpen = openTickets.filter((ticket) => ticket.priority === "high" || ticket.priority === "critical");
-  const unassigned = openTickets.filter((ticket) => !ticket.assigned_to);
-  const resolved = base.filter((ticket) => ticket.resolved_at);
-  const averageMs = resolved.length
-    ? resolved.reduce((sum, ticket) => sum + (new Date(ticket.resolved_at!).getTime() - new Date(ticket.created_at).getTime()), 0) / resolved.length
-    : null;
-  const averageLabel = averageMs === null ? "—" : formatPqrDuration(new Date(0).toISOString(), new Date(averageMs).toISOString());
-
+  const query = (params.q ?? "").trim().slice(0, 80);
+  const pageParam = Number.parseInt(params.page ?? "1", 10);
+  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
   const link = (overrides: Record<string, string>) => {
     const next = new URLSearchParams();
-    const merged: Record<string, string> = { state, scope, type: params.type ?? "", priority: params.priority ?? "", q: params.q ?? "", ...overrides };
+    const merged: Record<string, string> = { state, scope, type: params.type ?? "", priority: params.priority ?? "", q: params.q ?? "", page: "", ...overrides };
     for (const [key, value] of Object.entries(merged)) if (value) next.set(key, value);
     return `/dashboard/pqr?${next.toString()}`;
   };
+
+  const supabase = await createClient();
+  let ticketsQuery = supabase
+    .from("pqr_tickets")
+    .select(PQR_TICKET_COLUMNS, { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  if (scope === "mine") ticketsQuery = ticketsQuery.eq("reporter_id", user.id);
+  if (scope === "assigned") ticketsQuery = ticketsQuery.eq("assigned_to", user.id);
+  if (state === "open") ticketsQuery = ticketsQuery.in("status", ["open", "in_review", "in_progress", "waiting_user"]);
+  if (state === "done") ticketsQuery = ticketsQuery.in("status", ["resolved", "rejected", "closed"]);
+  if (params.type && PQR_TYPES.some((item) => item.value === params.type)) ticketsQuery = ticketsQuery.eq("ticket_type", params.type);
+  if (params.priority && PQR_PRIORITIES.some((item) => item.value === params.priority)) ticketsQuery = ticketsQuery.eq("priority", params.priority);
+  if (query) {
+    const safeQuery = query.replace(/[^\p{L}\p{N} ._-]/gu, " ").trim().slice(0, 80);
+    if (safeQuery) {
+      const clauses = [`title.ilike.%${safeQuery}%`, `reporter_name.ilike.%${safeQuery}%`, `module.ilike.%${safeQuery}%`];
+      const ticketNumber = safeQuery.match(/^(?:PQR[- ]?)?(\d+)$/i)?.[1];
+      if (ticketNumber) clauses.push(`ticket_number.eq.${Number(ticketNumber)}`);
+      ticketsQuery = ticketsQuery.or(clauses.join(","));
+    }
+  }
+  const [{ data, error, count }, { data: metricData, error: metricsError }] = await Promise.all([
+    ticketsQuery,
+    supabase.rpc("fn_pqr_dashboard_metrics", { p_scope: scope }),
+  ]);
+  const rows = (data ?? []) as PqrTicket[];
+  const totalRows = count ?? 0;
+  const pageCount = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  if (page > pageCount) redirect(link({ page: String(pageCount) }));
+  const metrics = (metricData?.[0] ?? null) as { open_count: number; urgent_open_count: number; unassigned_open_count: number; resolved_count: number; avg_resolution_seconds: number | null } | null;
+  const averageLabel = metrics?.avg_resolution_seconds == null
+    ? "—"
+    : formatPqrDuration(new Date(0).toISOString(), new Date(metrics.avg_resolution_seconds * 1000).toISOString());
 
   return (
     <div className="dashboard-main">
@@ -73,12 +78,13 @@ export default async function PqrPage({ searchParams }: { searchParams: SearchPa
       </div>
 
       {(params.error || error) && <p className="alert-error" role="alert">{params.error ?? `No se pudieron cargar las solicitudes: ${error?.message}`}</p>}
+      {metricsError && <p className="alert-error" role="alert">No se pudieron cargar los indicadores de PQR: {metricsError.message}</p>}
 
       <div className="kpi-grid stagger-in" style={{ marginBottom: "1.5rem" }}>
-        <div className="kpi-card"><div className="kpi-card-header"><h3 className="kpi-card-label">{scope === "mine" ? "Mis solicitudes abiertas" : "Abiertas"}</h3></div><div className="kpi-value">{openTickets.length}</div></div>
-        <div className="kpi-card kpi-accent-warning"><div className="kpi-card-header"><h3 className="kpi-card-label">Prioridad alta o crítica</h3></div><div className="kpi-value">{urgentOpen.length}</div></div>
-        {canManage && <div className="kpi-card"><div className="kpi-card-header"><h3 className="kpi-card-label">Sin responsable</h3></div><div className="kpi-value">{unassigned.length}</div></div>}
-        <div className="kpi-card kpi-accent-success"><div className="kpi-card-header"><h3 className="kpi-card-label">Resueltas</h3></div><div className="kpi-value">{resolved.length}</div><p className="cell-secondary">Tiempo medio: {averageLabel}</p></div>
+        <div className="kpi-card"><div className="kpi-card-header"><h3 className="kpi-card-label">{scope === "mine" ? "Mis solicitudes abiertas" : scope === "assigned" ? "Abiertas asignadas a mí" : "Abiertas"}</h3></div><div className="kpi-value">{metrics?.open_count ?? "—"}</div></div>
+        <div className="kpi-card kpi-accent-warning"><div className="kpi-card-header"><h3 className="kpi-card-label">Prioridad alta o crítica</h3></div><div className="kpi-value">{metrics?.urgent_open_count ?? "—"}</div></div>
+        {canManage && <div className="kpi-card"><div className="kpi-card-header"><h3 className="kpi-card-label">Sin responsable</h3></div><div className="kpi-value">{metrics?.unassigned_open_count ?? "—"}</div></div>}
+        <div className="kpi-card kpi-accent-success"><div className="kpi-card-header"><h3 className="kpi-card-label">Resueltas</h3></div><div className="kpi-value">{metrics?.resolved_count ?? "—"}</div><p className="cell-secondary">Tiempo medio: {averageLabel}</p></div>
       </div>
 
       <div className="table-card">
@@ -132,6 +138,14 @@ export default async function PqrPage({ searchParams }: { searchParams: SearchPa
               })}
             </tbody>
           </table>
+        </div>
+        <div className="access-editor-footer" style={{ justifyContent: "space-between", alignItems: "center", padding: "1rem 1.25rem" }}>
+          <span className="cell-secondary">{totalRows ? `Mostrando ${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, totalRows)} de ${totalRows}` : "0 solicitudes"}</span>
+          <nav aria-label="Paginación de solicitudes" style={{ display: "flex", gap: ".5rem", alignItems: "center" }}>
+            {page > 1 && <Link className="btn-secondary" href={link({ page: String(page - 1) })}>Anterior</Link>}
+            <span className="cell-secondary">Página {page} de {pageCount}</span>
+            {page < pageCount && <Link className="btn-secondary" href={link({ page: String(page + 1) })}>Siguiente</Link>}
+          </nav>
         </div>
       </div>
     </div>
