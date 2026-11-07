@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import Sidebar from "./Sidebar";
 import ContextualHelp from "./ContextualHelp";
+import type { AccessPermissionCode } from "@/lib/permissions";
 
 interface DashboardClientLayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ interface DashboardClientLayoutProps {
     email: string;
     avatarUrl: string | null;
     role: string;
+    permissions: AccessPermissionCode[];
   };
   appVersion: string;
   deploymentEnvironment: string;

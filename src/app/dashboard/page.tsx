@@ -9,6 +9,7 @@ import Link from "next/link";
 import { getExpirationSemaforo } from "@/lib/expiration-semaforo";
 import { parseUnitsFromPresentation } from "@/lib/utils/presentation";
 import { getInventoryStockPriority } from "@/lib/inventory-stock-priority";
+import { hasPermission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export default async function DashboardPage() {
   if (!user) {
     redirect("/login");
   }
+  if (!hasPermission(user.permissions, "dashboard.view")) redirect("/login");
 
   const fullName = user.fullName;
 

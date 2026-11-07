@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function NewOrderPage() {
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
-  if (!hasPermission(user.role, "orders.manage")) redirect("/dashboard/pedidos");
+  if (!hasPermission(user.permissions, "orders.manage")) redirect("/dashboard/pedidos");
   const { data: suppliers } = await CatalogService.getSuppliers();
   const { data: items } = await CatalogService.getCatalogItems();
 

@@ -10,7 +10,8 @@ import { hasPermission } from "@/lib/permissions";
 export default async function EquipmentPage() {
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
-  const canManageEquipment = hasPermission(user.role, "equipment.manage");
+  if (!hasPermission(user.permissions, "equipment.view")) redirect("/dashboard");
+  const canManageEquipment = hasPermission(user.permissions, "equipment.manage");
   const [equipments, locations, sections] = await Promise.all([
     EquipmentService.getEquipments(),
     CatalogService.getLocations(),

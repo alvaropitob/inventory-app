@@ -16,6 +16,7 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
   const { id } = await params;
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
+  if (!hasPermission(user.permissions, "reception.view")) redirect("/dashboard");
 
   try {
     const [order, locationsResponse, sectionsResponse] = await Promise.all([
@@ -27,7 +28,7 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
     if (!order) {
       notFound();
     }
-    const canRecordReception = hasPermission(user.role, "reception.record");
+    const canRecordReception = hasPermission(user.permissions, "reception.record");
 
     const formattedOrder = {
       id: order.id!,
@@ -64,7 +65,7 @@ export default async function TechnicalReceptionDetailPage({ params }: Props) {
             order={formattedOrder}
             locations={(locationsResponse.data || []).filter(location => location.is_active !== false)}
             sections={(sectionsResponse.data || []).filter(section => section.is_active)}
-      canManageLocations={Boolean(user && hasPermission(user.role, "configuration.manage"))}
+      canManageLocations={Boolean(user && hasPermission(user.permissions, "configuration.manage"))}
           />
         </div> : <div className="alert-error" role="status">No tienes permiso para registrar recepciones técnicas.</div>}
       </div>

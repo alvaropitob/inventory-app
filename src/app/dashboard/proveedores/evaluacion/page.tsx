@@ -48,7 +48,8 @@ const scoreOptions = [
 export default async function EvaluacionProveedoresPage() {
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
-  const canEvaluate = hasPermission(user.role, "suppliers.evaluate");
+  if (!hasPermission(user.permissions, "suppliers.view")) redirect("/dashboard");
+  const canEvaluate = hasPermission(user.permissions, "suppliers.evaluate");
 
   const [suppliers, evaluations] = await Promise.all([
     CatalogService.getSuppliers(),

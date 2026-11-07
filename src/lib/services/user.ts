@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
-import { isAppRole, type AppRole } from "@/lib/permissions";
+import type { AccessPermissionCode } from "@/lib/permissions";
 
 export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
   username: string;
-  role: AppRole;
+  role: string;
+  permissions: AccessPermissionCode[];
   avatarUrl: string | null;
 }
 
@@ -43,7 +44,10 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
 
   const rolesData = dbUser.roles;
   const primaryRole = Array.isArray(rolesData) ? rolesData[0] : rolesData as { name: string; is_active: boolean } | null;
-  if (!primaryRole?.is_active || !isAppRole(primaryRole.name)) return null;
+  if (!primaryRole?.is_active || typeof primaryRole.name !== "string") return null;
+
+  const { data: permissionRows, error: permissionError } = await supabase.rpc("fn_current_user_access_permissions");
+  if (permissionError || !Array.isArray(permissionRows)) return null;
 
   return {
     id: dbUser.id,
@@ -51,6 +55,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     fullName: dbUser.full_name || "Usuario",
     username: dbUser.username,
     role: primaryRole.name,
+    permissions: permissionRows.map((row: { permission_code: string }) => row.permission_code),
     // Avatar is still fetched from Google metadata for simplicity
     avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
   };

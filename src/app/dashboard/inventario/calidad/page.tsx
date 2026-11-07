@@ -13,7 +13,8 @@ export default async function CalidadPage() {
   if (!user) {
     redirect("/auth/login");
   }
-  const canVerify = hasPermission(user.role, "quality.verify");
+  if (!hasPermission(user.permissions, "quality.view")) redirect("/dashboard");
+  const canVerify = hasPermission(user.permissions, "quality.verify");
 
   const pendingBatches = await ComplianceService.getPendingVerifications();
 

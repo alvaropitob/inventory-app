@@ -27,7 +27,8 @@ export default async function PedidosPage({
 }) {
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
-  const canManageOrders = hasPermission(user.role, "orders.manage");
+  if (!hasPermission(user.permissions, "orders.view")) redirect("/dashboard");
+  const canManageOrders = hasPermission(user.permissions, "orders.manage");
   const { status } = await searchParams;
   const currentStatus = (status as OrderStatus) || "";
 

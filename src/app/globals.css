@@ -1904,3 +1904,30 @@ button > svg, a > svg { flex: 0 0 auto; stroke-linecap: round; stroke-linejoin: 
   .equipment-technical-details .tech-info-row { align-items: flex-start; flex-direction: column; gap: var(--sp-1); }
   .equipment-detail-value { text-align: left; }
 }
+/* Access administration */
+.access-role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.access-role-card { padding: 1.25rem; }
+.access-role-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.access-role-card-heading h2 { margin: 0; font-size: 1.05rem; color: var(--navy); }
+.access-role-card-heading p { margin: .35rem 0 .75rem; color: var(--text-muted); font-size: var(--fs-sm); }
+.access-role-card-actions { display: flex; flex-direction: column; gap: .65rem; margin-top: 1rem; }
+.access-archive-form { display: flex; gap: .5rem; }
+.access-archive-form .form-input { min-width: 0; }
+.access-editor { padding: 1.25rem; }
+.access-editor > h2 { margin: 0; }
+.access-role-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .85rem; margin: 1rem 0; }
+.access-permission-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: .85rem; }
+.access-permission-group { min-width: 0; margin: 0; padding: .85rem; border: 1px solid var(--border); border-radius: 10px; }
+.access-permission-group legend { padding: 0 .35rem; font-weight: 700; color: var(--navy); }
+.access-permission-row { display: flex; align-items: center; gap: .65rem; padding: .6rem .25rem; border-bottom: 1px solid var(--border); font-size: var(--fs-sm); }
+.access-permission-row:last-child { border-bottom: 0; }
+.access-permission-row input, .access-role-option input { accent-color: var(--primary); flex: 0 0 auto; }
+.access-permission-row span:nth-child(2) { display: grid; gap: .15rem; flex: 1; }
+.access-permission-row small { color: var(--text-muted); overflow-wrap: anywhere; }
+.access-editor-footer { display: flex; gap: .65rem; margin-top: 1rem; }
+.access-user-form { display: grid; grid-template-columns: minmax(180px, 1.5fr) repeat(3, minmax(150px, 1fr)) auto; gap: .75rem; align-items: end; }
+.access-role-options { display: flex; flex-wrap: wrap; gap: .35rem .75rem; border: 0; padding: 0; margin: 0; }
+.access-role-options legend { margin-bottom: .35rem; }
+.access-role-option { display: inline-flex; align-items: center; gap: .35rem; font-size: var(--fs-sm); }
+@media (max-width: 900px) { .access-user-form { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .access-user-form { grid-template-columns: 1fr; } .access-archive-form { flex-direction: column; } }

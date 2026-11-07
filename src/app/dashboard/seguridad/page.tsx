@@ -21,7 +21,8 @@ export default async function SeguridadPage({ searchParams }: { searchParams: Pr
   if (!user) {
     redirect("/auth/login");
   }
-  const canManageMonthlyReports = hasPermission(user.role, "safety.monthly.manage");
+  if (!hasPermission(user.permissions, "safety.view")) redirect("/dashboard");
+  const canManageMonthlyReports = hasPermission(user.permissions, "safety.monthly.manage");
 
   const [incidents, monthlyReports] = await Promise.all([
     ComplianceService.getSafetyIncidents(),

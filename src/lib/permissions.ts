@@ -32,8 +32,10 @@ export const APP_PERMISSIONS = [
   "safety.monthly.manage",
   "audit.logs.view",
   "users.manage",
+  "roles.manage",
 ] as const;
 export type AppPermission = (typeof APP_PERMISSIONS)[number];
+export type AccessPermissionCode = string;
 
 const STAFF_READ_PERMISSIONS: readonly AppPermission[] = [
   "dashboard.view",
@@ -81,6 +83,9 @@ export function isAppRole(value: unknown): value is AppRole {
   return typeof value === "string" && (APP_ROLES as readonly string[]).includes(value);
 }
 
-export function hasPermission(role: unknown, permission: AppPermission): boolean {
-  return isAppRole(role) && ROLE_PERMISSIONS[role].includes(permission);
+export function hasPermission(roleOrPermissions: unknown, permission: AppPermission): boolean {
+  if (Array.isArray(roleOrPermissions)) {
+    return roleOrPermissions.includes(permission);
+  }
+  return isAppRole(roleOrPermissions) && ROLE_PERMISSIONS[roleOrPermissions].includes(permission);
 }

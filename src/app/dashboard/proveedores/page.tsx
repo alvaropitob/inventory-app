@@ -22,7 +22,8 @@ export default async function ProveedoresPage({ searchParams }: PageProps) {
   if (!user) {
     redirect("/auth/login");
   }
-  const canManageSuppliers = hasPermission(user.role, "suppliers.manage");
+  if (!hasPermission(user.permissions, "suppliers.view")) redirect("/dashboard");
+  const canManageSuppliers = hasPermission(user.permissions, "suppliers.manage");
 
   const { editId, search, error, success } = await searchParams;
   const { data: rawSuppliers } = await CatalogService.getSuppliers();

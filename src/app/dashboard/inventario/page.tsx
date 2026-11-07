@@ -134,10 +134,11 @@ export default async function InventarioPage({
   const { editId, view, error, from, to, user: userFilter, product, location, movementType } = await searchParams;
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
-  const canManageCatalog = hasPermission(user.role, "catalog.manage");
-  const canConsumeInventory = hasPermission(user.role, "inventory.consume");
-  const canTransferInventory = hasPermission(user.role, "inventory.transfer");
-  const canManageDisposal = hasPermission(user.role, "inventory.dispose");
+  if (!hasPermission(user.permissions, "inventory.view")) redirect("/dashboard");
+  const canManageCatalog = hasPermission(user.permissions, "catalog.manage");
+  const canConsumeInventory = hasPermission(user.permissions, "inventory.consume");
+  const canTransferInventory = hasPermission(user.permissions, "inventory.transfer");
+  const canManageDisposal = hasPermission(user.permissions, "inventory.dispose");
 
   const [
     { data: catalogItems },

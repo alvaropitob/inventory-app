@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/services/user";
+import { hasPermission } from "@/lib/permissions";
 import { ComplianceService } from "@/lib/services/compliance";
 import { StockService } from "@/lib/services/stock";
 import { CatalogService } from "@/lib/services/catalog";
@@ -31,6 +32,7 @@ export default async function ReportesPage({ searchParams }: PageProps) {
   if (!user) {
     redirect("/auth/login");
   }
+  if (!hasPermission(user.permissions, "reports.view")) redirect("/dashboard");
 
   const { type = "suficiencia", cause = "", route = "" } = await searchParams;
   const reportTypes = ["resumen", "kardex", "suficiencia", "vencimientos", "mermas", "reactivovigilancia", "ambiental", "valorizacion"] as const;

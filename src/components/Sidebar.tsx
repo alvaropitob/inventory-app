@@ -6,7 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { hasPermission } from "@/lib/permissions";
+import { hasPermission, type AccessPermissionCode } from "@/lib/permissions";
 
 
 interface SidebarProps {
@@ -15,6 +15,7 @@ interface SidebarProps {
     email: string;
     avatarUrl: string | null;
     role: string;
+    permissions: AccessPermissionCode[];
   };
   isMobileOpen?: boolean;
   onClose?: () => void;
@@ -93,7 +94,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
       ),
-      show: true,
+      show: hasPermission(user.permissions, "dashboard.view"),
     },
     {
       name: "Usuarios",
@@ -106,7 +107,18 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
-      show: hasPermission(user.role, "users.manage"),
+      show: hasPermission(user.permissions, "users.manage"),
+    },
+    {
+      name: "Roles y permisos",
+      href: "/dashboard/roles",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 3 4 6v5c0 5 3.4 8.2 8 10 4.6-1.8 8-5 8-10V6l-8-3Z" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+      ),
+      show: hasPermission(user.permissions, "roles.manage"),
     },
     {
       name: "Inventario",
@@ -119,13 +131,13 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="M12 22V12" />
         </svg>
       ),
-      show: true,
+      show: hasPermission(user.permissions, "inventory.view"),
       subItems: [
         { name: "Stock", href: "/dashboard/inventario?view=stock" },
         { name: "Calidad", href: "/dashboard/inventario/calidad" },
         { name: "Entrada manual", href: "/dashboard/inventario?view=entradas" },
         { name: "Salidas", href: "/dashboard/inventario?view=salidas" },
-        ...(hasPermission(user.role, "inventory.dispose") ? [{ name: "Bajas y disposición final", href: "/dashboard/inventario?view=bajas" }] : []),
+        ...(hasPermission(user.permissions, "inventory.dispose") ? [{ name: "Bajas y disposición final", href: "/dashboard/inventario?view=bajas" }] : []),
         { name: "Traslados", href: "/dashboard/inventario?view=traslados" },
         { name: "Trazabilidad", href: "/dashboard/inventario?view=movimientos" },
       ]
@@ -140,7 +152,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="M16 10a4 4 0 0 1-8 0" />
         </svg>
       ),
-      show: true,
+      show: hasPermission(user.permissions, "orders.view"),
     },
     {
       name: "Proveedores",
@@ -153,7 +165,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
-      show: true,
+      show: hasPermission(user.permissions, "suppliers.view"),
       subItems: [
         { name: "Directorio", href: "/dashboard/proveedores" },
         { name: "Evaluación", href: "/dashboard/proveedores/evaluacion" },
@@ -168,7 +180,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
       ),
-      show: true,
+      show: hasPermission(user.permissions, "reception.view"),
     },
     {
       name: "Monitoreo Ambiental",
@@ -179,7 +191,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="M10 10h4" />
         </svg>
       ),
-      show: true,
+      show: hasPermission(user.permissions, "monitoring.view"),
     },
     {
       name: "Gestión de Alertas",
@@ -190,7 +202,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="m9 12 2 2 4-4" />
         </svg>
       ),
-      show: true,
+      show: hasPermission(user.permissions, "safety.view"),
     },
     {
       name: "Reportes",
@@ -204,7 +216,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <polyline points="10 9 9 9 8 9" />
         </svg>
       ),
-      show: true,
+      show: hasPermission(user.permissions, "reports.view"),
     },
     {
       name: "Equipos",
@@ -216,7 +228,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <line x1="12" y1="17" x2="12" y2="21" />
         </svg>
       ),
-      show: true,
+      show: hasPermission(user.permissions, "equipment.view"),
     },
     {
       name: "Auditoría",
@@ -227,7 +239,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
       ),
-      show: hasPermission(user.role, "audit.logs.view"),
+      show: hasPermission(user.permissions, "audit.logs.view"),
       subItems: [
         { name: "Logs de Auditoría", href: "/dashboard/auditoria" },
         { name: "Checklist de Cumplimiento", href: "/dashboard/auditoria/checklist" },
@@ -243,7 +255,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
           <circle cx="12" cy="12" r="3" />
         </svg>
       ),
-      show: hasPermission(user.role, "configuration.manage"),
+      show: hasPermission(user.permissions, "configuration.manage"),
     },
   ];
 

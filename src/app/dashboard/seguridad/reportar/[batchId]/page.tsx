@@ -16,7 +16,8 @@ export default async function ReportarIncidentePage({ params }: PageProps) {
   if (!user) {
     redirect("/auth/login");
   }
-  const canReportIncident = hasPermission(user.role, "safety.incident.submit");
+  if (!hasPermission(user.permissions, "safety.incident.submit") || !hasPermission(user.permissions, "inventory.view")) redirect("/dashboard");
+  const canReportIncident = hasPermission(user.permissions, "safety.incident.submit");
 
   const { batchId } = await params;
   const { data: batch, error } = await StockService.getBatchById(batchId);

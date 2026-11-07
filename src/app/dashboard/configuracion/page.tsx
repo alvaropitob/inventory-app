@@ -108,7 +108,7 @@ export default async function ConfiguracionPage({
   const { tab, editId, sectionId } = await searchParams;
   const user = await getCurrentUserProfile();
 
-  if (!user || !hasPermission(user.role, "configuration.manage")) {
+  if (!user || !hasPermission(user.permissions, "configuration.manage")) {
     redirect("/dashboard");
   }
 

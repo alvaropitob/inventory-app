@@ -1,4 +1,4 @@
-import { hasPermission, isAppRole, type AppPermission } from "@/lib/permissions";
+import { hasPermission, type AppPermission, type AccessPermissionCode } from "@/lib/permissions";
 import { createClient } from "@/lib/supabase/server";
 
 async function getAuthorizationContext() {
@@ -8,7 +8,7 @@ async function getAuthorizationContext() {
 
   const { data: profile, error } = await supabase
     .from("users")
-    .select("is_active, roles!inner(name, is_active)")
+    .select("is_active")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -16,18 +16,19 @@ async function getAuthorizationContext() {
     throw new Error("Usuario inactivo o sin perfil autorizado");
   }
 
-  const roleData = profile.roles as unknown as { name: string; is_active: boolean } | { name: string; is_active: boolean }[];
-  const roleRecord = Array.isArray(roleData) ? roleData[0] : roleData;
-  if (!roleRecord?.is_active || !isAppRole(roleRecord.name)) {
-    throw new Error("El usuario no tiene un rol activo autorizado");
-  }
+  const { data: permissions, error: permissionsError } = await supabase.rpc("fn_current_user_access_permissions");
+  if (permissionsError || !Array.isArray(permissions)) throw new Error("No se pudieron resolver los permisos del usuario");
 
-  return { supabase, user, role: roleRecord.name };
+  return {
+    supabase,
+    user,
+    permissions: permissions.map((row: { permission_code: string }) => row.permission_code) as AccessPermissionCode[],
+  };
 }
 
 export async function requirePermission(permission: AppPermission) {
   const context = await getAuthorizationContext();
-  if (!hasPermission(context.role, permission)) {
+  if (!hasPermission(context.permissions, permission)) {
     throw new Error("No tienes permisos para realizar esta acción");
   }
   return context;

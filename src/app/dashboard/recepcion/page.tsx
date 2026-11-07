@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
 export default async function RecepcionPage() {
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
-  const canRecordReception = hasPermission(user.role, "reception.record");
+  if (!hasPermission(user.permissions, "reception.view")) redirect("/dashboard");
+  const canRecordReception = hasPermission(user.permissions, "reception.record");
   try {
     const allOrders = await OrderService.getOrders();
     const pendingOrders = (allOrders || []).filter(

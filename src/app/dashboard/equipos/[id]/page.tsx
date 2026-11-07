@@ -12,7 +12,8 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
   const { id } = await params;
   const user = await getCurrentUserProfile();
   if (!user) redirect("/auth/login");
-  const canMaintainEquipment = hasPermission(user.role, "equipment.maintain");
+  if (!hasPermission(user.permissions, "equipment.view")) redirect("/dashboard");
+  const canMaintainEquipment = hasPermission(user.permissions, "equipment.maintain");
   const equipment = await EquipmentService.getEquipmentById(id);
 
   if (!equipment.data) {
