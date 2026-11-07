@@ -72,6 +72,7 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
     "Monitoreo Ambiental",
     "Equipos",
     "Reportes",
+    "PQR internas",
     "Auditoría",
     "Usuarios",
     "Configuración",
@@ -119,6 +120,18 @@ export function SidebarContent({ user, isMobileOpen, onClose }: SidebarProps) {
         </svg>
       ),
       show: hasPermission(user.permissions, "roles.manage"),
+    },
+    {
+      name: "PQR internas",
+      href: "/dashboard/pqr",
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          <path d="M12 8v3" />
+          <path d="M12 14h.01" />
+        </svg>
+      ),
+      show: hasPermission(user.permissions, "pqr.submit") || hasPermission(user.permissions, "pqr.manage"),
     },
     {
       name: "Inventario",

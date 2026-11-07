@@ -33,6 +33,8 @@ export const APP_PERMISSIONS = [
   "audit.logs.view",
   "users.manage",
   "roles.manage",
+  "pqr.submit",
+  "pqr.manage",
 ] as const;
 export type AppPermission = (typeof APP_PERMISSIONS)[number];
 export type AccessPermissionCode = string;
@@ -66,6 +68,8 @@ export const ROLE_PERMISSIONS: Record<AppRole, readonly AppPermission[]> = {
     "safety.incident.submit",
     "safety.monthly.manage",
     "audit.logs.view",
+    "pqr.submit",
+    "pqr.manage",
   ],
   operator: [
     ...STAFF_READ_PERMISSIONS,
@@ -75,8 +79,9 @@ export const ROLE_PERMISSIONS: Record<AppRole, readonly AppPermission[]> = {
     "equipment.maintain",
     "environmental.record",
     "safety.incident.submit",
+    "pqr.submit",
   ],
-  auditor: [...STAFF_READ_PERMISSIONS, "audit.logs.view"],
+  auditor: [...STAFF_READ_PERMISSIONS, "audit.logs.view", "pqr.submit"],
 };
 
 export function isAppRole(value: unknown): value is AppRole {

@@ -8,7 +8,7 @@ import { hasPermission } from "@/lib/permissions";
 export const dynamic = "force-dynamic";
 interface PermissionRow { code: string; module: string; action: string; label: string; description: string; is_sensitive: boolean }
 interface RoleRow { id: string; name: string; description: string | null; is_active: boolean; is_system: boolean }
-const moduleLabels: Record<string, string> = { dashboard:"Panel", inventory:"Inventario", orders:"Pedidos", reception:"Recepción", suppliers:"Proveedores", safety:"Seguridad", monitoring:"Monitoreo", equipment:"Equipos", reports:"Reportes", quality:"Calidad", configuration:"Configuración", catalog:"Catálogo", audit:"Auditoría", users:"Usuarios", roles:"Roles" };
+const moduleLabels: Record<string, string> = { dashboard:"Panel", inventory:"Inventario", orders:"Pedidos", reception:"Recepción", suppliers:"Proveedores", safety:"Seguridad", monitoring:"Monitoreo", equipment:"Equipos", reports:"Reportes", quality:"Calidad", configuration:"Configuración", catalog:"Catálogo", audit:"Auditoría", users:"Usuarios", roles:"Roles", pqr:"PQR internas" };
 const protectedSystemPermissions = new Set(["roles.manage", "users.manage"]);
 
 export default async function RolesPage({ searchParams }: { searchParams: Promise<{ error?: string; success?: string; edit?: string; preview?: string }> }) {
@@ -34,7 +34,7 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
     ["reception.view", "Recepción técnica"], ["suppliers.view", "Proveedores"], ["safety.view", "Seguridad"],
     ["monitoring.view", "Monitoreo ambiental"], ["equipment.view", "Equipos"], ["reports.view", "Reportes"],
     ["quality.view", "Calidad"], ["configuration.manage", "Configuración"], ["audit.logs.view", "Auditoría"],
-    ["users.manage", "Usuarios"], ["roles.manage", "Roles y permisos"],
+    ["users.manage", "Usuarios"], ["roles.manage", "Roles y permisos"], ["pqr.submit", "PQR internas"],
   ].filter(([code]) => previewCodes.has(code));
   const groupedPermissions = new Map<string, PermissionRow[]>();
   for (const permission of (permissions ?? []) as PermissionRow[]) groupedPermissions.set(permission.module, [...(groupedPermissions.get(permission.module) ?? []), permission]);
