@@ -23,7 +23,7 @@ export default async function NuevaPqrPage() {
         <Link className="btn-secondary" href="/dashboard/pqr">Volver</Link>
       </div>
 
-      <PqrSubmitForm mode="create" action={createPqr} submitLabel="Enviar solicitud" className="form-card" style={{ padding: "0 0 1.25rem" }}>
+      <PqrSubmitForm mode="create" action={createPqr} submitLabel="Enviar solicitud" className="form-card" style={{ paddingBottom: "var(--sp-5)" }} actionsPadding="0 var(--sp-5)">
         <div className="form-card-header"><h2 className="form-card-title">Datos de la solicitud</h2></div>
         <div className="form-card-body" style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
           <label className="form-label">Tipo

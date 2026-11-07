@@ -20,13 +20,15 @@ interface Props {
   style?: React.CSSProperties;
   /** Extra content rendered after the file picker (e.g. internal-note checkbox). */
   footer?: ReactNode;
+  /** Padding for the attachment picker and action buttons, to align them with the form fields. */
+  actionsPadding?: string;
 }
 
 function formatSize(bytes: number): string {
   return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-export default function PqrSubmitForm({ mode, action, submitLabel, pendingLabel = "Enviando…", children, className, style, footer }: Props) {
+export default function PqrSubmitForm({ mode, action, submitLabel, pendingLabel = "Enviando…", children, className, style, footer, actionsPadding }: Props) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -98,6 +100,7 @@ export default function PqrSubmitForm({ mode, action, submitLabel, pendingLabel 
   return (
     <form onSubmit={onSubmit} onPaste={onPaste} className={className} style={style}>
       {children}
+      <div style={{ padding: actionsPadding }}>
       <div style={{ display: "grid", gap: ".5rem", marginTop: ".85rem" }}>
         <div>
           <input
@@ -130,6 +133,7 @@ export default function PqrSubmitForm({ mode, action, submitLabel, pendingLabel 
       {error && <p className="alert-error" role="alert" style={{ marginTop: ".75rem" }}>{error}</p>}
       <div style={{ display: "flex", gap: ".75rem", justifyContent: "flex-end", marginTop: ".85rem" }}>
         <button className="btn-primary" type="submit" disabled={pending}>{pending ? pendingLabel : submitLabel}</button>
+      </div>
       </div>
     </form>
   );
